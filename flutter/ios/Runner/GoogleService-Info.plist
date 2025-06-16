@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CLIENT_ID</key>
+	<string>983897180404-811hrr26pojje060550hof173814grcp.apps.googleusercontent.com</string>
+	<key>REVERSED_CLIENT_ID</key>
+	<string>com.googleusercontent.apps.983897180404-811hrr26pojje060550hof173814grcp</string>
+	<key>ANDROID_CLIENT_ID</key>
+	<string>983897180404-9sguv0n72auo4vq9tbn34gfueuhlp13k.apps.googleusercontent.com</string>
+	<key>API_KEY</key>
+	<string>AIzaSyBJkj-jnZU9QtQ0yq-tCB3P11TvhMWVJrw</string>
+	<key>GCM_SENDER_ID</key>
+	<string>983897180404</string>
+	<key>PLIST_VERSION</key>
+	<string>1</string>
+	<key>BUNDLE_ID</key>
+	<string>com.nai.autogenerator</string>
+	<key>PROJECT_ID</key>
+	<string>intertravel-fab82</string>
+	<key>STORAGE_BUCKET</key>
+	<string>intertravel-fab82.appspot.com</string>
+	<key>IS_ADS_ENABLED</key>
+	<false></false>
+	<key>IS_ANALYTICS_ENABLED</key>
+	<false></false>
+	<key>IS_APPINVITE_ENABLED</key>
+	<true></true>
+	<key>IS_GCM_ENABLED</key>
+	<true></true>
+	<key>IS_SIGNIN_ENABLED</key>
+	<true></true>
+	<key>GOOGLE_APP_ID</key>
+	<string>1:983897180404:ios:49ebf3b0ae9ead80e5f6a1</string>
+</dict>
+</plist>

@@ -1,0 +1,118 @@
+[2025-04-24T11:23:04.740Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[2025-04-24T11:23:04.741Z] > authorizing via signed-in user (kim990321@gmail.com)
+[2025-04-24T11:23:04.741Z] [iam] checking project nai-login for permissions ["cloudfunctions.functions.create","cloudfunctions.functions.delete","cloudfunctions.functions.get","cloudfunctions.functions.list","cloudfunctions.functions.update","cloudfunctions.operations.get","firebase.projects.get"]
+[2025-04-24T11:23:04.742Z] Checked if tokens are valid: false, expires at: 1745494618953
+[2025-04-24T11:23:04.742Z] Checked if tokens are valid: false, expires at: 1745494618953
+[2025-04-24T11:23:04.742Z] > refreshing access token with scopes: []
+[2025-04-24T11:23:04.743Z] >>> [apiv2][query] POST https://www.googleapis.com/oauth2/v3/token [none]
+[2025-04-24T11:23:04.743Z] >>> [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[2025-04-24T11:23:05.328Z] <<< [apiv2][status] POST https://www.googleapis.com/oauth2/v3/token 200
+[2025-04-24T11:23:05.329Z] <<< [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[2025-04-24T11:23:05.338Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/nai-login:testIamPermissions [none]
+[2025-04-24T11:23:05.338Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/nai-login:testIamPermissions x-goog-quota-user=projects/nai-login
+[2025-04-24T11:23:05.338Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/nai-login:testIamPermissions {"permissions":["cloudfunctions.functions.create","cloudfunctions.functions.delete","cloudfunctions.functions.get","cloudfunctions.functions.list","cloudfunctions.functions.update","cloudfunctions.operations.get","firebase.projects.get"]}
+[2025-04-24T11:23:06.133Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects/nai-login:testIamPermissions 200
+[2025-04-24T11:23:06.133Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/nai-login:testIamPermissions {"permissions":["cloudfunctions.functions.create","cloudfunctions.functions.delete","cloudfunctions.functions.get","cloudfunctions.functions.list","cloudfunctions.functions.update","cloudfunctions.operations.get","firebase.projects.get"]}
+[2025-04-24T11:23:06.134Z] Checked if tokens are valid: true, expires at: 1745497384329
+[2025-04-24T11:23:06.134Z] Checked if tokens are valid: true, expires at: 1745497384329
+[2025-04-24T11:23:06.134Z] >>> [apiv2][query] POST https://iam.googleapis.com/v1/projects/nai-login/serviceAccounts/nai-login@appspot.gserviceaccount.com:testIamPermissions [none]
+[2025-04-24T11:23:06.134Z] >>> [apiv2][body] POST https://iam.googleapis.com/v1/projects/nai-login/serviceAccounts/nai-login@appspot.gserviceaccount.com:testIamPermissions {"permissions":["iam.serviceAccounts.actAs"]}
+[2025-04-24T11:23:06.563Z] <<< [apiv2][status] POST https://iam.googleapis.com/v1/projects/nai-login/serviceAccounts/nai-login@appspot.gserviceaccount.com:testIamPermissions 200
+[2025-04-24T11:23:06.563Z] <<< [apiv2][body] POST https://iam.googleapis.com/v1/projects/nai-login/serviceAccounts/nai-login@appspot.gserviceaccount.com:testIamPermissions {"permissions":["iam.serviceAccounts.actAs"]}
+
+=== Deploying to 'nai-login'...
+
+i  deploying functions 
+[2025-04-24T11:23:06.571Z] Checked if tokens are valid: true, expires at: 1745497384329
+[2025-04-24T11:23:06.571Z] Checked if tokens are valid: true, expires at: 1745497384329
+[2025-04-24T11:23:06.571Z] >>> [apiv2][query] GET https://cloudresourcemanager.googleapis.com/v1/projects/nai-login [none]
+[2025-04-24T11:23:06.785Z] <<< [apiv2][status] GET https://cloudresourcemanager.googleapis.com/v1/projects/nai-login 200
+[2025-04-24T11:23:06.786Z] <<< [apiv2][body] GET https://cloudresourcemanager.googleapis.com/v1/projects/nai-login {"projectNumber":"770510739912","projectId":"nai-login","lifecycleState":"ACTIVE","name":"NAI Login","labels":{"firebase":"enabled","firebase-core":"disabled"},"createTime":"2025-04-24T10:33:57.905439Z"}
+i  functions: preparing codebase default for deployment 
+i  functions: ensuring required API cloudfunctions.googleapis.com is enabled... 
+[2025-04-24T11:23:06.788Z] Checked if tokens are valid: true, expires at: 1745497384329
+[2025-04-24T11:23:06.788Z] Checked if tokens are valid: true, expires at: 1745497384329
+[2025-04-24T11:23:06.788Z] Checked if tokens are valid: true, expires at: 1745497384329
+[2025-04-24T11:23:06.788Z] Checked if tokens are valid: true, expires at: 1745497384329
+i  functions: ensuring required API cloudbuild.googleapis.com is enabled... 
+[2025-04-24T11:23:06.789Z] Checked if tokens are valid: true, expires at: 1745497384329
+[2025-04-24T11:23:06.789Z] Checked if tokens are valid: true, expires at: 1745497384329
+i  artifactregistry: ensuring required API artifactregistry.googleapis.com is enabled... 
+[2025-04-24T11:23:06.790Z] Checked if tokens are valid: true, expires at: 1745497384329
+[2025-04-24T11:23:06.790Z] Checked if tokens are valid: true, expires at: 1745497384329
+[2025-04-24T11:23:06.791Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/nai-login/services/cloudfunctions.googleapis.com [none]
+[2025-04-24T11:23:06.791Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/nai-login/services/cloudfunctions.googleapis.com x-goog-quota-user=projects/nai-login
+[2025-04-24T11:23:06.794Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/nai-login/services/runtimeconfig.googleapis.com [none]
+[2025-04-24T11:23:06.794Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/nai-login/services/runtimeconfig.googleapis.com x-goog-quota-user=projects/nai-login
+[2025-04-24T11:23:06.795Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/nai-login/services/cloudbuild.googleapis.com [none]
+[2025-04-24T11:23:06.795Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/nai-login/services/cloudbuild.googleapis.com x-goog-quota-user=projects/nai-login
+[2025-04-24T11:23:06.797Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/nai-login/services/artifactregistry.googleapis.com [none]
+[2025-04-24T11:23:06.797Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/nai-login/services/artifactregistry.googleapis.com x-goog-quota-user=projects/nai-login
+[2025-04-24T11:23:07.307Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/nai-login/services/artifactregistry.googleapis.com 200
+[2025-04-24T11:23:07.307Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/nai-login/services/artifactregistry.googleapis.com [omitted]
+✔  artifactregistry: required API artifactregistry.googleapis.com is enabled 
+[2025-04-24T11:23:07.938Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/nai-login/services/runtimeconfig.googleapis.com 200
+[2025-04-24T11:23:07.938Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/nai-login/services/runtimeconfig.googleapis.com [omitted]
+[2025-04-24T11:23:07.939Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/nai-login/services/cloudbuild.googleapis.com 200
+[2025-04-24T11:23:07.940Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/nai-login/services/cloudbuild.googleapis.com [omitted]
+✔  functions: required API cloudbuild.googleapis.com is enabled 
+[2025-04-24T11:23:07.992Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/nai-login/services/cloudfunctions.googleapis.com 200
+[2025-04-24T11:23:07.992Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/nai-login/services/cloudfunctions.googleapis.com [omitted]
+✔  functions: required API cloudfunctions.googleapis.com is enabled 
+[2025-04-24T11:23:07.993Z] Checked if tokens are valid: true, expires at: 1745497384329
+[2025-04-24T11:23:07.993Z] Checked if tokens are valid: true, expires at: 1745497384329
+[2025-04-24T11:23:07.993Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/nai-login/adminSdkConfig [none]
+[2025-04-24T11:23:08.476Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/nai-login/adminSdkConfig 200
+[2025-04-24T11:23:08.476Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/nai-login/adminSdkConfig {"projectId":"nai-login","storageBucket":"nai-login.firebasestorage.app"}
+[2025-04-24T11:23:08.477Z] Checked if tokens are valid: true, expires at: 1745497384329
+[2025-04-24T11:23:08.477Z] Checked if tokens are valid: true, expires at: 1745497384329
+[2025-04-24T11:23:08.478Z] >>> [apiv2][query] GET https://runtimeconfig.googleapis.com/v1beta1/projects/nai-login/configs [none]
+[2025-04-24T11:23:09.073Z] <<< [apiv2][status] GET https://runtimeconfig.googleapis.com/v1beta1/projects/nai-login/configs 200
+[2025-04-24T11:23:09.074Z] <<< [apiv2][body] GET https://runtimeconfig.googleapis.com/v1beta1/projects/nai-login/configs {}
+[2025-04-24T11:23:09.082Z] Customer code is not Node
+[2025-04-24T11:23:09.082Z] Validating python source
+[2025-04-24T11:23:09.083Z] Building python source
+i  functions: Loading and analyzing source code for codebase default to determine what to deploy 
+[2025-04-24T11:23:09.084Z] Could not find functions.yaml. Must use http discovery
+[2025-04-24T11:23:09.091Z] Running command with virtualenv: command=., args=["\"/Users/junhyukkim/GitHub/interTravel/functions/venv/bin/activate\"","&&","python3.12","-c","\"import firebase_functions; import os; print(os.path.dirname(firebase_functions.__file__))\""]
+[2025-04-24T11:23:09.156Z] stdout: /Users/junhyukkim/GitHub/interTravel/functions/venv/lib/python3.12/site-packages/firebase_functions
+
+[2025-04-24T11:23:09.159Z] Running admin server with args: ["python3.12","\"/Users/junhyukkim/GitHub/interTravel/functions/venv/lib/python3.12/site-packages/firebase_functions/private/serving.py\""] and env: {"FIREBASE_CONFIG":"{\"projectId\":\"nai-login\",\"storageBucket\":\"nai-login.firebasestorage.app\"}","GCLOUD_PROJECT":"nai-login","GOOGLE_CLOUD_QUOTA_PROJECT":"nai-login","ADMIN_PORT":"8081"} in /Users/junhyukkim/GitHub/interTravel/functions
+[2025-04-24T11:23:09.159Z] Running command with virtualenv: command=., args=["\"/Users/junhyukkim/GitHub/interTravel/functions/venv/bin/activate\"","&&","python3.12","\"/Users/junhyukkim/GitHub/interTravel/functions/venv/lib/python3.12/site-packages/firebase_functions/private/serving.py\""]
+ * Serving Flask app 'serving'
+ * Debug mode: off
+
+WARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.
+ * Running on http://127.0.0.1:8081
+
+Press CTRL+C to quit
+
+127.0.0.1 - - [24/Apr/2025 20:23:09] "GET /__/functions.yaml HTTP/1.1" 200 -
+
+[2025-04-24T11:23:09.664Z] Got response from /__/functions.yaml endpoints: {}
+params: []
+requiredAPIs: []
+specVersion: v1alpha1
+
+127.0.0.1 - - [24/Apr/2025 20:23:09] "GET /__/quitquitquit HTTP/1.1" 200 -
+
+/bin/sh: line 1: 76941 Terminated: 15          python3.12 "/Users/junhyukkim/GitHub/interTravel/functions/venv/lib/python3.12/site-packages/firebase_functions/private/serving.py"
+
+[2025-04-24T11:23:09.679Z] Checked if tokens are valid: true, expires at: 1745497384329
+[2025-04-24T11:23:09.679Z] Checked if tokens are valid: true, expires at: 1745497384329
+[2025-04-24T11:23:09.679Z] >>> [apiv2][query] GET https://cloudfunctions.googleapis.com/v1/projects/nai-login/locations/-/functions [none]
+[2025-04-24T11:23:10.722Z] <<< [apiv2][status] GET https://cloudfunctions.googleapis.com/v1/projects/nai-login/locations/-/functions 200
+[2025-04-24T11:23:10.723Z] <<< [apiv2][body] GET https://cloudfunctions.googleapis.com/v1/projects/nai-login/locations/-/functions {}
+[2025-04-24T11:23:10.723Z] Checked if tokens are valid: true, expires at: 1745497384329
+[2025-04-24T11:23:10.724Z] Checked if tokens are valid: true, expires at: 1745497384329
+[2025-04-24T11:23:10.724Z] >>> [apiv2][query] GET https://cloudfunctions.googleapis.com/v2/projects/nai-login/locations/-/functions filter=environment%3D%22GEN_2%22
+[2025-04-24T11:23:12.092Z] <<< [apiv2][status] GET https://cloudfunctions.googleapis.com/v2/projects/nai-login/locations/-/functions 200
+[2025-04-24T11:23:12.092Z] <<< [apiv2][body] GET https://cloudfunctions.googleapis.com/v2/projects/nai-login/locations/-/functions {"functions":[{"name":"projects/nai-login/locations/us-central1/functions/on_request_example","buildConfig":{"build":"projects/770510739912/locations/us-central1/builds/47ac9bc1-dbf6-4fb1-a102-794b753290fc","runtime":"python312","entryPoint":"on_request_example","source":{"storageSource":{"bucket":"gcf-v2-sources-770510739912-us-central1","object":"on_request_example/function-source.zip","generation":"1745491689810633"}},"environmentVariables":{"GOOGLE_NODE_RUN_SCRIPTS":""},"dockerRepository":"projects/nai-login/locations/us-central1/repositories/gcf-artifacts","sourceProvenance":{"resolvedStorageSource":{"bucket":"gcf-v2-sources-770510739912-us-central1","object":"on_request_example/function-source.zip","generation":"1745491689810633"}},"dockerRegistry":"ARTIFACT_REGISTRY","serviceAccount":"projects/nai-login/serviceAccounts/770510739912-compute@developer.gserviceaccount.com","automaticUpdatePolicy":{}},"serviceConfig":{"service":"projects/nai-login/locations/us-central1/services/on-request-example","timeoutSeconds":60,"environmentVariables":{"FIREBASE_CONFIG":"{\"projectId\":\"nai-login\",\"storageBucket\":\"nai-login.firebasestorage.app\"}","GCLOUD_PROJECT":"nai-login","EVENTARC_CLOUD_EVENT_SOURCE":"projects/nai-login/locations/us-central1/services/on_request_example","FUNCTION_TARGET":"on_request_example","LOG_EXECUTION_ID":"true"},"maxInstanceCount":40,"ingressSettings":"ALLOW_ALL","uri":"https://on-request-example-cgdtibqflq-uc.a.run.app","serviceAccountEmail":"770510739912-compute@developer.gserviceaccount.com","availableMemory":"256Mi","allTrafficOnLatestRevision":true,"revision":"on-request-example-00001-mih","maxInstanceRequestConcurrency":80,"availableCpu":"1"},"state":"ACTIVE","updateTime":"2025-04-24T10:50:39.084821760Z","labels":{"deployment-tool":"cli-firebase","firebase-functions-hash":"37da1d46208583ef999490a0283227391a48265d"},"environment":"GEN_2","url":"https://us-central1-nai-login.cloudfunctions.net/on_request_example","createTime":"2025-04-24T10:48:10.136351819Z","satisfiesPzi":true}]}
+
+The following functions are found in your project but do not exist in your local source code:
+	on_request_example(us-central1)
+
+If you are renaming a function or changing its region, it is recommended that you create the new function first before deleting the old one to prevent event loss. For more info, visit https://firebase.google.com/docs/functions/manage-functions#modify
+
+? Would you like to proceed with deletion? Selecting no will continue the rest 
+of the deployments. (y/N) [1A[26D[105C[1B

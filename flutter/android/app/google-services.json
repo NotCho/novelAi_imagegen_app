@@ -1,0 +1,98 @@
+{
+  "project_info": {
+    "project_number": "983897180404",
+    "project_id": "intertravel-fab82",
+    "storage_bucket": "intertravel-fab82.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:983897180404:android:7b1afd86ad195f71e5f6a1",
+        "android_client_info": {
+          "package_name": "com.example.maptest"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "983897180404-c895tl8kq9galr12mqpirs3l7arh4n4g.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC0Okg8Hq7y9tkvvXwfgzBKNqaJAd4m2YI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "983897180404-c895tl8kq9galr12mqpirs3l7arh4n4g.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "983897180404-811hrr26pojje060550hof173814grcp.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.nai.autogenerator"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:983897180404:android:0d689881c2012034e5f6a1",
+        "android_client_info": {
+          "package_name": "com.nai.autogenerator"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "983897180404-9sguv0n72auo4vq9tbn34gfueuhlp13k.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.nai.autogenerator",
+            "certificate_hash": "5b099744676b779e96bbfbe8ee1762153f3ffe33"
+          }
+        },
+        {
+          "client_id": "983897180404-g4gm87tvgtqa60uru1as2quqb6krcjdj.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.nai.autogenerator",
+            "certificate_hash": "0ddb86b2cef4ffdc34e0ff47cb24a97694134407"
+          }
+        },
+        {
+          "client_id": "983897180404-c895tl8kq9galr12mqpirs3l7arh4n4g.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC0Okg8Hq7y9tkvvXwfgzBKNqaJAd4m2YI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "983897180404-c895tl8kq9galr12mqpirs3l7arh4n4g.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "983897180404-811hrr26pojje060550hof173814grcp.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.nai.autogenerator"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
