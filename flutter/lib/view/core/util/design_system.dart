@@ -105,19 +105,19 @@ extension SkeletonTextTheme on TextTheme {
       _getStyle(fontSize: 15, lineHeight: 20, color: SkeletonColorScheme.title);
 
   static TextStyle get body0 =>
-      _getStyle(fontSize: 10, lineHeight: 15, color: SkeletonColorScheme.body);
+      _getStyle(fontSize: 10, lineHeight: 15, color: SkeletonColorScheme.textColor);
 
   static TextStyle get body1 =>
-      _getStyle(fontSize: 14, lineHeight: 21, color: SkeletonColorScheme.body);
+      _getStyle(fontSize: 14, lineHeight: 21, color: SkeletonColorScheme.textColor);
 
   static TextStyle get body2 =>
-      _getStyle(fontSize: 14, lineHeight: 18, color: SkeletonColorScheme.body);
+      _getStyle(fontSize: 14, lineHeight: 18, color: SkeletonColorScheme.textColor);
 
   static TextStyle get body2Long =>
-      _getStyle(fontSize: 14, lineHeight: 22, color: SkeletonColorScheme.body);
+      _getStyle(fontSize: 14, lineHeight: 22, color: SkeletonColorScheme.textColor);
 
   static TextStyle get body3 =>
-      _getStyle(fontSize: 12, lineHeight: 19, color: SkeletonColorScheme.body);
+      _getStyle(fontSize: 12, lineHeight: 19, color: SkeletonColorScheme.textColor);
 
   static TextStyle get body4 => _getStyle(
       fontSize: 12,
@@ -167,7 +167,7 @@ extension SkeletonTextTheme on TextTheme {
   static TextStyle get newBody16Bold => _getStyle(
       fontSize: 16,
       lineHeight: 24,
-      color: SkeletonColorScheme.newG800,
+      color: SkeletonColorScheme.textColor,
       fontWeight: FontWeight.bold);
 
   static TextStyle get newBody18Bold => _getStyle(

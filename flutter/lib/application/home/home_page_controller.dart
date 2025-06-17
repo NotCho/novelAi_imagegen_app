@@ -43,7 +43,7 @@ class HomePageController extends SkeletonController {
   RxBool autoSave = false.obs;
   RxString loadImageStatus = "이미지를 불러온 후 체크박스 설정 가능".obs;
   RxBool isExifChecked = false.obs;
-  final usingModel = 'nai-diffusion-4-full'.obs;
+  final usingModel = 'nai-diffusion-4-5-full'.obs;
   Rx<Uint8List> loadedImageBytes = Uint8List(0).obs;
   RxInt maxAutoGenerateCount = 0.obs; // 최대 자동 생성 이미지 수
   RxInt currentAutoGenerateCount = 0.obs; // 현재 자동 생성 이미지 수
@@ -308,7 +308,10 @@ class HomePageController extends SkeletonController {
       (r) => print('토큰 생성 성공: $r'),
     );
     homeSettingController.loadPresets();
-    List<String>? list = await prefs.getStringList("customSizeList");
+    List<String>? list = prefs.getStringList("customSizeList");
+
+
+
     if (list != null) {
       for (String size in list) {
         List<String> parts = size.split('x');
@@ -834,11 +837,8 @@ class HomePageController extends SkeletonController {
           if (await file.exists()) {
             final bytes = await file.readAsBytes();
 
-            // 이미지 처리 전에 포맷 확인
-
             _checkImageMetadata(bytes);
 
-            // UI 업데이트
             imageCache[base64Encode(bytes)] = bytes;
             loadedImageBytes.value = bytes;
 

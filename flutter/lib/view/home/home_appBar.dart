@@ -15,8 +15,8 @@ class HomeAppBar extends GetView<HomePageController> {
       () => Row(
         children: [
           IconButton(
-            onPressed: logoutDialog,
-            icon: const Icon(Icons.logout),
+            onPressed: controller.router.toSetting,
+            icon: const Icon(Icons.dehaze),
             color: SkeletonColorScheme.textSecondaryColor,
           ),
           Expanded(
@@ -123,37 +123,6 @@ class HomeAppBar extends GetView<HomePageController> {
     );
   }
 
-  void logoutDialog() {
-    Get.dialog(
-      AlertDialog(
-        backgroundColor: SkeletonColorScheme.cardColor,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(SkeletonSpacing.borderRadius),
-        ),
-        title: const Text(
-          '로그아웃 하시겠습니까?',
-          style: TextStyle(
-              color: SkeletonColorScheme.textColor,
-              fontWeight: FontWeight.normal,
-              fontSize: 14),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Get.back();
-            },
-            child: const Text('취소'),
-          ),
-          TextButton(
-            onPressed: () {
-              controller.logout();
-            },
-            child: const Text('확인'),
-          ),
-        ],
-      ),
-    );
-  }
 
   Widget LoadImageDialog() {
     return AlertDialog(

@@ -37,7 +37,6 @@ class WebPMetadataParser {
 
       print('모든 메타데이터 추출 방식 실패');
       return null;
-
     } catch (e) {
       print('메타데이터 추출 중 오류: $e');
       return null;
@@ -146,12 +145,13 @@ class WebPMetadataParser {
 
       final lengthBytes = alphaData.sublist(pos, pos + 4);
       final dataLength = (lengthBytes[0] << 24) |
-      (lengthBytes[1] << 16) |
-      (lengthBytes[2] << 8) |
-      lengthBytes[3];
+          (lengthBytes[1] << 16) |
+          (lengthBytes[2] << 8) |
+          lengthBytes[3];
       pos += 4;
 
-      final readLen = dataLength ~/ 8; // Python: read_len = reader.read_32bit_integer() // 8
+      final readLen = dataLength ~/
+          8; // Python: read_len = reader.read_32bit_integer() // 8
       print('압축된 데이터 길이: $readLen 바이트');
 
       if (pos + readLen > alphaData.length) {
@@ -170,15 +170,14 @@ class WebPMetadataParser {
 
         print('Gzip 압축 해제 성공!');
         print('JSON 텍스트 길이: ${jsonText.length}');
-        print('JSON 시작 부분: ${jsonText.substring(0, math.min(200, jsonText.length))}');
+        print(
+            'JSON 시작 부분: ${jsonText.substring(0, math.min(200, jsonText.length))}');
 
         return jsonText;
-
       } catch (e) {
         print('Gzip 압축 해제 실패: $e');
         return null;
       }
-
     } catch (e) {
       print('NovelAI 공식 방식 LSB 추출 오류: $e');
       return null;
@@ -242,7 +241,6 @@ class WebPMetadataParser {
       print('패킹된 첫 20바이트: ${packedBytes.take(20).toList()}');
 
       return packedBytes;
-
     } catch (e) {
       print('Byteize 처리 오류: $e');
       return null;
@@ -282,7 +280,6 @@ class WebPMetadataParser {
 
       print('역순 LSB 바이트 샘플: ${messageBytes.take(20).toList()}');
       return _tryDecodeBytes(messageBytes);
-
     } catch (e) {
       print('역순 LSB 추출 오류: $e');
       return null;
@@ -307,7 +304,9 @@ class WebPMetadataParser {
         // '{' 패턴 찾기
         if (alphaBytes[start] == 123) {
           // 다양한 길이로 JSON 추출 시도
-          for (int length = 500; length < 50000 && start + length < alphaBytes.length; length += 500) {
+          for (int length = 500;
+              length < 50000 && start + length < alphaBytes.length;
+              length += 500) {
             try {
               final candidate = alphaBytes.sublist(start, start + length);
               final text = utf8.decode(candidate, allowMalformed: true);
@@ -325,7 +324,6 @@ class WebPMetadataParser {
 
       print('Raw에서 JSON 패턴 찾을 수 없음');
       return null;
-
     } catch (e) {
       print('Raw 바이트 추출 오류: $e');
       return null;
@@ -472,8 +470,14 @@ class WebPMetadataParser {
       if (bytes.length < 12) return null;
 
       // WebP 시그니처 확인
-      if (!(bytes[0] == 0x52 && bytes[1] == 0x49 && bytes[2] == 0x46 && bytes[3] == 0x46 &&
-          bytes[8] == 0x57 && bytes[9] == 0x45 && bytes[10] == 0x42 && bytes[11] == 0x50)) {
+      if (!(bytes[0] == 0x52 &&
+          bytes[1] == 0x49 &&
+          bytes[2] == 0x46 &&
+          bytes[3] == 0x46 &&
+          bytes[8] == 0x57 &&
+          bytes[9] == 0x45 &&
+          bytes[10] == 0x42 &&
+          bytes[11] == 0x50)) {
         return null;
       }
 
@@ -482,11 +486,12 @@ class WebPMetadataParser {
 
       while (offset + 8 < bytes.length) {
         try {
-          final chunkId = String.fromCharCodes(bytes.sublist(offset, offset + 4));
+          final chunkId =
+              String.fromCharCodes(bytes.sublist(offset, offset + 4));
           final chunkSize = bytes[offset + 4] |
-          (bytes[offset + 5] << 8) |
-          (bytes[offset + 6] << 16) |
-          (bytes[offset + 7] << 24);
+              (bytes[offset + 5] << 8) |
+              (bytes[offset + 6] << 16) |
+              (bytes[offset + 7] << 24);
 
           print('WebP 청크: $chunkId, 크기: $chunkSize');
 
@@ -533,7 +538,8 @@ class WebPMetadataParser {
           if (chunkId == 'XMP ') {
             print('XMP 청크 발견');
             try {
-              final xmpText = utf8.decode(bytes.sublist(dataStart, dataEnd), allowMalformed: true);
+              final xmpText = utf8.decode(bytes.sublist(dataStart, dataEnd),
+                  allowMalformed: true);
               if (xmpText.contains('prompt') || xmpText.contains('{')) {
                 textChunks['XMP'] = xmpText;
                 return textChunks;
@@ -554,7 +560,6 @@ class WebPMetadataParser {
           }
 
           offset = dataEnd + (chunkSize % 2);
-
         } catch (e) {
           print('WebP 청크 처리 오류: $e');
           break;
@@ -562,7 +567,6 @@ class WebPMetadataParser {
       }
 
       return textChunks.isNotEmpty ? textChunks : null;
-
     } catch (e) {
       print('WebP EXIF 추출 오류: $e');
       return null;
@@ -576,9 +580,11 @@ class WebPMetadataParser {
 
       // 1. 직접 JSON 패턴 찾기
       for (int i = 0; i < data.length - 10; i++) {
-        if (data[i] == 123) { // '{'
+        if (data[i] == 123) {
+          // '{'
           for (int j = i + 10; j < math.min(i + 50000, data.length); j++) {
-            if (data[j] == 125) { // '}'
+            if (data[j] == 125) {
+              // '}'
               try {
                 final candidate = data.sublist(i, j + 1);
                 final text = utf8.decode(candidate, allowMalformed: false);
@@ -614,7 +620,6 @@ class WebPMetadataParser {
 
       print('$chunkName에서 JSON 패턴 없음');
       return null;
-
     } catch (e) {
       print('$chunkName JSON 검색 오류: $e');
       return null;
@@ -652,7 +657,8 @@ class WebPMetadataParser {
       // 간단한 XOR 디코딩 시도 (일부 스테가노그래피에서 사용)
       for (int key = 1; key < 256; key++) {
         try {
-          final decoded = Uint8List.fromList(alphData.map((b) => b ^ key).toList());
+          final decoded =
+              Uint8List.fromList(alphData.map((b) => b ^ key).toList());
           final text = utf8.decode(decoded, allowMalformed: true);
           if (_isValidJson(text)) {
             print('ALPH XOR(키:$key) 디코딩 성공');
@@ -679,9 +685,9 @@ class WebPMetadataParser {
 
       while (i + 8 < bytes.length) {
         final length = (bytes[i] << 24) |
-        (bytes[i + 1] << 16) |
-        (bytes[i + 2] << 8) |
-        (bytes[i + 3]);
+            (bytes[i + 1] << 16) |
+            (bytes[i + 2] << 8) |
+            (bytes[i + 3]);
         final chunkType = String.fromCharCodes(bytes.sublist(i + 4, i + 8));
         final dataStart = i + 8;
         final dataEnd = dataStart + length;
@@ -706,5 +712,788 @@ class WebPMetadataParser {
       print('PNG 텍스트 청크 추출 실패: $e');
       return <String, String>{};
     }
+  }
+}
+
+class WebPMetadataEmbedder {
+  /// WebP 파일의 청크를 직접 수정해서 메타데이터 삽입
+  /// image 라이브러리의 encodeWebP 함수 없이도 작동
+  static Uint8List? embedMetadataInWebP(
+      Uint8List imageBytes, Map<String, String> metadata) {
+    try {
+      print('WebP 청크 직접 수정 방식으로 메타데이터 삽입');
+
+      if (imageBytes.length < 12) {
+        print('WebP 파일이 너무 작음');
+        return null;
+      }
+
+      // WebP 시그니처 확인
+      if (!(imageBytes[0] == 0x52 &&
+          imageBytes[1] == 0x49 &&
+          imageBytes[2] == 0x46 &&
+          imageBytes[3] == 0x46 &&
+          imageBytes[8] == 0x57 &&
+          imageBytes[9] == 0x45 &&
+          imageBytes[10] == 0x42 &&
+          imageBytes[11] == 0x50)) {
+        print('유효한 WebP 파일이 아님');
+        return null;
+      }
+
+      // 메타데이터를 JSON으로 변환하고 압축
+      final jsonText = jsonEncode(metadata);
+      final jsonBytes = utf8.encode(jsonText);
+      final compressedData = gzip.encode(jsonBytes);
+
+      print('메타데이터 압축: ${jsonBytes.length} -> ${compressedData.length} bytes');
+
+      // NovelAI 방식 데이터 준비
+      final novelAIData = _prepareNovelAIData(jsonText);
+
+      // 방법 1: EXIF 청크에 압축된 데이터 삽입
+      var result = _insertExifChunk(imageBytes, compressedData);
+      if (result != null) {
+        print('EXIF 청크 방식 성공');
+        return result;
+      }
+
+      // 방법 2: 커스텀 청크에 NovelAI 데이터 삽입
+      if (novelAIData != null) {
+        result = _insertCustomChunk(imageBytes, 'META', novelAIData);
+        if (result != null) {
+          print('커스텀 청크 방식 성공');
+          return result;
+        }
+      }
+
+      // 방법 3: XMP 청크에 JSON 삽입
+      result = _insertXmpChunk(imageBytes, jsonText);
+      if (result != null) {
+        print('XMP 청크 방식 성공');
+        return result;
+      }
+
+      print('모든 WebP 청크 삽입 방식 실패');
+      return null;
+    } catch (e) {
+      print('WebP 메타데이터 삽입 오류: $e');
+      return null;
+    }
+  }
+
+  /// NovelAI 방식으로 데이터 준비 (stealth_pngcomp + gzip)
+  static Uint8List? _prepareNovelAIData(String jsonText) {
+    try {
+      print('NovelAI 방식 데이터 준비');
+
+      // 1. JSON을 gzip으로 압축
+      final jsonBytes = utf8.encode(jsonText);
+      final compressedData = gzip.encode(jsonBytes);
+      print(
+          '압축 전: ${jsonBytes.length} bytes, 압축 후: ${compressedData.length} bytes');
+
+      // 2. 헤더 준비
+      const magic = "stealth_pngcomp";
+      final magicBytes = utf8.encode(magic);
+
+      // 3. 길이 정보 (32비트 Big Endian, 비트 단위)
+      final dataLengthInBits = compressedData.length * 8;
+      final lengthBytes = [
+        (dataLengthInBits >> 24) & 0xFF,
+        (dataLengthInBits >> 16) & 0xFF,
+        (dataLengthInBits >> 8) & 0xFF,
+        dataLengthInBits & 0xFF,
+      ];
+
+      // 4. 전체 데이터 조합: magic + length + compressed_data
+      final totalData = <int>[];
+      totalData.addAll(magicBytes);
+      totalData.addAll(lengthBytes);
+      totalData.addAll(compressedData);
+
+      print('최종 데이터 크기: ${totalData.length} bytes');
+      return Uint8List.fromList(totalData);
+    } catch (e) {
+      print('NovelAI 데이터 준비 오류: $e');
+      return null;
+    }
+  }
+
+  /// EXIF 청크에 메타데이터 삽입
+  static Uint8List? _insertExifChunk(Uint8List originalBytes, List<int> data) {
+    try {
+      print('EXIF 청크 삽입 시도');
+
+      // EXIF 청크 생성
+      final exifChunk = _createWebPChunk('EXIF', data);
+
+      // WebP 파일에 삽입
+      return _insertChunkInWebP(originalBytes, exifChunk, 'EXIF');
+    } catch (e) {
+      print('EXIF 청크 삽입 오류: $e');
+      return null;
+    }
+  }
+
+  /// 커스텀 청크에 메타데이터 삽입
+  static Uint8List? _insertCustomChunk(
+      Uint8List originalBytes, String chunkType, List<int> data) {
+    try {
+      print('$chunkType 청크 삽입 시도');
+
+      // 커스텀 청크 생성
+      final customChunk = _createWebPChunk(chunkType, data);
+
+      // WebP 파일에 삽입
+      return _insertChunkInWebP(originalBytes, customChunk, chunkType);
+    } catch (e) {
+      print('$chunkType 청크 삽입 오류: $e');
+      return null;
+    }
+  }
+
+  /// XMP 청크에 메타데이터 삽입
+  static Uint8List? _insertXmpChunk(Uint8List originalBytes, String jsonText) {
+    try {
+      print('XMP 청크 삽입 시도');
+
+      // XMP 포맷으로 감싸기
+      final xmpContent = '''<?xpacket begin="" id=""?>
+<x:xmpmeta xmlns:x="adobe:ns:meta/">
+  <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+    <rdf:Description rdf:about="">
+      <exif:UserComment>$jsonText</exif:UserComment>
+    </rdf:Description>
+  </rdf:RDF>
+</x:xmpmeta>
+<?xpacket end="w"?>''';
+
+      final xmpBytes = utf8.encode(xmpContent);
+      final xmpChunk = _createWebPChunk('XMP ', xmpBytes);
+
+      return _insertChunkInWebP(originalBytes, xmpChunk, 'XMP ');
+    } catch (e) {
+      print('XMP 청크 삽입 오류: $e');
+      return null;
+    }
+  }
+
+  /// WebP 청크 생성
+  static Uint8List _createWebPChunk(String chunkType, List<int> data) {
+    final chunk = <int>[];
+
+    // 청크 타입 (4바이트, 부족하면 공백으로 패딩)
+    final typeBytes = utf8.encode(chunkType);
+    if (typeBytes.length >= 4) {
+      chunk.addAll(typeBytes.take(4));
+    } else {
+      chunk.addAll(typeBytes);
+      while (chunk.length < 4) {
+        chunk.add(0x20); // 공백
+      }
+    }
+
+    // 청크 크기 (Little Endian)
+    final chunkSize = data.length;
+    chunk.add(chunkSize & 0xFF);
+    chunk.add((chunkSize >> 8) & 0xFF);
+    chunk.add((chunkSize >> 16) & 0xFF);
+    chunk.add((chunkSize >> 24) & 0xFF);
+
+    // 데이터
+    chunk.addAll(data);
+
+    // 패딩 (홀수 크기면 0x00 추가)
+    if (chunkSize % 2 == 1) {
+      chunk.add(0x00);
+    }
+
+    print('WebP 청크 생성: $chunkType, 크기: ${chunk.length} bytes');
+    return Uint8List.fromList(chunk);
+  }
+
+  /// WebP 파일에 청크 삽입
+  static Uint8List? _insertChunkInWebP(
+      Uint8List originalBytes, Uint8List newChunk, String chunkType) {
+    try {
+      print('WebP에 $chunkType 청크 삽입');
+
+      // RIFF 헤더 복사 (처음 12바이트)
+      final result = <int>[];
+      result.addAll(originalBytes.sublist(0, 12));
+
+      // 기존 청크들과 새 청크 처리
+      int offset = 12;
+      bool chunkInserted = false;
+
+      while (offset < originalBytes.length) {
+        if (offset + 8 > originalBytes.length) break;
+
+        // 청크 ID 읽기
+        final existingChunkId =
+            String.fromCharCodes(originalBytes.sublist(offset, offset + 4));
+        final existingChunkSize = originalBytes[offset + 4] |
+            (originalBytes[offset + 5] << 8) |
+            (originalBytes[offset + 6] << 16) |
+            (originalBytes[offset + 7] << 24);
+
+        final dataStart = offset + 8;
+        final dataEnd = dataStart + existingChunkSize;
+        final paddedEnd = dataEnd + (existingChunkSize % 2); // 패딩 고려
+
+        if (paddedEnd > originalBytes.length) break;
+
+        print('기존 청크: $existingChunkId, 크기: $existingChunkSize');
+
+        // 기존 청크가 같은 타입이면 대체
+        if (existingChunkId.trim() == chunkType.trim()) {
+          result.addAll(newChunk);
+          chunkInserted = true;
+          print('기존 $chunkType 청크 대체');
+        } else if ((existingChunkId == 'VP8 ' ||
+                existingChunkId == 'VP8L' ||
+                existingChunkId == 'VP8X') &&
+            !chunkInserted) {
+          // VP8 관련 청크 뒤에 새 청크 삽입
+          result.addAll(originalBytes.sublist(offset, paddedEnd));
+          result.addAll(newChunk);
+          chunkInserted = true;
+          print('$chunkType 청크를 $existingChunkId 뒤에 삽입');
+        } else {
+          // 다른 청크들은 그대로 복사
+          result.addAll(originalBytes.sublist(offset, paddedEnd));
+        }
+
+        offset = paddedEnd;
+      }
+
+      // 새 청크가 삽입되지 않았다면 끝에 추가
+      if (!chunkInserted) {
+        result.addAll(newChunk);
+        print('$chunkType 청크를 파일 끝에 추가');
+      }
+
+      // RIFF 크기 업데이트
+      final newFileSize = result.length - 8;
+      result[4] = newFileSize & 0xFF;
+      result[5] = (newFileSize >> 8) & 0xFF;
+      result[6] = (newFileSize >> 16) & 0xFF;
+      result[7] = (newFileSize >> 24) & 0xFF;
+
+      print('WebP 파일 크기 업데이트: $newFileSize bytes');
+
+      return Uint8List.fromList(result);
+    } catch (e) {
+      print('WebP 청크 삽입 처리 오류: $e');
+      return null;
+    }
+  }
+
+  /// PNG tEXt 청크 추가 (PNG 파일용)
+  static Uint8List? addPngTextChunk(
+      Uint8List pngBytes, String key, String value) {
+    try {
+      print('PNG tEXt 청크 추가: $key');
+
+      if (pngBytes.length < 8) return null;
+
+      // PNG 시그니처 확인
+      const pngSignature = [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A];
+      for (int i = 0; i < 8; i++) {
+        if (pngBytes[i] != pngSignature[i]) {
+          print('유효한 PNG 파일이 아님');
+          return null;
+        }
+      }
+
+      // tEXt 청크 데이터 준비
+      final keyBytes = utf8.encode(key);
+      final valueBytes = utf8.encode(value);
+      final chunkData = <int>[];
+      chunkData.addAll(keyBytes);
+      chunkData.add(0); // null separator
+      chunkData.addAll(valueBytes);
+
+      // tEXt 청크 생성
+      final textChunk = _createPngChunk('tEXt', chunkData);
+
+      // IEND 청크 앞에 삽입
+      final iendIndex = _findPngChunk(pngBytes, 'IEND');
+      if (iendIndex == -1) {
+        print('IEND 청크를 찾을 수 없음');
+        return null;
+      }
+
+      final result = <int>[];
+      result.addAll(pngBytes.sublist(0, iendIndex));
+      result.addAll(textChunk);
+      result.addAll(pngBytes.sublist(iendIndex));
+
+      print('PNG tEXt 청크 추가 완료');
+      return Uint8List.fromList(result);
+    } catch (e) {
+      print('PNG tEXt 청크 추가 오류: $e');
+      return null;
+    }
+  }
+
+  /// PNG 청크 생성
+  static List<int> _createPngChunk(String type, List<int> data) {
+    final chunk = <int>[];
+
+    // 길이 (Big Endian)
+    final length = data.length;
+    chunk.add((length >> 24) & 0xFF);
+    chunk.add((length >> 16) & 0xFF);
+    chunk.add((length >> 8) & 0xFF);
+    chunk.add(length & 0xFF);
+
+    // 타입
+    chunk.addAll(utf8.encode(type));
+
+    // 데이터
+    chunk.addAll(data);
+
+    // CRC32 계산 (타입 + 데이터)
+    final crcData = <int>[];
+    crcData.addAll(utf8.encode(type));
+    crcData.addAll(data);
+    final crc = _calculateCRC32(crcData);
+
+    chunk.add((crc >> 24) & 0xFF);
+    chunk.add((crc >> 16) & 0xFF);
+    chunk.add((crc >> 8) & 0xFF);
+    chunk.add(crc & 0xFF);
+
+    return chunk;
+  }
+
+  /// PNG 청크 찾기
+  static int _findPngChunk(Uint8List bytes, String chunkType) {
+    int offset = 8; // PNG 시그니처 건너뛰기
+
+    while (offset + 8 < bytes.length) {
+      final length = (bytes[offset] << 24) |
+          (bytes[offset + 1] << 16) |
+          (bytes[offset + 2] << 8) |
+          bytes[offset + 3];
+
+      final type = String.fromCharCodes(bytes.sublist(offset + 4, offset + 8));
+
+      if (type == chunkType) {
+        return offset;
+      }
+
+      offset += 8 + length + 4; // 길이 + 타입 + 데이터 + CRC
+    }
+
+    return -1;
+  }
+
+  /// 간단한 CRC32 계산
+  static int _calculateCRC32(List<int> data) {
+    // CRC32 테이블
+    final crcTable = List<int>.filled(256, 0);
+    for (int i = 0; i < 256; i++) {
+      int c = i;
+      for (int j = 0; j < 8; j++) {
+        if (c & 1 != 0) {
+          c = 0xEDB88320 ^ (c >> 1);
+        } else {
+          c >>= 1;
+        }
+      }
+      crcTable[i] = c;
+    }
+
+    // CRC 계산
+    int crc = 0xFFFFFFFF;
+    for (final byte in data) {
+      crc = crcTable[(crc ^ byte) & 0xFF] ^ (crc >> 8);
+    }
+
+    return crc ^ 0xFFFFFFFF;
+  }
+
+  /// 메타데이터 테스트 (삽입 후 추출 확인)
+  static void testMetadataEmbedding(
+      Uint8List imageBytes, Map<String, String> metadata) {
+    try {
+      print('=== 메타데이터 삽입/추출 테스트 시작 ===');
+
+      // 1. 메타데이터 삽입
+      final modifiedBytes = embedMetadataInWebP(imageBytes, metadata);
+      if (modifiedBytes == null) {
+        print('❌ 테스트 실패: 메타데이터 삽입 불가');
+        return;
+      }
+
+      print('✅ 메타데이터 삽입 성공');
+
+      // 2. 삽입된 메타데이터 추출 테스트
+      final extractedMetadata =
+          WebPMetadataParser.extractMetadata(modifiedBytes);
+      if (extractedMetadata == null) {
+        print('❌ 테스트 실패: 메타데이터 추출 불가');
+        return;
+      }
+
+      print('✅ 메타데이터 추출 성공');
+      print('원본 메타데이터: $metadata');
+      print('추출된 메타데이터: $extractedMetadata');
+
+      // 3. 데이터 일치 확인
+      bool isMatch = true;
+      metadata.forEach((key, value) {
+        if (extractedMetadata[key] != value) {
+          print(
+              '❌ 불일치 발견: $key -> 원본: "$value", 추출: "${extractedMetadata[key]}"');
+          isMatch = false;
+        }
+      });
+
+      if (isMatch) {
+        print('🎉 테스트 완전 성공: 메타데이터 완벽 일치!');
+      } else {
+        print('⚠️ 테스트 부분 성공: 메타데이터 일부 불일치');
+      }
+
+      print('=== 메타데이터 테스트 완료 ===');
+    } catch (e) {
+      print('❌ 테스트 오류: $e');
+    }
+  }
+}
+
+class WebPChunkEmbedder {
+  /// WebP 파일의 청크를 직접 수정해서 메타데이터 삽입
+  /// 이 방법은 image 라이브러리의 encodeWebP에 의존하지 않음
+  static Uint8List? embedMetadataInWebPChunk(
+      Uint8List imageBytes, Map<String, String> metadata) {
+    try {
+      print('WebP 청크 직접 수정 방식으로 메타데이터 삽입');
+
+      if (imageBytes.length < 12) {
+        print('WebP 파일이 너무 작음');
+        return null;
+      }
+
+      // WebP 시그니처 확인
+      if (!(imageBytes[0] == 0x52 &&
+          imageBytes[1] == 0x49 &&
+          imageBytes[2] == 0x46 &&
+          imageBytes[3] == 0x46 &&
+          imageBytes[8] == 0x57 &&
+          imageBytes[9] == 0x45 &&
+          imageBytes[10] == 0x42 &&
+          imageBytes[11] == 0x50)) {
+        print('유효한 WebP 파일이 아님');
+        return null;
+      }
+
+      // 메타데이터를 JSON으로 변환하고 압축
+      final jsonText = jsonEncode(metadata);
+      final jsonBytes = utf8.encode(jsonText);
+      final compressedData = gzip.encode(jsonBytes);
+
+      print('메타데이터 압축: ${jsonBytes.length} -> ${compressedData.length} bytes');
+
+      // 커스텀 청크 생성 (EXIF 청크 사용)
+      final metadataChunk = _createExifChunk(compressedData);
+
+      // WebP 파일에 청크 삽입
+      final modifiedWebP = _insertChunkInWebP(imageBytes, metadataChunk);
+
+      if (modifiedWebP != null) {
+        print('WebP 청크 삽입 성공!');
+        return modifiedWebP;
+      } else {
+        print('WebP 청크 삽입 실패');
+        return null;
+      }
+    } catch (e) {
+      print('WebP 청크 삽입 오류: $e');
+      return null;
+    }
+  }
+
+  /// EXIF 청크 생성
+  static Uint8List _createExifChunk(List<int> data) {
+    // EXIF 청크 구조: 'EXIF' + 크기 + 데이터
+    final chunkSize = data.length;
+    final chunk = <int>[];
+
+    // 청크 ID: 'EXIF'
+    chunk.addAll([0x45, 0x58, 0x49, 0x46]); // 'EXIF'
+
+    // 청크 크기 (Little Endian)
+    chunk.add(chunkSize & 0xFF);
+    chunk.add((chunkSize >> 8) & 0xFF);
+    chunk.add((chunkSize >> 16) & 0xFF);
+    chunk.add((chunkSize >> 24) & 0xFF);
+
+    // 데이터
+    chunk.addAll(data);
+
+    // 패딩 (홀수 크기면 0x00 추가)
+    if (chunkSize % 2 == 1) {
+      chunk.add(0x00);
+    }
+
+    print('EXIF 청크 생성: ${chunk.length} bytes');
+    return Uint8List.fromList(chunk);
+  }
+
+  /// WebP 파일에 청크 삽입
+  static Uint8List? _insertChunkInWebP(
+      Uint8List originalBytes, Uint8List newChunk) {
+    try {
+      // RIFF 헤더 복사 (처음 12바이트)
+      final result = <int>[];
+      result.addAll(originalBytes.sublist(0, 12));
+
+      // 기존 청크들과 새 청크 처리
+      int offset = 12;
+      bool exifInserted = false;
+
+      while (offset < originalBytes.length) {
+        if (offset + 8 > originalBytes.length) break;
+
+        // 청크 ID 읽기
+        final chunkId =
+            String.fromCharCodes(originalBytes.sublist(offset, offset + 4));
+        final chunkSize = originalBytes[offset + 4] |
+            (originalBytes[offset + 5] << 8) |
+            (originalBytes[offset + 6] << 16) |
+            (originalBytes[offset + 7] << 24);
+
+        final dataStart = offset + 8;
+        final dataEnd = dataStart + chunkSize;
+        final paddedEnd = dataEnd + (chunkSize % 2); // 패딩 고려
+
+        if (paddedEnd > originalBytes.length) break;
+
+        print('기존 청크: $chunkId, 크기: $chunkSize');
+
+        // VP8/VP8L/VP8X 청크 뒤에 EXIF 삽입
+        if ((chunkId == 'VP8 ' || chunkId == 'VP8L' || chunkId == 'VP8X') &&
+            !exifInserted) {
+          // 현재 청크 복사
+          result.addAll(originalBytes.sublist(offset, paddedEnd));
+
+          // EXIF 청크 삽입
+          result.addAll(newChunk);
+          exifInserted = true;
+
+          print('EXIF 청크를 $chunkId 뒤에 삽입');
+        } else if (chunkId == 'EXIF') {
+          // 기존 EXIF 청크 대체
+          result.addAll(newChunk);
+          exifInserted = true;
+          print('기존 EXIF 청크 대체');
+        } else {
+          // 다른 청크들은 그대로 복사
+          result.addAll(originalBytes.sublist(offset, paddedEnd));
+        }
+
+        offset = paddedEnd;
+      }
+
+      // EXIF가 삽입되지 않았다면 끝에 추가
+      if (!exifInserted) {
+        result.addAll(newChunk);
+        print('EXIF 청크를 파일 끝에 추가');
+      }
+
+      // RIFF 크기 업데이트
+      final newFileSize = result.length - 8;
+      result[4] = newFileSize & 0xFF;
+      result[5] = (newFileSize >> 8) & 0xFF;
+      result[6] = (newFileSize >> 16) & 0xFF;
+      result[7] = (newFileSize >> 24) & 0xFF;
+
+      print('WebP 파일 크기 업데이트: $newFileSize bytes');
+
+      return Uint8List.fromList(result);
+    } catch (e) {
+      print('WebP 청크 삽입 처리 오류: $e');
+      return null;
+    }
+  }
+
+  /// 간단한 텍스트 청크 방식 (tEXt 청크 유사)
+  static Uint8List? embedSimpleTextChunk(
+      Uint8List imageBytes, Map<String, String> metadata) {
+    try {
+      print('간단한 텍스트 청크 방식');
+
+      // JSON을 문자열로 변환
+      final jsonText = jsonEncode(metadata);
+      final textBytes = utf8.encode(jsonText);
+
+      // 커스텀 텍스트 청크 생성
+      final textChunk = _createTextChunk('META', textBytes);
+
+      // WebP에 삽입
+      return _insertChunkInWebP(imageBytes, textChunk);
+    } catch (e) {
+      print('텍스트 청크 삽입 오류: $e');
+      return null;
+    }
+  }
+
+  /// 텍스트 청크 생성
+  static Uint8List _createTextChunk(String chunkId, List<int> textData) {
+    final chunk = <int>[];
+
+    // 청크 ID (4바이트)
+    final idBytes = utf8.encode(chunkId);
+    if (idBytes.length != 4) {
+      // 4바이트로 맞추기
+      chunk.addAll(idBytes.take(4));
+      while (chunk.length < 4) {
+        chunk.add(0x20); // 공백으로 패딩
+      }
+    } else {
+      chunk.addAll(idBytes);
+    }
+
+    // 크기
+    final dataSize = textData.length;
+    chunk.add(dataSize & 0xFF);
+    chunk.add((dataSize >> 8) & 0xFF);
+    chunk.add((dataSize >> 16) & 0xFF);
+    chunk.add((dataSize >> 24) & 0xFF);
+
+    // 데이터
+    chunk.addAll(textData);
+
+    // 패딩
+    if (dataSize % 2 == 1) {
+      chunk.add(0x00);
+    }
+
+    return Uint8List.fromList(chunk);
+  }
+
+  /// PNG tEXt 청크 추가 (PNG 파일용)
+  static Uint8List? addPngTextChunk(
+      Uint8List pngBytes, String key, String value) {
+    try {
+      print('PNG tEXt 청크 추가: $key');
+
+      if (pngBytes.length < 8) return null;
+
+      // PNG 시그니처 확인
+      const pngSignature = [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A];
+      for (int i = 0; i < 8; i++) {
+        if (pngBytes[i] != pngSignature[i]) {
+          print('유효한 PNG 파일이 아님');
+          return null;
+        }
+      }
+
+      // tEXt 청크 데이터 준비
+      final keyBytes = utf8.encode(key);
+      final valueBytes = utf8.encode(value);
+      final chunkData = <int>[];
+      chunkData.addAll(keyBytes);
+      chunkData.add(0); // null separator
+      chunkData.addAll(valueBytes);
+
+      // tEXt 청크 생성
+      final textChunk = _createPngChunk('tEXt', chunkData);
+
+      // IEND 청크 앞에 삽입
+      final iendIndex = _findPngChunk(pngBytes, 'IEND');
+      if (iendIndex == -1) {
+        print('IEND 청크를 찾을 수 없음');
+        return null;
+      }
+
+      final result = <int>[];
+      result.addAll(pngBytes.sublist(0, iendIndex));
+      result.addAll(textChunk);
+      result.addAll(pngBytes.sublist(iendIndex));
+
+      print('PNG tEXt 청크 추가 완료');
+      return Uint8List.fromList(result);
+    } catch (e) {
+      print('PNG tEXt 청크 추가 오류: $e');
+      return null;
+    }
+  }
+
+  /// PNG 청크 생성
+  static List<int> _createPngChunk(String type, List<int> data) {
+    final chunk = <int>[];
+
+    // 길이 (Big Endian)
+    final length = data.length;
+    chunk.add((length >> 24) & 0xFF);
+    chunk.add((length >> 16) & 0xFF);
+    chunk.add((length >> 8) & 0xFF);
+    chunk.add(length & 0xFF);
+
+    // 타입
+    chunk.addAll(utf8.encode(type));
+
+    // 데이터
+    chunk.addAll(data);
+
+    // CRC32 계산 (타입 + 데이터)
+    final crcData = <int>[];
+    crcData.addAll(utf8.encode(type));
+    crcData.addAll(data);
+    final crc = _calculateCRC32(crcData);
+
+    chunk.add((crc >> 24) & 0xFF);
+    chunk.add((crc >> 16) & 0xFF);
+    chunk.add((crc >> 8) & 0xFF);
+    chunk.add(crc & 0xFF);
+
+    return chunk;
+  }
+
+  /// PNG 청크 찾기
+  static int _findPngChunk(Uint8List bytes, String chunkType) {
+    int offset = 8; // PNG 시그니처 건너뛰기
+
+    while (offset + 8 < bytes.length) {
+      final length = (bytes[offset] << 24) |
+          (bytes[offset + 1] << 16) |
+          (bytes[offset + 2] << 8) |
+          bytes[offset + 3];
+
+      final type = String.fromCharCodes(bytes.sublist(offset + 4, offset + 8));
+
+      if (type == chunkType) {
+        return offset;
+      }
+
+      offset += 8 + length + 4; // 길이 + 타입 + 데이터 + CRC
+    }
+
+    return -1;
+  }
+
+  /// 간단한 CRC32 계산
+  static int _calculateCRC32(List<int> data) {
+    // 간단한 CRC32 구현 (PNG용)
+    int crc = 0xFFFFFFFF;
+
+    for (final byte in data) {
+      crc ^= byte;
+      for (int i = 0; i < 8; i++) {
+        if (crc & 1 != 0) {
+          crc = (crc >> 1) ^ 0xEDB88320;
+        } else {
+          crc >>= 1;
+        }
+      }
+    }
+
+    return crc ^ 0xFFFFFFFF;
   }
 }

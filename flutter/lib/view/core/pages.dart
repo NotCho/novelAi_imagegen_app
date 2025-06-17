@@ -3,6 +3,8 @@ import 'package:get/get_navigation/src/routes/get_route.dart';
 import 'package:get/get_navigation/src/routes/transitions_type.dart';
 import 'package:naiapp/view/parser/parser_page.dart';
 import 'package:naiapp/view/parser/parser_page_binding.dart';
+import 'package:naiapp/view/setting/setting_page.dart';
+import 'package:naiapp/view/setting/setting_page_binding.dart';
 
 import '../home/home_page_binding.dart';
 import '../image/image_page.dart';
@@ -42,6 +44,12 @@ List<GetPage> allPages = [
       name: "/home/image",
       page: () => ImagePage(),
       binding: ImagePageBinding(),
+      transition: Transition.rightToLeft,
+      transitionDuration: const Duration(milliseconds: 200)),
+  GetPage(
+      name: "/home/setting",
+      page: () => const SettingPage(),
+      binding: SettingPageBinding(),
       transition: Transition.rightToLeft,
       transitionDuration: const Duration(milliseconds: 200)),
 ];

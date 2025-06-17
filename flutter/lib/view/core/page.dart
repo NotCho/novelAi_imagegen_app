@@ -181,7 +181,8 @@ class SkeletonAppBar extends GetView<GlobalController>
       } else {
         return Text(
           titleText!,
-          style: SkeletonTextTheme.h3.copyWith(height: 1),
+          style: SkeletonTextTheme.h3
+              .copyWith(height: 1, color: SkeletonColorScheme.textColor),
         );
       }
     }

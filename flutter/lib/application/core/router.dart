@@ -10,6 +10,8 @@ abstract class ISkeletonRouter {
   Future<String> toParser(String prompt);
 
   void toImage();
+
+  void toSetting();
 }
 
 class SkeletonRouter implements ISkeletonRouter {
@@ -39,5 +41,9 @@ class SkeletonRouter implements ISkeletonRouter {
   @override
   void toImage() {
     Get.toNamed('/home/image');
+  }
+
+  void toSetting() {
+    Get.toNamed('/home/setting');
   }
 }

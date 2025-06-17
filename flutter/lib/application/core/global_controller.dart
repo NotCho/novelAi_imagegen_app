@@ -4,8 +4,9 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:naiapp/application/core/router.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-import '../image/ImageSaveManager.dart';
+import '../../infra/service/ImageSaveManager.dart';
 
 class GlobalController extends GetxController {
   final _isLoading = false.obs;
@@ -38,16 +39,16 @@ class GlobalController extends GetxController {
     );
   }
 
-
   Future<void> saveMultipleImages(List<Uint8List> imageBytesList) async {
-      await ExifPreservingImageSaver().saveMultipleImagesWithExif(imageBytesList);
-
+    await ExifPreservingImageSaver().saveMultipleImagesWithExif(imageBytesList,
+        saveInPng: Get.find<SharedPreferences>().getBool('pngMode') ?? true);
   }
 
   Future<void> saveImageWithMetadata(Uint8List imageBytes) async {
     final imageName = "novelai_${DateTime.now().millisecondsSinceEpoch}";
-    await ExifPreservingImageSaver()
-        .saveImageWithExif(imageBytes, customName: imageName);
+    await ExifPreservingImageSaver().saveImageWithExif(imageBytes,
+        customName: imageName,
+        saveInPng: Get.find<SharedPreferences>().getBool('pngMode') ?? true);
   }
 
   Map<String, String> extractPngTextChunks(Uint8List bytes) {
