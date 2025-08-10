@@ -31,7 +31,6 @@ class AppWidget extends GetView<GlobalController> {
           // 이걸로!
           builder: tcBuilder,
           theme: ThemeData(
-            bottomAppBarTheme: const BottomAppBarTheme(color: Colors.black),
             appBarTheme: AppBarTheme(
               systemOverlayStyle: SystemUiOverlayStyle.light
                   .copyWith(statusBarColor: Colors.transparent),
@@ -52,7 +51,6 @@ class AppWidget extends GetView<GlobalController> {
 }
 
 Widget tcBuilder(BuildContext ctx, Widget? child) {
-
   return MediaQuery(
     data: MediaQuery.of(ctx).copyWith(
       textScaler: const TextScaler.linear(1.0),

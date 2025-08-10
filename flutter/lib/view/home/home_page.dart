@@ -826,9 +826,14 @@ class AutoGenerateWarningWidget extends StatelessWidget {
                   ),
                   const SizedBox(width: SkeletonSpacing.smallSpacing),
                   _buildValueAdjustButton(
-                      icon: Icon(Icons.remove,
+                      icon: Icon(Icons.add,
                           color: SkeletonColorScheme.textColor, size: 18),
-                      onPressed: () {}),
+                      onPressed: () {
+
+                        if (controller.autoGenerateSeconds.value < 30) {
+                          controller.autoGenerateSeconds.value++;
+                        }
+                      }),
                 ],
               ),
               const SizedBox(height: SkeletonSpacing.spacing),

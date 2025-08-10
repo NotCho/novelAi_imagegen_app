@@ -286,6 +286,21 @@ class HomePageController extends SkeletonController {
 
   @override
   Future<bool> initLoading() async {
+    // 포그라운드 서비스에서 건너뛰기 플래그가 설정되어 있으면 초기화 건너뛰기
+    final skipInit = prefs.getBool('skip_init_loading') ?? false;
+    if (skipInit) {
+      await prefs.setBool('skip_init_loading', false); // 플래그 리셋
+      print('포그라운드 서비스로부터 복귀 - initLoading 건너뛰기');
+      return true;
+    }
+    
+    // 또는 autoGenerate가 이미 활성화되어 있으면 건너뛰기
+    if (autoGenerateEnabled.value) {
+      print('autoGenerate 이미 활성화됨 - initLoading 건너뛰기');
+      return true;
+    }
+
+    print('정상적인 initLoading 수행');
     final raw = prefs.getString("lastSettings");
     if (raw != null) {
       Map<String, dynamic> data = jsonDecode(raw);
@@ -309,8 +324,6 @@ class HomePageController extends SkeletonController {
     );
     homeSettingController.loadPresets();
     List<String>? list = prefs.getStringList("customSizeList");
-
-
 
     if (list != null) {
       for (String size in list) {

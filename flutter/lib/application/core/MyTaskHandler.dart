@@ -1,11 +1,17 @@
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:flutter_foreground_task/task_handler.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 @pragma('vm:entry-point')
 class MyTaskHandler extends TaskHandler {
   @override
   Future<void> onStart(DateTime timestamp, TaskStarter starter) async {
-    // 초기화 로직 (예: 위치 스트림 구독)
+    print('포그라운드 서비스 시작: $timestamp');
+    
+    // SharedPreferences를 통해 안전하게 상태 설정
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('skip_init_loading', true);
+    print('initLoading 건너뛰기 플래그 설정됨');
   }
 
   @override
@@ -19,6 +25,5 @@ class MyTaskHandler extends TaskHandler {
   }
 
   @override
-  void onNotificationPressed() {
-  }
+  void onNotificationPressed() {}
 }
