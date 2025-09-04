@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:naiapp/application/home/home_page_controller.dart';
+import 'package:naiapp/application/home/home_character_controller.dart';
 
 import '../../domain/gen/diffusion_model.dart' as df;
 import '../core/util/components.dart';
 import '../core/util/design_system.dart';
 
-class HomeCharPrompt extends GetView<HomePageController> {
+class HomeCharPrompt extends GetView<HomeCharacterController> {
   @override
   Widget build(BuildContext context) {
     return Row(
@@ -265,12 +265,10 @@ class HomeCharPrompt extends GetView<HomePageController> {
                           title: "캐릭터 위치 설정 (가운데는 자동)",
                           icon: Icons.location_on_outlined,
                           child: characterPosition(
-                              controller.convertPosition(controller
-                                  .characterPositions.value.x
+                              (controller.characterPositions.value.x * 10)
+                                  .toDouble(),
+                              (controller.characterPositions.value.y * 10)
                                   .toDouble()),
-                              controller.convertPosition(controller
-                                  .characterPositions.value.y
-                                  .toDouble())),
                         )
                       ],
                     ),

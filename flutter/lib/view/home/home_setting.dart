@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:naiapp/application/home/home_auto_generation_controller.dart';
+import 'package:naiapp/application/home/home_generation_controller.dart';
 import 'package:naiapp/application/home/home_setting_controller.dart';
 
 import '../../application/home/home_page_controller.dart';
@@ -391,16 +393,19 @@ class HomeSetting extends GetView<HomePageController> {
           SettingsCard(
               title: "노이즈 스케줄러",
               icon: Icons.blur_circular,
-              child: DropDownBuild(
-                value: controller.selectedNoiseSchedule.value,
-                labelText: '노이즈 스케줄러',
-                items: controller.noiseScheduleOptions.toList(),
-                onChanged: (value) {
-                  if (value != null) {
-                    controller.selectedNoiseSchedule.value = value;
-                  }
-                },
-              ))
+              child: Obx(() {
+                final generationController = Get.find<HomeGenerationController>();
+                return DropDownBuild(
+                  value: generationController.selectedNoiseSchedule.value,
+                  labelText: '노이즈 스케줄러',
+                  items: generationController.noiseScheduleOptions.toList(),
+                  onChanged: (value) {
+                    if (value != null) {
+                      generationController.selectedNoiseSchedule.value = value;
+                    }
+                  },
+                );
+              }))
         ],
       ),
     );
@@ -600,13 +605,15 @@ class HomeSetting extends GetView<HomePageController> {
           width: 1,
         ),
       ),
-      child: Obx(() => Row(
+      child: Obx(() {
+        final autoGenController = Get.find<HomeAutoGenerationController>();
+        return Row(
             children: [
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
                   color: controller.homeSettingController.autoChangeSize.value
-                      ? (controller.autoGenerateEnabled.value)
+                      ? (autoGenController.autoGenerateEnabled.value)
                           ? SkeletonColorScheme.accentColor
                               .withValues(alpha: 0.2)
                           : SkeletonColorScheme.negativeColor
@@ -618,7 +625,7 @@ class HomeSetting extends GetView<HomePageController> {
                 child: Icon(
                   Icons.recycling,
                   color: controller.homeSettingController.autoChangeSize.value
-                      ? (controller.autoGenerateEnabled.value)
+                      ? (autoGenController.autoGenerateEnabled.value)
                           ? SkeletonColorScheme.accentColor
                           : SkeletonColorScheme.negativeColor
                       : SkeletonColorScheme.textSecondaryColor,
@@ -640,7 +647,7 @@ class HomeSetting extends GetView<HomePageController> {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      (controller.autoGenerateEnabled.value)
+                      (autoGenController.autoGenerateEnabled.value)
                           ? '매번 다른 크기로 자동 생성'
                           : "자동 생성시에 활성 가능",
                       style: TextStyle(
@@ -662,10 +669,10 @@ class HomeSetting extends GetView<HomePageController> {
                       controller.homeSettingController.autoChangeSize.value =
                           value;
                     },
-                    activeColor: (controller.autoGenerateEnabled.value)
+                    activeColor: (autoGenController.autoGenerateEnabled.value)
                         ? SkeletonColorScheme.accentColor
                         : SkeletonColorScheme.negativeColor,
-                    activeTrackColor: (controller.autoGenerateEnabled.value)
+                    activeTrackColor: (autoGenController.autoGenerateEnabled.value)
                         ? SkeletonColorScheme.accentColor.withValues(alpha: 0.3)
                         : SkeletonColorScheme.negativeColor
                             .withValues(alpha: 0.5),
@@ -700,7 +707,8 @@ class HomeSetting extends GetView<HomePageController> {
                 ],
               ),
             ],
-          )),
+          );
+      }),
     );
   }
 

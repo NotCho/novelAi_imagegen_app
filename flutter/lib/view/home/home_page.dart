@@ -105,12 +105,12 @@ class HomePage extends GetView<HomePageController> {
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: [
                       Switch(
-                          value: controller.autoSave.value,
+                          value: Get.find<HomeSettingController>().autoSave.value,
                           onChanged: (v) {
-                            controller.setAutoSave(v);
+                            Get.find<HomeSettingController>().setAutoSave(v);
                           }),
                       const SizedBox(width: SkeletonSpacing.smallSpacing),
-                      Text((controller.autoSave.value) ? "자동저장 ON" : "자동저장 OFF",
+                      Text((Get.find<HomeSettingController>().autoSave.value) ? "자동저장 ON" : "자동저장 OFF",
                           style: const TextStyle(
                             color: SkeletonColorScheme.textColor,
                             fontSize: 12,
@@ -208,8 +208,8 @@ class HomePage extends GetView<HomePageController> {
   Widget promptPanel(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        if (controller.confirmRemoveIndex.value == true) {
-          controller.confirmRemoveIndex.value = false;
+        if (Get.find<HomeCharacterController>().confirmRemoveIndex.value == true) {
+          Get.find<HomeCharacterController>().confirmRemoveIndex.value = false;
         }
       },
       child: Container(
@@ -269,7 +269,7 @@ class HomePage extends GetView<HomePageController> {
             children: [
               _buildExpandButton(),
               _anlasRemaining(),
-              GenerateButtonWidget(controller: controller),
+              const GenerateButtonWidget(),
             ],
           ),
         ],
@@ -316,8 +316,8 @@ class HomePage extends GetView<HomePageController> {
           const SizedBox(width: 4),
           Obx(
             () => Text(
-              (controller.anlasLeft > 0)
-                  ? "Anlas: ${controller.anlasLeft}"
+              (Get.find<HomeGenerationController>().anlasLeft.value > 0)
+                  ? "Anlas: ${Get.find<HomeGenerationController>().anlasLeft.value}"
                   : "Anlas: Loading..",
               style: const TextStyle(
                 color: SkeletonColorScheme.textColor,
@@ -424,11 +424,7 @@ class HomePage extends GetView<HomePageController> {
               flex: 3,
               child: TabBarView(
                 children: [
-                  HomeMainPrompt(
-                      positivePromptController:
-                          controller.positivePromptController,
-                      negativePromptController:
-                          controller.negativePromptController),
+                  const HomeMainPrompt(),
                   HomeCharPrompt(),
                   HomeSetting(),
                   HomeLoadImage(),
@@ -566,12 +562,12 @@ class AnlasWarningWidget extends StatelessWidget {
 }
 
 class AutoGenerateWarningWidget extends StatelessWidget {
-  final HomePageController controller;
-
-  AutoGenerateWarningWidget({super.key, required this.controller});
+  AutoGenerateWarningWidget({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final controller = Get.find<HomePageController>();
+    final autoGenController = Get.find<HomeAutoGenerationController>();
     return Obx(
       () => AnimatedContainer(
           width: controller.floatingButtonExpanded.value ? Get.width * 0.8 : 50,
@@ -617,10 +613,10 @@ class AutoGenerateWarningWidget extends StatelessWidget {
                                         SizedBox(
                                           height: 25,
                                           child: Switch(
-                                            value: controller
+                                            value: autoGenController
                                                 .autoGenerateEnabled.value,
                                             onChanged: (value) =>
-                                                controller.toggleAutoGenerate(),
+                                                autoGenController.toggleAutoGenerate(),
                                             activeColor:
                                                 SkeletonColorScheme.accentColor,
                                             activeTrackColor:
@@ -689,11 +685,11 @@ class AutoGenerateWarningWidget extends StatelessWidget {
                                               SkeletonSpacing.borderRadius / 2),
                                         ),
                                         child: Text(
-                                          (controller.autoGenerateEnabled.value)
-                                              ? '${controller.remainingSeconds.value.round()}초'
-                                              : '${controller.autoGenerateSeconds.value.round()}초',
+                                          (autoGenController.autoGenerateEnabled.value)
+                                              ? '${autoGenController.remainingSeconds.value.round()}초'
+                                              : '${autoGenController.autoGenerateSeconds.value.round()}초',
                                           style: TextStyle(
-                                            color: (controller
+                                            color: (autoGenController
                                                     .autoGenerateEnabled.value)
                                                 ? SkeletonColorScheme
                                                     .accentColor
@@ -710,9 +706,9 @@ class AutoGenerateWarningWidget extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(width: SkeletonSpacing.smallSpacing),
-                          if (controller.maxAutoGenerateCount.value != 0)
+                          if (autoGenController.maxAutoGenerateCount.value != 0)
                             Text(
-                              '횟수 제한\n${controller.currentAutoGenerateCount}/${controller.maxAutoGenerateCount}회',
+                              '횟수 제한\n${autoGenController.currentAutoGenerateCount}/${autoGenController.maxAutoGenerateCount}회',
                               style: TextStyle(
                                 color: SkeletonColorScheme.textColor,
                                 fontSize: 12,
@@ -731,6 +727,7 @@ class AutoGenerateWarningWidget extends StatelessWidget {
   final List<int> autoAddButtons = [-100, -10, -1, 1, 10, 100];
 
   Widget _autoGenerationDialog() {
+    final autoGenController = Get.find<HomeAutoGenerationController>();
     return AlertDialog(
       backgroundColor: SkeletonColorScheme.cardColor,
       shape: RoundedRectangleBorder(
@@ -762,7 +759,7 @@ class AutoGenerateWarningWidget extends StatelessWidget {
               Obx(() => Column(
                     children: [
                       Text(
-                        '${controller.autoGenerateSeconds.value.round()}초 마다 자동 생성',
+                        '${autoGenController.autoGenerateSeconds.value.round()}초 마다 자동 생성',
                         style: const TextStyle(
                           color: SkeletonColorScheme.accentColor,
                           fontWeight: FontWeight.bold,
@@ -770,17 +767,17 @@ class AutoGenerateWarningWidget extends StatelessWidget {
                       ),
                       const SizedBox(height: SkeletonSpacing.smallSpacing),
                       Slider(
-                        value: controller.autoGenerateSeconds.value,
+                        value: autoGenController.autoGenerateSeconds.value,
                         min: 0,
                         max: 30,
                         divisions: 31,
                         label:
-                            '${controller.autoGenerateSeconds.value.round()}초',
+                            '${autoGenController.autoGenerateSeconds.value.round()}초',
                         activeColor: SkeletonColorScheme.accentColor,
                         inactiveColor: SkeletonColorScheme.surfaceColor,
                         thumbColor: SkeletonColorScheme.primaryColor,
                         onChanged: (value) =>
-                            controller.setAutoGenerateSeconds(value),
+                            autoGenController.setAutoGenerateSeconds(value),
                       ),
                     ],
                   )),
@@ -793,8 +790,8 @@ class AutoGenerateWarningWidget extends StatelessWidget {
                       icon: Icon(Icons.remove,
                           color: SkeletonColorScheme.textColor, size: 18),
                       onPressed: () {
-                        if (controller.autoGenerateSeconds.value > 0) {
-                          controller.autoGenerateSeconds.value--;
+                        if (autoGenController.autoGenerateSeconds.value > 0) {
+                          autoGenController.autoGenerateSeconds.value--;
                         }
                       }),
                   const SizedBox(width: SkeletonSpacing.smallSpacing),
@@ -815,7 +812,7 @@ class AutoGenerateWarningWidget extends StatelessWidget {
                     ),
                     child: Obx(
                       () => Text(
-                        "${controller.autoGenerateSeconds.value.round()}초",
+                        "${autoGenController.autoGenerateSeconds.value.round()}초",
                         textAlign: TextAlign.center,
                         style: const TextStyle(
                           color: SkeletonColorScheme.textColor,
@@ -830,8 +827,8 @@ class AutoGenerateWarningWidget extends StatelessWidget {
                           color: SkeletonColorScheme.textColor, size: 18),
                       onPressed: () {
 
-                        if (controller.autoGenerateSeconds.value < 30) {
-                          controller.autoGenerateSeconds.value++;
+                        if (autoGenController.autoGenerateSeconds.value < 30) {
+                          autoGenController.autoGenerateSeconds.value++;
                         }
                       }),
                 ],
@@ -842,7 +839,7 @@ class AutoGenerateWarningWidget extends StatelessWidget {
                   children: [
                     const SizedBox(height: SkeletonSpacing.spacing),
                     Text(
-                      '${controller.getRandomDelayCalculation()}의 랜덤 딜레이',
+                      '${autoGenController.getRandomDelayCalculation()}의 랜덤 딜레이',
                       style: const TextStyle(
                         color: SkeletonColorScheme.accentColor,
                         fontWeight: FontWeight.bold,
@@ -851,17 +848,17 @@ class AutoGenerateWarningWidget extends StatelessWidget {
                     const SizedBox(height: SkeletonSpacing.smallSpacing),
                     Slider(
                       value:
-                          controller.autoGenerateRandomDelay.value.toDouble(),
+                          autoGenController.autoGenerateRandomDelay.value.toDouble(),
                       min: 0.0,
                       max: 0.5,
                       divisions: 20,
                       label:
-                          '${(controller.autoGenerateRandomDelay.value * 100).toStringAsFixed(2)}%',
+                          '${(autoGenController.autoGenerateRandomDelay.value * 100).toStringAsFixed(2)}%',
                       activeColor: SkeletonColorScheme.accentColor,
                       inactiveColor: SkeletonColorScheme.surfaceColor,
                       thumbColor: SkeletonColorScheme.primaryColor,
                       onChanged: (value) =>
-                          controller.setAutoGenerateRandomDelay(value),
+                          autoGenController.setAutoGenerateRandomDelay(value),
                     ),
                     const SizedBox(height: SkeletonSpacing.spacing),
                     Text("0을 입력하면 무제한",
@@ -875,7 +872,7 @@ class AutoGenerateWarningWidget extends StatelessWidget {
                         SizedBox(
                           width: 80,
                           child: TextField(
-                            controller: controller.autoGenerateCountController,
+                            controller: autoGenController.autoGenerateCountController,
                             keyboardType: TextInputType.number,
                             decoration: InputDecoration(
                               labelStyle: TextStyle(
@@ -918,9 +915,9 @@ class AutoGenerateWarningWidget extends StatelessWidget {
         TextButton(
           onPressed: () {
             Get.back();
-            controller.maxAutoGenerateCount.value =
-                int.tryParse(controller.autoGenerateCountController.text) ?? 0;
-            controller.currentAutoGenerateCount.value = 0;
+            autoGenController.maxAutoGenerateCount.value =
+                int.tryParse(autoGenController.autoGenerateCountController.text) ?? 0;
+            autoGenController.currentAutoGenerateCount.value = 0;
           },
           style: TextButton.styleFrom(
             foregroundColor: SkeletonColorScheme.primaryColor,
@@ -990,21 +987,20 @@ class AnimatedNavBarWidget extends StatelessWidget {
 }
 
 class GenerateButtonWidget extends StatelessWidget {
-  final HomePageController controller;
-
-  const GenerateButtonWidget({super.key, required this.controller});
+  const GenerateButtonWidget({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final generationController = Get.find<HomeGenerationController>();
     return Obx(() => ElevatedButton(
           onPressed:
-              controller.isGenerating.value ? null : controller.generateImage,
+              generationController.isGenerating.value ? null : generationController.generateImage,
           style: ElevatedButton.styleFrom(
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(SkeletonSpacing.borderRadius),
             ),
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            backgroundColor: controller.isGenerating.value
+            backgroundColor: generationController.isGenerating.value
                 ? Colors.grey[700]
                 : SkeletonColorScheme.primaryColor,
             disabledBackgroundColor: Colors.grey[800],
@@ -1017,14 +1013,14 @@ class GenerateButtonWidget extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Icon(
-                  controller.isGenerating.value
+                  generationController.isGenerating.value
                       ? Icons.hourglass_top
                       : Icons.auto_awesome,
                   color: SkeletonColorScheme.textColor,
                   size: 16,
                 ),
                 const SizedBox(width: SkeletonSpacing.smallSpacing),
-                !controller.isGenerating.value
+                !generationController.isGenerating.value
                     ? const Text(
                         '생성',
                         style: TextStyle(

@@ -3,7 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:naiapp/view/core/util/design_system.dart';
 
+import '../../application/home/home_generation_controller.dart';
+import '../../application/home/home_image_controller.dart';
 import '../../application/home/home_page_controller.dart';
+import '../../application/home/home_setting_controller.dart';
 
 class HomeAppBar extends GetView<HomePageController> {
   HomeAppBar({super.key});
@@ -55,13 +58,13 @@ class HomeAppBar extends GetView<HomePageController> {
                 style: const TextStyle(color: SkeletonColorScheme.textColor),
                 icon: const Icon(Icons.arrow_drop_down,
                     color: SkeletonColorScheme.primaryColor),
-                value: controller.usingModel.value,
-                items: controller.modelNames.keys.toList().map((String value) {
+                value: Get.find<HomeGenerationController>().usingModel.value,
+                items: Get.find<HomeGenerationController>().modelNames.keys.toList().map((String value) {
                   return DropdownMenuItem<String>(
                     value: value,
                     child: SizedBox(
                       child: AutoSizeText(
-                        controller.modelNames[value] ?? value,
+                        Get.find<HomeGenerationController>().modelNames[value] ?? value,
                         maxLines: 1,
                         style: const TextStyle(
                             color: SkeletonColorScheme.textColor, fontSize: 12),
@@ -71,7 +74,7 @@ class HomeAppBar extends GetView<HomePageController> {
                 }).toList(),
                 onChanged: (value) {
                   if (value != null) {
-                    controller.usingModel.value = value;
+                    Get.find<HomeGenerationController>().usingModel.value = value;
                   }
                 },
               ),
@@ -80,7 +83,7 @@ class HomeAppBar extends GetView<HomePageController> {
           const SizedBox(width: SkeletonSpacing.spacing),
           IconButton(
             onPressed: () {
-              controller.clearImageDialog();
+              Get.find<HomeImageController>().clearImageDialog();
               Get.dialog(LoadImageDialog(), barrierDismissible: false);
             },
             icon: const Icon(Icons.add_a_photo),
@@ -93,7 +96,7 @@ class HomeAppBar extends GetView<HomePageController> {
             icon: const Icon(Icons.photo_library),
             color: (controller.expandHistory.value)
                 ? SkeletonColorScheme.primaryColor
-                : (controller.autoSave.value)
+                : (Get.find<HomeSettingController>().autoSave.value)
                     ? Colors.greenAccent
                     : SkeletonColorScheme.textSecondaryColor,
           ),
@@ -161,7 +164,7 @@ class HomeAppBar extends GetView<HomePageController> {
                         const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
                   ),
                   onPressed: () async {
-                    controller.cancelImageLoad();
+                    Get.find<HomeImageController>().cancelImageLoad();
                   },
                   icon: Icon(
                     Icons.close,
@@ -188,8 +191,10 @@ class HomeAppBar extends GetView<HomePageController> {
                   height: 150,
                   width: 150,
                   child: Obx(
-                    () => Center(
-                      child: (controller.loadedImageBytes.value.isNotEmpty)
+                    () {
+                      final homeImageController = Get.find<HomeImageController>();
+                      return Center(
+                      child: (homeImageController.loadedImageBytes.value.isNotEmpty)
                           ? Container(
                               height: 150,
                               width: 150,
@@ -207,11 +212,11 @@ class HomeAppBar extends GetView<HomePageController> {
                               ),
                               child: Image.memory(
                                   fit: BoxFit.contain,
-                                  controller.loadedImageBytes.value),
+                                  homeImageController.loadedImageBytes.value),
                             )
                           : GestureDetector(
                               onTap: () {
-                                controller.getImageFromGallery();
+                                homeImageController.getImageFromGallery();
                               },
                               child: Container(
                                 height: 150,
@@ -271,8 +276,8 @@ class HomeAppBar extends GetView<HomePageController> {
                         'Vibe',
                         color: SkeletonColorScheme.primaryColor,
                         onPressed: () {
-                          controller.addVibeImage(
-                            controller.loadedImageBytes.value,
+                          Get.find<HomeImageController>().addVibeImage(
+                            Get.find<HomeImageController>().loadedImageBytes.value,
                           );
                         },
                       ),
@@ -299,8 +304,9 @@ class HomeAppBar extends GetView<HomePageController> {
   }
 
   Widget _loadImageStatusBuilder() {
+    final homeImageController = Get.find<HomeImageController>();
     Color statusColor = SkeletonColorScheme.textSecondaryColor;
-    if (controller.loadedImageBytes.value.contains("실패")) {
+    if (homeImageController.loadImageStatus.value.contains("실패")) {
       statusColor = SkeletonColorScheme.negativeColor;
     }
     return Obx(
@@ -315,7 +321,7 @@ class HomeAppBar extends GetView<HomePageController> {
           ),
         ),
         child: Text(
-          controller.loadImageStatus.value,
+          homeImageController.loadImageStatus.value,
           overflow: TextOverflow.ellipsis,
           maxLines: 3,
           style: TextStyle(
@@ -368,25 +374,27 @@ class HomeAppBar extends GetView<HomePageController> {
   }
 
   Widget _buildLoadOptions() {
+    final homeImageController = Get.find<HomeImageController>();
     return Obx(
       () => Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: controller.loadImageOptions.keys.map((String key) {
-          return _buildCheckBox(key, controller.loadImageOptions[key]!);
+        children: homeImageController.loadImageOptions.keys.map((String key) {
+          return _buildCheckBox(key, homeImageController.loadImageOptions[key]!);
         }).toList(),
       ),
     );
   }
 
   Widget _buildCheckBox(String title, bool value) {
-    bool hasImage = controller.loadedImageBytes.value.isEmpty;
+    final homeImageController = Get.find<HomeImageController>();
+    bool hasImage = homeImageController.loadedImageBytes.value.isEmpty;
     return Row(
       children: [
         SizedBox(
           width: 30,
           height: 30,
           child: Visibility(
-            visible: controller.isExifChecked.value,
+            visible: homeImageController.isExifChecked.value,
             child: Checkbox(
               activeColor: (hasImage)
                   ? SkeletonColorScheme.textSecondaryColor
@@ -395,15 +403,15 @@ class HomeAppBar extends GetView<HomePageController> {
               onChanged: (bool? newValue) {
                 if (hasImage) return;
 
-                controller.loadImageOptions[title] = newValue!;
-                controller.update();
+                homeImageController.loadImageOptions[title] = newValue!;
+                homeImageController.update();
               },
             ),
           ),
         ),
         Text(title,
             style: TextStyle(
-              color: (controller.isExifChecked.value)
+              color: (homeImageController.isExifChecked.value)
                   ? SkeletonColorScheme.textSecondaryColor
                   : Colors.transparent,
               fontSize: 10,

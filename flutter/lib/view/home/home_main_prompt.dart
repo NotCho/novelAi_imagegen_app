@@ -1,30 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:naiapp/application/home/home_generation_controller.dart';
 import 'package:naiapp/view/core/util/components.dart';
 import '../core/util/design_system.dart';
 
 class HomeMainPrompt extends StatelessWidget {
-  final TextEditingController positivePromptController;
-  final TextEditingController negativePromptController;
-
-  const HomeMainPrompt(
-      {super.key,
-      required this.positivePromptController,
-      required this.negativePromptController});
+  const HomeMainPrompt({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return mainPrompt();
+    final generationController = Get.find<HomeGenerationController>();
+    return mainPrompt(generationController);
   }
 
-  Widget mainPrompt() {
+  Widget mainPrompt(HomeGenerationController generationController) {
     return SingleChildScrollView(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           // 메인 프롬프트 입력 필드 디자인 개선
           _buildPromptField(
-            controller: positivePromptController,
+            controller: generationController.positivePromptController,
             hintText: 'masterpiece, high quality, 1girl, ...',
             icon: Icons.add_circle_outline,
             color: SkeletonColorScheme.accentColor,
@@ -33,7 +29,7 @@ class HomeMainPrompt extends StatelessWidget {
 
           // 네거티브 프롬프트 입력 필드 디자인 개선
           _buildPromptField(
-            controller: negativePromptController,
+            controller: generationController.negativePromptController,
             hintText: 'low quality, bad anatomy, worst quality, ...',
             icon: Icons.remove_circle_outline,
             color: SkeletonColorScheme.negativeColor,

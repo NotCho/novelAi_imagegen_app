@@ -1,14 +1,39 @@
 import 'dart:convert';
-
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
-import 'package:naiapp/application/core/skeleton_controller.dart';
-import '../../domain/gen/diffusion_model.dart' as df;
-
-import 'package:get/get.dart';
+import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:dartz/dartz.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:naiapp/application/core/skeleton_controller.dart';
+import 'package:naiapp/application/home/home_generation_controller.dart';
+import 'package:naiapp/domain/gen/i_novelAI_repository.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:image/image.dart' as img;
+
+import '../../domain/gen/diffusion_model.dart' as df;
+import '../../infra/service/webp_image_parser.dart';
+
 class HomeImageController extends SkeletonController {
+  final INovelAIRepository _novelAIRepository = Get.find<INovelAIRepository>();
+
+  final Map<String, Uint8List> imageCache = {};
+  Rx<Uint8List> loadedImageBytes = Uint8List(0).obs;
+  df.DiffusionModel? loadedImageModel;
+  RxString loadImageStatus = "이미지를 불러온 후 체크박스 설정 가능".obs;
+  RxBool isExifChecked = false.obs;
+
+  RxMap<String, bool> loadImageOptions = {
+    "긍정 프롬프트": true,
+    "부정 프롬프트": true,
+    "캐릭터": true,
+    '세팅': true,
+    'Vibe': false,
+    '시드': false
+  }.obs;
+
   Rx<Uint8List> currentImageBytes = Uint8List(0).obs;
   Rx<Uint8List> generatedImageBytes = Uint8List(0).obs;
   RxList<VibeImage> vibeParseImageBytes = <VibeImage>[].obs;
@@ -321,6 +346,195 @@ class HomeImageController extends SkeletonController {
       currentImageBytes.value =
           base64Decode(generationHistory[lastIndex].imagePath);
       imageViewPageController.jumpToPage(lastIndex);
+    }
+  }
+
+  void onImageGenerated(String base64Str, Uint8List imageBytes, String prompt) {
+    generatedImagePath.value = base64Str;
+    generatedImageBytes.value = imageBytes;
+    imageCache[base64Str] = imageBytes;
+    generationHistory.add(
+      GenerationHistoryItem(imagePath: base64Str, prompt: prompt),
+    );
+  }
+
+  Future<void> getVibeBytes() async {
+    final generationController = Get.find<HomeGenerationController>();
+    Either<String, List<VibeImage>> result = await _novelAIRepository.vibeParse(
+        vibeParseImageBytes, generationController.usingModel.value);
+    result.fold(
+      (l) {
+        print(l);
+        Get.snackbar('오류', 'Vibe 이미지 파싱 중 오류가 발생했습니다: $l',
+            backgroundColor: Colors.red, colorText: Colors.white);
+      },
+      (r) {},
+    );
+  }
+
+  Future<void> addVibeImage(Uint8List image) async {
+    if (image.isEmpty) {
+      Get.snackbar('오류', '이미지를 선택해주세요.',
+          backgroundColor: Colors.red, colorText: Colors.white);
+      return;
+    }
+    VibeImage vibeImage = VibeImage(
+        image: image,
+        weight: 0.6.obs,
+        extractionStrength: 1.0.obs,
+        prevExtractionStrength: 0.0.obs);
+    vibeParseImageBytes.add(vibeImage);
+    Get.back();
+  }
+
+  void clearImageDialog() {
+    loadedImageBytes.value = Uint8List(0);
+    loadImageStatus.value = "이미지를 불러온 후 체크박스 설정 가능";
+    isExifChecked.value = false;
+  }
+
+  void cancelImageLoad() async {
+    Get.back();
+    clearImageDialog();
+  }
+
+  Future<void> checkImageMetadata(Uint8List imageBytes) async {
+    try {
+      Map<String, String>? textChunks =
+          WebPMetadataParser.extractMetadata(imageBytes);
+      String? metadata;
+      if (textChunks == null || textChunks.isEmpty) {
+        loadImageStatus.value = "실패, 메타데이터 없음";
+        print('메타데이터를 찾을 수 없습니다');
+        return;
+      }
+      metadata = textChunks['Comment'];
+
+      if (metadata != null) {
+        try {
+          final jsonData = jsonDecode(metadata);
+          if (jsonData is Map && jsonData.containsKey('prompt')) {
+            final prompt = jsonData['prompt'];
+            loadImageStatus.value = "메타데이터 로드됨: $prompt";
+            isExifChecked.value = true;
+          }
+
+          try {
+            final generationController = Get.find<HomeGenerationController>();
+            loadedImageModel = diffusionModelFromExifMap(
+                defaultModel: generationController.usingModel.value, textChunks: textChunks);
+            print('DiffusionModel 생성 완료');
+          } catch (e) {
+            loadImageStatus.value = "실패, 메타데이터 파싱불가: $e\n메타데이터: $metadata";
+            print('Exif 추출 실패: $e');
+          }
+        } catch (e) {
+          loadImageStatus.value = "실패, 메타데이터 파싱불가: $e\n메타데이터: $metadata";
+          print('JSON 파싱 실패: $e');
+        }
+      } else {
+        loadImageStatus.value = "실패, 메타데이터 없음";
+        print('갤러리 이미지에서 메타데이터를 찾을 수 없습니다');
+      }
+    } catch (e) {
+      loadImageStatus.value = "실패, 메타데이터 확인 중 오류: $e";
+      print('메타데이터 확인 중 오류: $e');
+    }
+  }
+
+  Future<void> getImageFromGallery() async {
+    try {
+      final result = await ImagePicker().pickImage(
+        source: ImageSource.gallery,
+        imageQuality: 100,
+      );
+
+      if (result != null) {
+        print('갤러리에서 이미지 선택: ${result.path}');
+
+        try {
+          final file = File(result.path);
+          if (await file.exists()) {
+            final bytes = await file.readAsBytes();
+
+            checkImageMetadata(bytes);
+
+            imageCache[base64Encode(bytes)] = bytes;
+            loadedImageBytes.value = bytes;
+
+            return;
+          }
+        } catch (e) {
+          print('File API 접근 실패, 대체 방법 시도: $e');
+        }
+
+        try {
+          final bytes = await result.readAsBytes();
+          print('readAsBytes로 이미지 로드 성공: ${bytes.length} 바이트');
+
+          checkImageMetadata(bytes);
+          imageCache[base64Encode(bytes)] = bytes;
+          loadedImageBytes.value = bytes;
+
+          return;
+        } catch (e) {
+          print('readAsBytes 실패, 대체 방법 시도: $e');
+        }
+
+        try {
+          final tempDir = await getTemporaryDirectory();
+          final tempPath =
+              '${tempDir.path}/temp_image_${DateTime.now().millisecondsSinceEpoch}.png';
+          final tempFile = File(tempPath);
+
+          await File(result.path).copy(tempPath);
+
+          if (await tempFile.exists()) {
+            final bytes = await tempFile.readAsBytes();
+
+            checkImageMetadata(bytes);
+            imageCache[base64Encode(bytes)] = bytes;
+            loadedImageBytes.value = bytes;
+
+            await tempFile.delete();
+            return;
+          }
+        } catch (e) {
+          print('임시 파일 복사 방식 실패: $e');
+        }
+
+        try {
+          final imgBytes = await result.readAsBytes();
+          final img.Image? decodedImage = img.decodeImage(imgBytes);
+
+          if (decodedImage != null) {
+            final reEncodedBytes = img.encodePng(decodedImage);
+            print('이미지 재인코딩 성공: ${reEncodedBytes.length} 바이트');
+
+            generatedImageBytes.value =
+                Uint8List.fromList(reEncodedBytes);
+            generatedImagePath.value =
+                base64Encode(reEncodedBytes);
+            imageCache[base64Encode(reEncodedBytes)] =
+                Uint8List.fromList(reEncodedBytes);
+            generationHistory.add(
+              GenerationHistoryItem(
+                  imagePath: base64Encode(reEncodedBytes), prompt: ''),
+            );
+
+            return;
+          }
+        } catch (e) {
+          print('이미지 재인코딩 실패: $e');
+        }
+
+        Get.snackbar('오류', '이미지를 로드할 수 없습니다.',
+            backgroundColor: Colors.red, colorText: Colors.white);
+      }
+    } catch (e) {
+      print('갤러리에서 이미지 로드 중 오류: $e');
+      Get.snackbar('오류', '갤러리에서 이미지를 불러오는 중 문제가 발생했습니다: $e',
+          backgroundColor: Colors.red, colorText: Colors.white);
     }
   }
 }

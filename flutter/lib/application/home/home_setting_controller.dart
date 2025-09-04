@@ -15,6 +15,9 @@ class HomeSettingController extends SkeletonController {
   // 스탭 관련 변수
   RxNum samplingSteps = RxNum(28);
 
+  // 자동 저장
+  RxBool autoSave = false.obs;
+
   // 샘플러 관련 변수
   RxString selectedSampler = 'Euler a'.obs; // 초기값 설정
 
@@ -386,6 +389,25 @@ class HomeSettingController extends SkeletonController {
     presetMap[presetName] = setting;
   }
 
+  void loadCustomSizes() {
+    List<String>? list = prefs.getStringList("customSizeList");
+    if (list != null) {
+      for (String size in list) {
+        List<String> parts = size.split('x');
+        if (parts.length == 2) {
+          try {
+            int width = int.parse(parts[0].trim());
+            int height = int.parse(parts[1].trim());
+            sizeOptionsWithCustom
+                .add(Size(width.toDouble(), height.toDouble()));
+          } catch (e) {
+            print('Invalid custom size format: $size');
+          }
+        }
+      }
+    }
+  }
+
   void loadPresets() {
     presetMap.clear();
 
@@ -421,8 +443,16 @@ class HomeSettingController extends SkeletonController {
     presetMap.remove(presetName);
   }
 
+  Future<void> setAutoSave(bool value) async {
+    autoSave.value = value;
+    await prefs.setBool("autoSave", value);
+  }
+
   @override
   Future<bool> initLoading() async {
+    autoSave.value = prefs.getBool("autoSave") ?? false;
+    loadCustomSizes();
+    loadPresets();
     return true;
   }
 }

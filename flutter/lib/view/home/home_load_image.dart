@@ -8,8 +8,6 @@ import 'package:naiapp/view/core/util/components.dart';
 import 'package:naiapp/view/core/util/design_system.dart';
 
 class HomeLoadImage extends StatelessWidget {
-  final HomePageController homePageController = Get.find<HomePageController>();
-
   HomeLoadImage({super.key});
 
   final HomeImageController homeImageController =

@@ -9,6 +9,12 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../application/core/global_controller.dart';
 import '../../application/core/router.dart';
+import '../../application/home/home_auto_generation_controller.dart';
+import '../../application/home/home_character_controller.dart';
+import '../../application/home/home_generation_controller.dart';
+import '../../application/home/home_image_controller.dart';
+import '../../application/home/home_page_controller.dart';
+import '../../application/home/home_setting_controller.dart';
 import '../../application/home/image_cache_manager.dart';
 import '../../domain/core/i_connection.dart';
 import 'connection.dart';
