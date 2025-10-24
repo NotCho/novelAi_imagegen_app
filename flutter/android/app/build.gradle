@@ -15,14 +15,11 @@ if (localPropertiesFile.exists()) {
     }
 }
 
-def minSdkVersion = localProperties.getProperty('flutter.minSdkVersion').toInteger()
-def localNdkVersion = localProperties.getProperty('flutter.ndkVersion')
-
 
 android {
     namespace = "com.nai.autogenerator"
     compileSdk = flutter.compileSdkVersion
-    ndkVersion = localNdkVersion
+    ndkVersion = "27.0.12077973"
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
@@ -38,8 +35,8 @@ android {
         applicationId = "com.nai.autogenerator"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
-        minSdk = minSdkVersion
-        targetSdk = flutter.targetSdkVersion
+        minSdk = 26
+        targetSdk = 35
         versionCode = flutter.versionCode
         versionName = flutter.versionName
     }
