@@ -1,26 +1,21 @@
 import 'dart:convert';
 import 'dart:math';
 import 'dart:typed_data';
-import 'dart:async'; // 타이머를 위한 import 추가
 
 import 'package:dartz/dartz.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:get/get.dart';
-import 'package:image/image.dart' as img;
-import 'package:image_picker/image_picker.dart';
+import 'package:naiapp/application/home/auto_generation_controller.dart';
 import 'package:naiapp/application/home/home_image_controller.dart';
 import 'package:naiapp/application/home/home_setting_controller.dart';
+import 'package:naiapp/application/home/image_load_controller.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../domain/gen/diffusion_model.dart' as df;
 
 import '../../domain/gen/i_novelAI_repository.dart';
-import '../../infra/service/webp_image_parser.dart';
 import '../../main.dart';
 import '../core/skeleton_controller.dart';
-
-import 'dart:io';
-import 'package:path_provider/path_provider.dart';
 
 import '../image/image_page_controller.dart';
 
@@ -28,27 +23,18 @@ class HomePageController extends SkeletonController {
   HomeImageController homeImageController = Get.find<HomeImageController>();
   HomeSettingController homeSettingController =
       Get.find<HomeSettingController>();
+  AutoGenerationController autoGenerationController =
+      Get.find<AutoGenerationController>();
+  ImageLoadController imageLoadController = Get.find<ImageLoadController>();
+
   final isGenerating = false.obs;
-  final autoGenerateEnabled = false.obs; // 자동 생성 활성화 여부
-  RxDouble autoGenerateSeconds = 5.0.obs; // 자동 생성 대기 시간 (초)
-  RxDouble autoGenerateRandomDelay = 0.0.obs; // 자동 생성 대기 시간 랜덤 범위
-  final remainingSeconds = 0.obs; // 남은 시간 표시용
-  Timer? _autoGenerateTimer; // 자동 생성 타이머
-  Timer? get autoGenerateTimer => _autoGenerateTimer;
   final RxBool _addQualityTags = false.obs;
   RxInt selectedCharacterIndex = 0.obs;
   RxBool confirmRemoveIndex = false.obs;
   final Map<String, Uint8List> imageCache = {};
   RxBool expandHistory = false.obs;
   RxBool autoSave = false.obs;
-  RxString loadImageStatus = "이미지를 불러온 후 체크박스 설정 가능".obs;
-  RxBool isExifChecked = false.obs;
   final usingModel = 'nai-diffusion-4-5-full'.obs;
-  Rx<Uint8List> loadedImageBytes = Uint8List(0).obs;
-  RxInt maxAutoGenerateCount = 0.obs; // 최대 자동 생성 이미지 수
-  RxInt currentAutoGenerateCount = 0.obs; // 현재 자동 생성 이미지 수
-
-  df.DiffusionModel? loadedImageModel;
 
   Map<String, String> modelNames = {
     'nai-diffusion-4-5-full': 'V4.5 Full',
@@ -57,15 +43,6 @@ class HomePageController extends SkeletonController {
     'nai-diffusion-4-curated-preview': 'V4 Curated',
     'nai-diffusion-3': 'V3 Full',
   };
-
-  RxMap<String, bool> loadImageOptions = {
-    "긍정 프롬프트": true,
-    "부정 프롬프트": true,
-    "캐릭터": true,
-    '세팅': true,
-    'Vibe': false,
-    '시드': false
-  }.obs;
 
   List<String> noiseScheduleOptions = [
     'karras',
@@ -95,8 +72,6 @@ class HomePageController extends SkeletonController {
   final positivePromptController = TextEditingController();
   final negativePromptController = TextEditingController();
 
-  final autoGenerateCountController =
-      TextEditingController(text: '0'); // 자동 생성 이미지 수 입력 컨트롤러
   ScrollController characterScrollController =
       ScrollController(); // 스크롤 컨트롤러 추가
 
@@ -187,84 +162,7 @@ class HomePageController extends SkeletonController {
   void onClose() {
     positivePromptController.dispose();
     negativePromptController.dispose();
-    _cancelAutoGenerateTimer(); // 타이머 취소
     super.onClose();
-  }
-
-  void _cancelAutoGenerateTimer() {
-    _autoGenerateTimer?.cancel();
-    _autoGenerateTimer = null;
-  }
-
-  void _startAutoGenerateTimer() {
-    if (!autoGenerateEnabled.value) return;
-
-    // 기본 시간 설정
-    double baseSeconds = autoGenerateSeconds.value;
-
-    // 랜덤 범위 계산 (최대 변동 폭)
-    double randomRange = baseSeconds * autoGenerateRandomDelay.value;
-
-    // -randomRange부터 +randomRange 사이의 랜덤 값 생성
-    double randomOffset =
-        (Random().nextDouble() * 2 * randomRange) - randomRange;
-
-    // 최종 시간 계산 (기본 시간 ± 랜덤 오프셋)
-    double finalSeconds = baseSeconds + randomOffset;
-
-    // 최소 시간 보장 (음수가 되지 않도록)
-    finalSeconds = max(1.0, finalSeconds);
-
-    // 최종 시간 설정
-    remainingSeconds.value = finalSeconds.round();
-
-    _cancelAutoGenerateTimer();
-
-    _autoGenerateTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      remainingSeconds.value--;
-      if (remainingSeconds.value <= 0) {
-        _cancelAutoGenerateTimer();
-        if (!isGenerating.value && autoGenerateEnabled.value) {
-          generateImage();
-        }
-      }
-    });
-  }
-
-  void toggleAutoGenerate() async {
-    autoGenerateEnabled.toggle();
-    if (autoGenerateEnabled.value) {
-      await FlutterForegroundTask.startService(
-        notificationTitle: '서비스 실행 중',
-        notificationText: '탭하면 앱으로 돌아갑니다',
-        notificationInitialRoute: '/home',
-        callback: startCallback, // top-level 함수로 TaskHandler 등록
-      );
-    } else {
-      FlutterForegroundTask.stopService();
-    }
-    if (autoGenerateEnabled.value && !isGenerating.value) {
-      _startAutoGenerateTimer();
-    } else {
-      _cancelAutoGenerateTimer();
-    }
-  }
-
-  void setAutoGenerateSeconds(double time) {
-    autoGenerateSeconds.value = time;
-    if (_autoGenerateTimer != null && _autoGenerateTimer!.isActive) {
-      _startAutoGenerateTimer();
-    }
-  }
-
-  void setAutoGenerateRandomDelay(double delay) {
-    autoGenerateRandomDelay.value = delay;
-  }
-
-  String getRandomDelayCalculation() {
-    double randomRange =
-        autoGenerateSeconds.value * autoGenerateRandomDelay.value;
-    return "±${randomRange.toStringAsFixed(2)}초";
   }
 
   final INovelAIRepository _novelAIRepository = Get.find<INovelAIRepository>();
@@ -286,21 +184,6 @@ class HomePageController extends SkeletonController {
 
   @override
   Future<bool> initLoading() async {
-    // 포그라운드 서비스에서 건너뛰기 플래그가 설정되어 있으면 초기화 건너뛰기
-    final skipInit = prefs.getBool('skip_init_loading') ?? false;
-    if (skipInit) {
-      await prefs.setBool('skip_init_loading', false); // 플래그 리셋
-      print('포그라운드 서비스로부터 복귀 - initLoading 건너뛰기');
-      return true;
-    }
-    
-    // 또는 autoGenerate가 이미 활성화되어 있으면 건너뛰기
-    if (autoGenerateEnabled.value) {
-      print('autoGenerate 이미 활성화됨 - initLoading 건너뛰기');
-      return true;
-    }
-
-    print('정상적인 initLoading 수행');
     final raw = prefs.getString("lastSettings");
     if (raw != null) {
       Map<String, dynamic> data = jsonDecode(raw);
@@ -390,7 +273,7 @@ class HomePageController extends SkeletonController {
       homeSettingController.randomSeed.value = true;
     }
 
-    _cancelAutoGenerateTimer();
+    autoGenerationController.cancelAutoGenerateTimer();
     await getVibeBytes();
 
     df.DiffusionModel setting = buildSetting();
@@ -422,14 +305,15 @@ class HomePageController extends SkeletonController {
           Get.find<ImagePageController>().scrollCheck();
         } catch (e) {}
 
-        if (autoGenerateEnabled.value) {
-          _startAutoGenerateTimer();
+        if (autoGenerationController.autoGenerateEnabled.value) {
+          autoGenerationController.startAutoGenerateTimer();
           homeSettingController.autoResolutionChange();
-          currentAutoGenerateCount.value++;
-          if (maxAutoGenerateCount.value > 0) {
-            if (currentAutoGenerateCount.value >= maxAutoGenerateCount.value) {
-              autoGenerateEnabled.value = false;
-              _cancelAutoGenerateTimer();
+          autoGenerationController.currentAutoGenerateCount.value++;
+          if (autoGenerationController.maxAutoGenerateCount.value > 0) {
+            if (autoGenerationController.currentAutoGenerateCount.value >=
+                autoGenerationController.maxAutoGenerateCount.value) {
+              autoGenerationController.autoGenerateEnabled.value = false;
+              autoGenerationController.cancelAutoGenerateTimer();
               Get.snackbar(
                 '알림',
                 '최대 자동 생성 이미지 수에 도달했습니다. 자동 생성이 비활성화됩니다.',
@@ -455,134 +339,6 @@ class HomePageController extends SkeletonController {
     homeImageController.currentImageBytes.value =
         homeImageController.generatedImageBytes.value;
     isGenerating.value = false;
-  }
-
-  void loadFromImage() {
-    if (loadedImageBytes.value.isEmpty) {
-      Get.snackbar('오류', '이미지를 불러오지 못했습니다.',
-          backgroundColor: Colors.red, colorText: Colors.white);
-      return;
-    }
-    if (loadedImageModel == null) {
-      Get.snackbar('오류', '메타데이터를 불러오지 못했습니다.',
-          backgroundColor: Colors.red, colorText: Colors.white);
-      _checkImageMetadata(loadedImageBytes.value);
-      return;
-    }
-
-    // 선택된 내용만 적용하기
-    if (loadImageOptions['긍정 프롬프트']!) {
-      positivePromptController.text = loadedImageModel!.input;
-    }
-
-    if (loadImageOptions['부정 프롬프트']!) {
-      negativePromptController.text =
-          loadedImageModel!.parameters.v4_negative_prompt.caption.base_caption;
-    }
-
-    if (loadImageOptions['세팅']!) {
-      // 세팅 관련 값 적용
-      usingModel.value = loadedImageModel!.model;
-      homeSettingController.samplingSteps.value =
-          loadedImageModel!.parameters.steps;
-
-      homeSettingController.setSettings(loadedImageModel!);
-
-      // 노이즈 스케줄 설정
-      selectedNoiseSchedule.value = noiseScheduleOptions
-              .contains(loadedImageModel!.parameters.noise_schedule)
-          ? loadedImageModel!.parameters.noise_schedule
-          : noiseScheduleOptions.first;
-    }
-
-    if (loadImageOptions['캐릭터']!) {
-      // 캐릭터 프롬프트 적용
-      characterPrompts.clear();
-      for (var i = 0;
-          i < loadedImageModel!.parameters.characterPrompts.length;
-          i++) {
-        characterPrompts.add({
-          'prompt': loadedImageModel!.parameters.characterPrompts[i],
-          'positive': TextEditingController(
-              text: loadedImageModel!.parameters.characterPrompts[i].prompt),
-          'negative': TextEditingController(
-              text: loadedImageModel!.parameters.characterPrompts[i].uc),
-        });
-      }
-      Get.back();
-    }
-
-    if (loadImageOptions['Vibe']!) {
-      homeImageController.loadVibeFromExif(loadedImageModel!);
-    }
-
-    if (loadImageOptions['시드']!) {
-      // 시드 및 랜덤 여부 적용
-      homeSettingController.randomSeed.value =
-          loadedImageModel!.parameters.seed == 999999999;
-      homeSettingController.seedController.text =
-          homeSettingController.randomSeed.value
-              ? ""
-              : loadedImageModel!.parameters.seed.toString();
-    }
-
-    Get.back();
-    Get.snackbar('성공', '이미지에서 선택한 설정을 불러왔습니다!',
-        backgroundColor: Colors.green, colorText: Colors.white);
-  }
-
-  void clearImageDialog() {
-    loadedImageBytes.value = Uint8List(0);
-    loadImageStatus.value = "이미지를 불러온 후 체크박스 설정 가능";
-    isExifChecked.value = false;
-  }
-
-  void cancelImageLoad() async {
-    Get.back();
-    clearImageDialog();
-  }
-
-  Future<void> _checkImageMetadata(Uint8List imageBytes) async {
-    try {
-      Map<String, String>? textChunks =
-          WebPMetadataParser.extractMetadata(imageBytes);
-      String? metadata;
-      if (textChunks == null || textChunks.isEmpty) {
-        loadImageStatus.value = "실패, 메타데이터 없음";
-        print('메타데이터를 찾을 수 없습니다');
-        return;
-      }
-      metadata = textChunks['Comment'];
-
-      if (metadata != null) {
-        try {
-          final jsonData = jsonDecode(metadata);
-          if (jsonData is Map && jsonData.containsKey('prompt')) {
-            final prompt = jsonData['prompt'];
-            loadImageStatus.value = "메타데이터 로드됨: $prompt";
-            isExifChecked.value = true;
-          }
-
-          try {
-            loadedImageModel = homeImageController.diffusionModelFromExifMap(
-                defaultModel: usingModel.value, textChunks: textChunks);
-            print('DiffusionModel 생성 완료');
-          } catch (e) {
-            loadImageStatus.value = "실패, 메타데이터 파싱불가: $e\n메타데이터: $metadata";
-            print('Exif 추출 실패: $e');
-          }
-        } catch (e) {
-          loadImageStatus.value = "실패, 메타데이터 파싱불가: $e\n메타데이터: $metadata";
-          print('JSON 파싱 실패: $e');
-        }
-      } else {
-        loadImageStatus.value = "실패, 메타데이터 없음";
-        print('갤러리 이미지에서 메타데이터를 찾을 수 없습니다');
-      }
-    } catch (e) {
-      loadImageStatus.value = "실패, 메타데이터 확인 중 오류: $e";
-      print('메타데이터 확인 중 오류: $e');
-    }
   }
 
   void loadFromHistory(int index) {
@@ -832,113 +588,6 @@ class HomePageController extends SkeletonController {
   }
 
 // 해상도 값 안전하게 파싱하는 헬퍼 함수
-
-// 이미지 로딩 개선 버전
-  void getImageFromGallery() async {
-    try {
-      final result = await ImagePicker().pickImage(
-        source: ImageSource.gallery,
-        // 이미지 품질 조정 (더 낮은 값도 시도해 볼 수 있음)
-        imageQuality: 100,
-      );
-
-      if (result != null) {
-        print('갤러리에서 이미지 선택: ${result.path}');
-
-        try {
-          final file = File(result.path);
-          if (await file.exists()) {
-            final bytes = await file.readAsBytes();
-
-            _checkImageMetadata(bytes);
-
-            imageCache[base64Encode(bytes)] = bytes;
-            loadedImageBytes.value = bytes;
-
-            return; // 성공했으면 여기서 종료
-          }
-        } catch (e) {
-          print('File API 접근 실패, 대체 방법 시도: $e');
-        }
-
-        // 2. readAsBytes 방식 시도
-        try {
-          final bytes = await result.readAsBytes();
-          print('readAsBytes로 이미지 로드 성공: ${bytes.length} 바이트');
-
-          // UI 업데이트
-          imageCache[base64Encode(bytes)] = bytes;
-          loadedImageBytes.value = bytes;
-
-          return; // 성공했으면 여기서 종료
-        } catch (e) {
-          print('readAsBytes 실패, 대체 방법 시도: $e');
-        }
-
-        // 3. 복사 후 접근 시도 (가장 안전한 방법)
-        try {
-          // 임시 디렉토리에 복사
-          final tempDir = await getTemporaryDirectory();
-          final tempPath =
-              '${tempDir.path}/temp_image_${DateTime.now().millisecondsSinceEpoch}.png';
-          final tempFile = File(tempPath);
-
-          // 원본 파일 복사
-          await File(result.path).copy(tempPath);
-
-          if (await tempFile.exists()) {
-            final bytes = await tempFile.readAsBytes();
-
-            // UI 업데이트
-            imageCache[base64Encode(bytes)] = bytes;
-            loadedImageBytes.value = bytes;
-
-            await tempFile.delete();
-            return;
-          }
-        } catch (e) {
-          print('임시 파일 복사 방식 실패: $e');
-        }
-
-        // 4. 다른 방법으로 시도: 이미지 디코딩 후 다시 인코딩
-        try {
-          // 여기서는 image 패키지를 사용해서 디코딩 후 다시 인코딩
-          final imgBytes = await result.readAsBytes();
-          final img.Image? decodedImage = img.decodeImage(imgBytes);
-
-          if (decodedImage != null) {
-            // 디코딩 성공, PNG로 다시 인코딩
-            final reEncodedBytes = img.encodePng(decodedImage);
-            print('이미지 재인코딩 성공: ${reEncodedBytes.length} 바이트');
-
-            // UI 업데이트
-            homeImageController.generatedImageBytes.value =
-                Uint8List.fromList(reEncodedBytes);
-            homeImageController.generatedImagePath.value =
-                base64Encode(reEncodedBytes);
-            imageCache[base64Encode(reEncodedBytes)] =
-                Uint8List.fromList(reEncodedBytes);
-            homeImageController.generationHistory.add(
-              GenerationHistoryItem(
-                  imagePath: base64Encode(reEncodedBytes), prompt: ''),
-            );
-
-            return;
-          }
-        } catch (e) {
-          print('이미지 재인코딩 실패: $e');
-        }
-
-        // 모든 방법 실패
-        Get.snackbar('오류', '이미지를 로드할 수 없습니다.',
-            backgroundColor: Colors.red, colorText: Colors.white);
-      }
-    } catch (e) {
-      print('갤러리에서 이미지 로드 중 오류: $e');
-      Get.snackbar('오류', '갤러리에서 이미지를 불러오는 중 문제가 발생했습니다: $e',
-          backgroundColor: Colors.red, colorText: Colors.white);
-    }
-  }
 
   int min(int a, int b) => a < b ? a : b;
 

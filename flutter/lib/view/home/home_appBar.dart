@@ -80,7 +80,7 @@ class HomeAppBar extends GetView<HomePageController> {
           const SizedBox(width: SkeletonSpacing.spacing),
           IconButton(
             onPressed: () {
-              controller.clearImageDialog();
+              controller.imageLoadController.clearImageDialog();
               Get.dialog(LoadImageDialog(), barrierDismissible: false);
             },
             icon: const Icon(Icons.add_a_photo),
@@ -123,7 +123,6 @@ class HomeAppBar extends GetView<HomePageController> {
     );
   }
 
-
   Widget LoadImageDialog() {
     return AlertDialog(
       backgroundColor: SkeletonColorScheme.cardColor,
@@ -161,7 +160,7 @@ class HomeAppBar extends GetView<HomePageController> {
                         const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
                   ),
                   onPressed: () async {
-                    controller.cancelImageLoad();
+                    controller.imageLoadController.cancelImageLoad();
                   },
                   icon: Icon(
                     Icons.close,
@@ -189,7 +188,8 @@ class HomeAppBar extends GetView<HomePageController> {
                   width: 150,
                   child: Obx(
                     () => Center(
-                      child: (controller.loadedImageBytes.value.isNotEmpty)
+                      child: (controller.imageLoadController.loadedImageBytes
+                              .value.isNotEmpty)
                           ? Container(
                               height: 150,
                               width: 150,
@@ -207,11 +207,13 @@ class HomeAppBar extends GetView<HomePageController> {
                               ),
                               child: Image.memory(
                                   fit: BoxFit.contain,
-                                  controller.loadedImageBytes.value),
+                                  controller.imageLoadController
+                                      .loadedImageBytes.value),
                             )
                           : GestureDetector(
                               onTap: () {
-                                controller.getImageFromGallery();
+                                controller.imageLoadController
+                                    .getImageFromGallery();
                               },
                               child: Container(
                                 height: 150,
@@ -261,7 +263,7 @@ class HomeAppBar extends GetView<HomePageController> {
                         '불러오기',
                         color: SkeletonColorScheme.primaryColor,
                         onPressed: () {
-                          controller.loadFromImage();
+                          controller.imageLoadController.loadFromImage();
                         },
                       ),
                     ),
@@ -272,7 +274,8 @@ class HomeAppBar extends GetView<HomePageController> {
                         color: SkeletonColorScheme.primaryColor,
                         onPressed: () {
                           controller.addVibeImage(
-                            controller.loadedImageBytes.value,
+                            controller
+                                .imageLoadController.loadedImageBytes.value,
                           );
                         },
                       ),
@@ -300,7 +303,7 @@ class HomeAppBar extends GetView<HomePageController> {
 
   Widget _loadImageStatusBuilder() {
     Color statusColor = SkeletonColorScheme.textSecondaryColor;
-    if (controller.loadedImageBytes.value.contains("실패")) {
+    if (controller.imageLoadController.loadImageStatus.value.contains("실패")) {
       statusColor = SkeletonColorScheme.negativeColor;
     }
     return Obx(
@@ -315,7 +318,7 @@ class HomeAppBar extends GetView<HomePageController> {
           ),
         ),
         child: Text(
-          controller.loadImageStatus.value,
+          controller.imageLoadController.loadImageStatus.value,
           overflow: TextOverflow.ellipsis,
           maxLines: 3,
           style: TextStyle(
@@ -371,22 +374,25 @@ class HomeAppBar extends GetView<HomePageController> {
     return Obx(
       () => Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: controller.loadImageOptions.keys.map((String key) {
-          return _buildCheckBox(key, controller.loadImageOptions[key]!);
+        children: controller.imageLoadController.loadImageOptions.keys
+            .map((String key) {
+          return _buildCheckBox(
+              key, controller.imageLoadController.loadImageOptions[key]!);
         }).toList(),
       ),
     );
   }
 
   Widget _buildCheckBox(String title, bool value) {
-    bool hasImage = controller.loadedImageBytes.value.isEmpty;
+    bool hasImage =
+        controller.imageLoadController.loadedImageBytes.value.isEmpty;
     return Row(
       children: [
         SizedBox(
           width: 30,
           height: 30,
           child: Visibility(
-            visible: controller.isExifChecked.value,
+            visible: controller.imageLoadController.isExifChecked.value,
             child: Checkbox(
               activeColor: (hasImage)
                   ? SkeletonColorScheme.textSecondaryColor
@@ -395,7 +401,8 @@ class HomeAppBar extends GetView<HomePageController> {
               onChanged: (bool? newValue) {
                 if (hasImage) return;
 
-                controller.loadImageOptions[title] = newValue!;
+                controller.imageLoadController.loadImageOptions[title] =
+                    newValue!;
                 controller.update();
               },
             ),
@@ -403,7 +410,7 @@ class HomeAppBar extends GetView<HomePageController> {
         ),
         Text(title,
             style: TextStyle(
-              color: (controller.isExifChecked.value)
+              color: (controller.imageLoadController.isExifChecked.value)
                   ? SkeletonColorScheme.textSecondaryColor
                   : Colors.transparent,
               fontSize: 10,

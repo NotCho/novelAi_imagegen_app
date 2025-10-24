@@ -105,8 +105,9 @@ class ImagePageController extends SkeletonController {
     selectMode.value = !selectMode.value;
 
     if (selectMode.value) {
-      if (homePageController.autoGenerateEnabled.value) {
-        homePageController.autoGenerateEnabled.value =
+      if (homePageController
+          .autoGenerationController.autoGenerateEnabled.value) {
+        homePageController.autoGenerationController.autoGenerateEnabled.value =
             false; // 선택 모드 해제 시 자동 생성 비활성화
         Get.snackbar("선택모드 활성", "성능을 위해 이미지 자동 생성이 비활성화됩니다.",
             backgroundColor: SkeletonColorScheme.newGreenColor,

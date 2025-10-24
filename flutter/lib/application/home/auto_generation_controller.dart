@@ -49,6 +49,7 @@ class AutoGenerationController extends GetxController {
     autoGenerateEnabled.toggle();
 
     if (autoGenerateEnabled.value) {
+      currentAutoGenerateCount.value = 0;
       await FlutterForegroundTask.startService(
         notificationTitle: '서비스 실행 중',
         notificationText: '탭하면 앱으로 돌아갑니다',

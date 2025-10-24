@@ -606,7 +606,8 @@ class HomeSetting extends GetView<HomePageController> {
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
                   color: controller.homeSettingController.autoChangeSize.value
-                      ? (controller.autoGenerateEnabled.value)
+                      ? (controller.autoGenerationController.autoGenerateEnabled
+                              .value)
                           ? SkeletonColorScheme.accentColor
                               .withValues(alpha: 0.2)
                           : SkeletonColorScheme.negativeColor
@@ -618,7 +619,8 @@ class HomeSetting extends GetView<HomePageController> {
                 child: Icon(
                   Icons.recycling,
                   color: controller.homeSettingController.autoChangeSize.value
-                      ? (controller.autoGenerateEnabled.value)
+                      ? (controller.autoGenerationController.autoGenerateEnabled
+                              .value)
                           ? SkeletonColorScheme.accentColor
                           : SkeletonColorScheme.negativeColor
                       : SkeletonColorScheme.textSecondaryColor,
@@ -640,7 +642,8 @@ class HomeSetting extends GetView<HomePageController> {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      (controller.autoGenerateEnabled.value)
+                      (controller.autoGenerationController.autoGenerateEnabled
+                              .value)
                           ? '매번 다른 크기로 자동 생성'
                           : "자동 생성시에 활성 가능",
                       style: TextStyle(
@@ -662,10 +665,12 @@ class HomeSetting extends GetView<HomePageController> {
                       controller.homeSettingController.autoChangeSize.value =
                           value;
                     },
-                    activeColor: (controller.autoGenerateEnabled.value)
+                    activeColor: (controller
+                            .autoGenerationController.autoGenerateEnabled.value)
                         ? SkeletonColorScheme.accentColor
                         : SkeletonColorScheme.negativeColor,
-                    activeTrackColor: (controller.autoGenerateEnabled.value)
+                    activeTrackColor: (controller
+                            .autoGenerationController.autoGenerateEnabled.value)
                         ? SkeletonColorScheme.accentColor.withValues(alpha: 0.3)
                         : SkeletonColorScheme.negativeColor
                             .withValues(alpha: 0.5),
