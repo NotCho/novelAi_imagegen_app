@@ -441,175 +441,180 @@ class ImagePage extends GetView<ImagePageController> {
 
   Widget imageDialog(int index) {
     controller.currentIndex.value = index;
-    return Obx(
-      () {
-        // searchMode일 때와 일반 모드일 때 다른 리스트 사용
-        List<GenerationHistoryItem> currentItems = (controller.searchMode.value)
-            ? homeImageController.filteredGenerationHistory
-            : homeImageController.generationHistory;
+    return SkeletonScaffold(
+      bodyPadding: EdgeInsets.zero,
+      body: Obx(
+        () {
+          // searchMode일 때와 일반 모드일 때 다른 리스트 사용
+          List<GenerationHistoryItem> currentItems =
+              (controller.searchMode.value)
+                  ? homeImageController.filteredGenerationHistory
+                  : homeImageController.generationHistory;
 
-        return Stack(
-          children: [
-            PhotoView(
-              imageProvider: MemoryImage(
-                base64Decode(
-                    currentItems[controller.currentIndex.value].imagePath),
+          return Stack(
+            children: [
+              PhotoView(
+                imageProvider: MemoryImage(
+                  base64Decode(
+                      currentItems[controller.currentIndex.value].imagePath),
+                ),
+                minScale: PhotoViewComputedScale.contained,
+                maxScale: PhotoViewComputedScale.covered * 2,
               ),
-              minScale: PhotoViewComputedScale.contained,
-              maxScale: PhotoViewComputedScale.covered * 2,
-            ),
-            // 상단 컨트롤 바
-            Positioned(
-              top: 40,
-              left: 16,
-              right: 16,
-              child: ClipRRect(
-                borderRadius:
-                    BorderRadius.circular(SkeletonSpacing.borderRadius),
-                child: BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+              // 상단 컨트롤 바
+              Positioned(
+                top: 40,
+                left: 16,
+                right: 16,
+                child: ClipRRect(
+                  borderRadius:
+                      BorderRadius.circular(SkeletonSpacing.borderRadius),
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 12),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.7),
+                        borderRadius:
+                            BorderRadius.circular(SkeletonSpacing.borderRadius),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            '${controller.currentIndex.value + 1} / ${currentItems.length}',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Material(
+                                color: Colors.transparent,
+                                child: InkWell(
+                                  onTap: () {
+                                    controller.global.saveImageWithMetadata(
+                                        base64Decode(currentItems[
+                                                controller.currentIndex.value]
+                                            .imagePath));
+                                  },
+                                  borderRadius: BorderRadius.circular(
+                                      SkeletonSpacing.borderRadius / 2),
+                                  child: Container(
+                                    padding: const EdgeInsets.all(8),
+                                    child: const Icon(
+                                      Icons.download,
+                                      color: Colors.white,
+                                      size: 20,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Material(
+                                color: Colors.transparent,
+                                child: InkWell(
+                                  onTap: () {
+                                    Get.back();
+                                  },
+                                  borderRadius: BorderRadius.circular(
+                                      SkeletonSpacing.borderRadius / 2),
+                                  child: Container(
+                                    padding: const EdgeInsets.all(8),
+                                    child: const Icon(
+                                      Icons.close,
+                                      color: Colors.white,
+                                      size: 20,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              // 왼쪽 네비게이션 버튼 (전체 높이)
+              Positioned(
+                left: 0,
+                top: 0,
+                bottom: 0,
+                child: GestureDetector(
+                  onTap: () {
+                    if (controller.currentIndex.value > 0) {
+                      controller.currentIndex.value--;
+                    }
+                  },
                   child: Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 16, vertical: 12),
-                    decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.7),
-                      borderRadius:
-                          BorderRadius.circular(SkeletonSpacing.borderRadius),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          '${controller.currentIndex.value + 1} / ${currentItems.length}',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                          ),
+                    width: 80,
+                    color: Colors.transparent,
+                    child: Center(
+                      child: Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withValues(alpha: 0.5),
+                          borderRadius: BorderRadius.circular(
+                              SkeletonSpacing.borderRadius / 2),
                         ),
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Material(
-                              color: Colors.transparent,
-                              child: InkWell(
-                                onTap: () {
-                                  controller.global.saveImageWithMetadata(
-                                      base64Decode(currentItems[
-                                              controller.currentIndex.value]
-                                          .imagePath));
-                                },
-                                borderRadius: BorderRadius.circular(
-                                    SkeletonSpacing.borderRadius / 2),
-                                child: Container(
-                                  padding: const EdgeInsets.all(8),
-                                  child: const Icon(
-                                    Icons.download,
-                                    color: Colors.white,
-                                    size: 20,
-                                  ),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Material(
-                              color: Colors.transparent,
-                              child: InkWell(
-                                onTap: () {
-                                  Get.back();
-                                },
-                                borderRadius: BorderRadius.circular(
-                                    SkeletonSpacing.borderRadius / 2),
-                                child: Container(
-                                  padding: const EdgeInsets.all(8),
-                                  child: const Icon(
-                                    Icons.close,
-                                    color: Colors.white,
-                                    size: 20,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
+                        child: Icon(
+                          Icons.arrow_back_ios_new,
+                          color: controller.currentIndex.value > 0
+                              ? Colors.white
+                              : Colors.white.withValues(alpha: 0.3),
+                          size: 24,
                         ),
-                      ],
+                      ),
                     ),
                   ),
                 ),
               ),
-            ),
-            // 하단 네비게이션 바
-            Positioned(
-              bottom: 40,
-              left: 16,
-              right: 16,
-              child: Center(
-                child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: Colors.black.withValues(alpha: 0.7),
-                    borderRadius:
-                        BorderRadius.circular(SkeletonSpacing.borderRadius),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Material(
-                        color: Colors.transparent,
-                        child: InkWell(
-                          onTap: () {
-                            if (controller.currentIndex.value > 0) {
-                              controller.currentIndex.value--;
-                            }
-                          },
+              // 오른쪽 네비게이션 버튼 (전체 높이)
+              Positioned(
+                right: 0,
+                top: 0,
+                bottom: 0,
+                child: GestureDetector(
+                  onTap: () {
+                    if (controller.currentIndex.value <
+                        currentItems.length - 1) {
+                      controller.currentIndex.value++;
+                    }
+                  },
+                  child: Container(
+                    width: 80,
+                    color: Colors.transparent,
+                    child: Center(
+                      child: Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withValues(alpha: 0.5),
                           borderRadius: BorderRadius.circular(
                               SkeletonSpacing.borderRadius / 2),
-                          child: Container(
-                            padding: const EdgeInsets.all(8),
-                            child: Icon(
-                              Icons.arrow_back_ios,
-                              color: controller.currentIndex.value > 0
-                                  ? Colors.white
-                                  : Colors.white.withValues(alpha: 0.3),
-                              size: 20,
-                            ),
-                          ),
+                        ),
+                        child: Icon(
+                          Icons.arrow_forward_ios,
+                          color: controller.currentIndex.value <
+                                  currentItems.length - 1
+                              ? Colors.white
+                              : Colors.white.withValues(alpha: 0.3),
+                          size: 24,
                         ),
                       ),
-                      const SizedBox(width: 24),
-                      Material(
-                        color: Colors.transparent,
-                        child: InkWell(
-                          onTap: () {
-                            if (controller.currentIndex.value <
-                                currentItems.length - 1) {
-                              controller.currentIndex.value++;
-                            }
-                          },
-                          borderRadius: BorderRadius.circular(
-                              SkeletonSpacing.borderRadius / 2),
-                          child: Container(
-                            padding: const EdgeInsets.all(8),
-                            child: Icon(
-                              Icons.arrow_forward_ios,
-                              color: controller.currentIndex.value <
-                                      currentItems.length - 1
-                                  ? Colors.white
-                                  : Colors.white.withValues(alpha: 0.3),
-                              size: 20,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
                 ),
-              ),
-            )
-          ],
-        );
-      },
+              )
+            ],
+          );
+        },
+      ),
     );
   }
 }

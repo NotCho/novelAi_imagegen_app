@@ -341,12 +341,13 @@ class ExifPreservingImageSaver {
         : '이미지가 $format 형식으로 갤러리에 저장되었습니다';
 
     Get.snackbar(
+
       '저장 완료',
       message,
       backgroundColor: Colors.green,
       colorText: Colors.white,
       snackPosition: SnackPosition.BOTTOM,
-      duration: const Duration(seconds: 2),
+      duration: const Duration(milliseconds: 1000),
     );
   }
 
