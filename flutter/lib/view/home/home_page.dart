@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter/services.dart';
 import 'package:flutter_foreground_task/ui/with_foreground_task.dart';
 import 'package:naiapp/application/home/home_image_controller.dart';
 import 'package:naiapp/application/home/home_setting_controller.dart';
@@ -148,6 +149,8 @@ class HomePage extends GetView<HomePageController> {
                             1 -
                             index;
 
+                    final historyItem =
+                        homeImageController.generationHistory[reversedIndex];
                     return GestureDetector(
                       onTap: () {
                         if (index < 29) {
@@ -161,8 +164,7 @@ class HomePage extends GetView<HomePageController> {
                         print("끝으로 이동: $index");
                         print(reversedIndex);
                         homeImageController.currentImageBytes.value =
-                            base64Decode(homeImageController
-                                .generationHistory[reversedIndex].imagePath);
+                            base64Decode(historyItem.imagePath);
 
                         homeImageController.imageViewPageController
                             .animateToPage(30,
@@ -190,9 +192,10 @@ class HomePage extends GetView<HomePageController> {
                           borderRadius: BorderRadius.circular(
                               SkeletonSpacing.borderRadius),
                           child: Image.memory(
-                            base64Decode(homeImageController
-                                .generationHistory[reversedIndex].imagePath),
+                            base64Decode(historyItem.imagePath),
                             fit: BoxFit.cover,
+                            width: double.infinity,
+                            height: double.infinity,
                           ),
                         ),
                       ),

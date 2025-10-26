@@ -328,8 +328,13 @@ class HomeImageController extends SkeletonController {
 class GenerationHistoryItem {
   final String imagePath;
   final String prompt;
+  final int seed;
 
-  GenerationHistoryItem({required this.imagePath, required this.prompt});
+  GenerationHistoryItem({
+    required this.imagePath,
+    required this.prompt,
+    required this.seed,
+  });
 }
 
 class VibeImage {

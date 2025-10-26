@@ -291,7 +291,11 @@ class HomePageController extends SkeletonController {
         imageCache[base64Str] = imageBytes;
 
         homeImageController.generationHistory.add(
-          GenerationHistoryItem(imagePath: base64Str, prompt: setting.input),
+          GenerationHistoryItem(
+            imagePath: base64Str,
+            prompt: setting.input,
+            seed: setting.parameters.seed,
+          ),
         );
 
         FlutterForegroundTask.updateService(

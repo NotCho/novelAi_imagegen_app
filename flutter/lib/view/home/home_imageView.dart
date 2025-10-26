@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'dart:math' as math;
 
@@ -36,7 +37,6 @@ class HomeImageView extends GetView<HomeImageController> {
                 // 마지막 페이지 = currentImageBytes
                 if (index == historyMax) {
                   return Container(
-                    padding: const EdgeInsets.all(SkeletonSpacing.spacing),
                     decoration: BoxDecoration(
                       color: SkeletonColorScheme.primaryColor
                           .withValues(alpha: 0.1),
@@ -48,14 +48,10 @@ class HomeImageView extends GetView<HomeImageController> {
                         width: 2,
                       ),
                     ),
-                    child: ClipRRect(
-                      borderRadius:
-                          BorderRadius.circular(SkeletonSpacing.borderRadius),
-                      child: Obx(
-                        () => Image.memory(
-                          controller.currentImageBytes.value,
-                          fit: BoxFit.contain,
-                        ),
+                    child: Obx(
+                      () => Image.memory(
+                        controller.currentImageBytes.value,
+                        fit: BoxFit.contain,
                       ),
                     ),
                   );
@@ -64,17 +60,92 @@ class HomeImageView extends GetView<HomeImageController> {
                 // 0~29번 페이지 = generationHistory[0]부터 순서대로
                 else {
                   if (index < controller.generationHistory.length) {
-                    return Container(
-                      padding: const EdgeInsets.all(SkeletonSpacing.spacing),
-                      decoration: BoxDecoration(
-                        color: SkeletonColorScheme.surfaceColor
-                            .withValues(alpha: 0.3),
-                      ),
-                      child: Image.memory(
-                        base64Decode(controller
-                            .generationHistory[reversedIndex].imagePath),
-                        fit: BoxFit.contain,
-                      ),
+                    final historyItem =
+                        controller.generationHistory[reversedIndex];
+                    return Stack(
+                      alignment:  Alignment.bottomCenter,
+                      children: [
+                        Container(
+                          padding:
+                              const EdgeInsets.all(SkeletonSpacing.spacing),
+                          decoration: BoxDecoration(
+                            color: SkeletonColorScheme.surfaceColor
+                                .withValues(alpha: 0.3),
+                          ),
+                          child: Image.memory(
+                            base64Decode(historyItem.imagePath),
+                            fit: BoxFit.contain,
+                          ),
+                        ),
+                        Positioned(
+                          bottom: 16,
+                          left: 16,
+                          right: 16,
+                          child: Row(
+                            children: [
+                              GestureDetector(
+                                onTap: () {
+                                  Get.snackbar(
+                                    'Seed 복사됨',
+                                    'Seed: ${historyItem.seed}',
+                                    backgroundColor: SkeletonColorScheme
+                                        .primaryColor
+                                        .withValues(alpha: 0.9),
+                                    colorText: Colors.white,
+                                    snackPosition: SnackPosition.BOTTOM,
+                                    margin: const EdgeInsets.all(16),
+                                    borderRadius: SkeletonSpacing.borderRadius,
+                                    duration: const Duration(seconds: 2),
+                                  );
+                                  // 클립보드에 복사
+                                  Clipboard.setData(ClipboardData(
+                                      text: historyItem.seed.toString()));
+                                },
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 12, vertical: 8),
+                                  decoration: BoxDecoration(
+                                    color: Colors.black.withValues(alpha: 0.7),
+                                    borderRadius: BorderRadius.circular(
+                                        SkeletonSpacing.borderRadius),
+                                    border: Border.all(
+                                      color: SkeletonColorScheme.primaryColor
+                                          .withValues(alpha: 0.5),
+                                      width: 1,
+                                    ),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      const Icon(
+                                        Icons.tag,
+                                        color: Colors.white,
+                                        size: 16,
+                                      ),
+                                      const SizedBox(width: 6),
+                                      Text(
+                                        'Seed: ${historyItem.seed}',
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 6),
+                                      const Icon(
+                                        Icons.copy,
+                                        color: Colors.white,
+                                        size: 14,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     );
                   }
 
