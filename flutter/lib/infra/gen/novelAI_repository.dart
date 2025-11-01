@@ -121,6 +121,21 @@ class NovelAIRepository implements INovelAIRepository {
 
     // Build payload directly from Setting
     final payload = setting.toJson();
+    final Map<String, dynamic> parameters =
+        Map<String, dynamic>.from(setting.parameters.toJson());
+    payload['parameters'] = parameters;
+
+    final List<dynamic> directorImages =
+        (parameters['director_reference_images'] as List<dynamic>?) ?? [];
+    final List<dynamic> directorDescriptions =
+        (parameters['director_reference_descriptions'] as List<dynamic>?) ?? [];
+    final bool directorActive =
+        directorImages.isNotEmpty || directorDescriptions.isNotEmpty;
+
+    if (directorActive) {
+      parameters['inpaintImg2ImgStrength'] ??= 1;
+      payload['use_new_shared_trial'] = true;
+    }
     // print('Payload: ${jsonEncode(payload)}');
 
     try {

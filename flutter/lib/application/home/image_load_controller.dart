@@ -276,3 +276,4 @@ class ImageLoadController extends GetxController {
     clearImageDialog();
   }
 }
+

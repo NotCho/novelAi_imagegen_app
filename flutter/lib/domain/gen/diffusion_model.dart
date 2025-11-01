@@ -53,48 +53,54 @@ abstract class Parameters with _$Parameters {
     required String negative_prompt,
     required bool deliberate_euler_ancestral_bug,
     required bool prefer_brownian,
+    @Default([])
+    List<DirectorReferenceDescription> director_reference_descriptions,
+    @Default([]) List<String> director_reference_images,
+    @Default([]) List<int> director_reference_information_extracted,
+    @Default([]) List<double> director_reference_secondary_strength_values,
+    @Default([]) List<double> director_reference_strength_values,
   }) = _Parameters;
 
   factory Parameters.fromJson(Map<String, dynamic> json)
-    // List<String> keys = [
-    //   "params_version",
-    //   "width",
-    //   "height",
-    //   "scale",
-    //   "sampler",
-    //   "steps",
-    //   "n_samples",
-    //   "ucPreset",
-    //   "qualityToggle",
-    //   "autoSmea",
-    //   "dynamic_thresholding",
-    //   "controlnet_strength",
-    //   "legacy",
-    //   "add_original_image",
-    //   "cfg_rescale",
-    //   "noise_schedule",
-    //   "legacy_v3_extend",
-    //   "skip_cfg_above_sigma",
-    //   "use_coords",
-    //   "legacy_uc",
-    //   "normalize_reference_strength_multiple",
-    //   "v4_prompt",
-    //   "v4_negative_prompt",
-    //   "seed",
-    //   "characterPrompts",
-    //   "reference_image_multiple",
-    //   "reference_strength_multiple",
-    //   "negative_prompt",
-    //   "deliberate_euler_ancestral_bug",
-    //   "prefer_brownian",
-    // ];
-    // for (String key in keys) {
-    //   if (!json.containsKey(key)) {
-    //     throw ArgumentError('Missing required key: $key');
-    //   }
-    // }
-    => _$ParametersFromJson(json);
-
+      // List<String> keys = [
+      //   "params_version",
+      //   "width",
+      //   "height",
+      //   "scale",
+      //   "sampler",
+      //   "steps",
+      //   "n_samples",
+      //   "ucPreset",
+      //   "qualityToggle",
+      //   "autoSmea",
+      //   "dynamic_thresholding",
+      //   "controlnet_strength",
+      //   "legacy",
+      //   "add_original_image",
+      //   "cfg_rescale",
+      //   "noise_schedule",
+      //   "legacy_v3_extend",
+      //   "skip_cfg_above_sigma",
+      //   "use_coords",
+      //   "legacy_uc",
+      //   "normalize_reference_strength_multiple",
+      //   "v4_prompt",
+      //   "v4_negative_prompt",
+      //   "seed",
+      //   "characterPrompts",
+      //   "reference_image_multiple",
+      //   "reference_strength_multiple",
+      //   "negative_prompt",
+      //   "deliberate_euler_ancestral_bug",
+      //   "prefer_brownian",
+      // ];
+      // for (String key in keys) {
+      //   if (!json.containsKey(key)) {
+      //     throw ArgumentError('Missing required key: $key');
+      //   }
+      // }
+      =>
+      _$ParametersFromJson(json);
 }
 
 @freezed
@@ -163,4 +169,27 @@ abstract class CharacterPrompt with _$CharacterPrompt {
 
   factory CharacterPrompt.fromJson(Map<String, dynamic> json) =>
       _$CharacterPromptFromJson(json);
+}
+
+@freezed
+abstract class DirectorReferenceDescription
+    with _$DirectorReferenceDescription {
+  const factory DirectorReferenceDescription({
+    required DirectorCaption caption,
+    required bool legacy_uc,
+  }) = _DirectorReferenceDescription;
+
+  factory DirectorReferenceDescription.fromJson(Map<String, dynamic> json) =>
+      _$DirectorReferenceDescriptionFromJson(json);
+}
+
+@freezed
+abstract class DirectorCaption with _$DirectorCaption {
+  const factory DirectorCaption({
+    required String base_caption,
+    @Default([]) List<CharCaption> char_captions,
+  }) = _DirectorCaption;
+
+  factory DirectorCaption.fromJson(Map<String, dynamic> json) =>
+      _$DirectorCaptionFromJson(json);
 }

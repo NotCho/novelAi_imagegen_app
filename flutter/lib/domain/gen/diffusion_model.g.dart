@@ -67,6 +67,33 @@ _Parameters _$ParametersFromJson(Map<String, dynamic> json) => _Parameters(
       deliberate_euler_ancestral_bug:
           json['deliberate_euler_ancestral_bug'] as bool,
       prefer_brownian: json['prefer_brownian'] as bool,
+      director_reference_descriptions:
+          (json['director_reference_descriptions'] as List<dynamic>?)
+                  ?.map((e) => DirectorReferenceDescription.fromJson(
+                      e as Map<String, dynamic>))
+                  .toList() ??
+              const [],
+      director_reference_images:
+          (json['director_reference_images'] as List<dynamic>?)
+                  ?.map((e) => e as String)
+                  .toList() ??
+              const [],
+      director_reference_information_extracted:
+          (json['director_reference_information_extracted'] as List<dynamic>?)
+                  ?.map((e) => (e as num).toInt())
+                  .toList() ??
+              const [],
+      director_reference_secondary_strength_values:
+          (json['director_reference_secondary_strength_values']
+                      as List<dynamic>?)
+                  ?.map((e) => (e as num).toDouble())
+                  .toList() ??
+              const [],
+      director_reference_strength_values:
+          (json['director_reference_strength_values'] as List<dynamic>?)
+                  ?.map((e) => (e as num).toDouble())
+                  .toList() ??
+              const [],
     );
 
 Map<String, dynamic> _$ParametersToJson(_Parameters instance) =>
@@ -102,6 +129,15 @@ Map<String, dynamic> _$ParametersToJson(_Parameters instance) =>
       'negative_prompt': instance.negative_prompt,
       'deliberate_euler_ancestral_bug': instance.deliberate_euler_ancestral_bug,
       'prefer_brownian': instance.prefer_brownian,
+      'director_reference_descriptions':
+          instance.director_reference_descriptions,
+      'director_reference_images': instance.director_reference_images,
+      'director_reference_information_extracted':
+          instance.director_reference_information_extracted,
+      'director_reference_secondary_strength_values':
+          instance.director_reference_secondary_strength_values,
+      'director_reference_strength_values':
+          instance.director_reference_strength_values,
     };
 
 _V4Prompt _$V4PromptFromJson(Map<String, dynamic> json) => _V4Prompt(
@@ -178,4 +214,34 @@ Map<String, dynamic> _$CharacterPromptToJson(_CharacterPrompt instance) =>
       'uc': instance.uc,
       'center': instance.center,
       'enabled': instance.enabled,
+    };
+
+_DirectorReferenceDescription _$DirectorReferenceDescriptionFromJson(
+        Map<String, dynamic> json) =>
+    _DirectorReferenceDescription(
+      caption:
+          DirectorCaption.fromJson(json['caption'] as Map<String, dynamic>),
+      legacy_uc: json['legacy_uc'] as bool,
+    );
+
+Map<String, dynamic> _$DirectorReferenceDescriptionToJson(
+        _DirectorReferenceDescription instance) =>
+    <String, dynamic>{
+      'caption': instance.caption,
+      'legacy_uc': instance.legacy_uc,
+    };
+
+_DirectorCaption _$DirectorCaptionFromJson(Map<String, dynamic> json) =>
+    _DirectorCaption(
+      base_caption: json['base_caption'] as String,
+      char_captions: (json['char_captions'] as List<dynamic>?)
+              ?.map((e) => CharCaption.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const [],
+    );
+
+Map<String, dynamic> _$DirectorCaptionToJson(_DirectorCaption instance) =>
+    <String, dynamic>{
+      'base_caption': instance.base_caption,
+      'char_captions': instance.char_captions,
     };

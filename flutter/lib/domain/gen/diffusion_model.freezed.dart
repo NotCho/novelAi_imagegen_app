@@ -287,6 +287,11 @@ mixin _$Parameters implements DiagnosticableTreeMixin {
   String get negative_prompt;
   bool get deliberate_euler_ancestral_bug;
   bool get prefer_brownian;
+  List<DirectorReferenceDescription> get director_reference_descriptions;
+  List<String> get director_reference_images;
+  List<int> get director_reference_information_extracted;
+  List<double> get director_reference_secondary_strength_values;
+  List<double> get director_reference_strength_values;
 
   /// Create a copy of Parameters
   /// with the given fields replaced by the non-null parameter values.
@@ -335,7 +340,17 @@ mixin _$Parameters implements DiagnosticableTreeMixin {
       ..add(DiagnosticsProperty('negative_prompt', negative_prompt))
       ..add(DiagnosticsProperty(
           'deliberate_euler_ancestral_bug', deliberate_euler_ancestral_bug))
-      ..add(DiagnosticsProperty('prefer_brownian', prefer_brownian));
+      ..add(DiagnosticsProperty('prefer_brownian', prefer_brownian))
+      ..add(DiagnosticsProperty(
+          'director_reference_descriptions', director_reference_descriptions))
+      ..add(DiagnosticsProperty(
+          'director_reference_images', director_reference_images))
+      ..add(DiagnosticsProperty('director_reference_information_extracted',
+          director_reference_information_extracted))
+      ..add(DiagnosticsProperty('director_reference_secondary_strength_values',
+          director_reference_secondary_strength_values))
+      ..add(DiagnosticsProperty('director_reference_strength_values',
+          director_reference_strength_values));
   }
 
   @override
@@ -377,8 +392,7 @@ mixin _$Parameters implements DiagnosticableTreeMixin {
                 other.use_coords == use_coords) &&
             (identical(other.legacy_uc, legacy_uc) ||
                 other.legacy_uc == legacy_uc) &&
-            (identical(other.normalize_reference_strength_multiple,
-                    normalize_reference_strength_multiple) ||
+            (identical(other.normalize_reference_strength_multiple, normalize_reference_strength_multiple) ||
                 other.normalize_reference_strength_multiple ==
                     normalize_reference_strength_multiple) &&
             (identical(other.v4_prompt, v4_prompt) ||
@@ -395,12 +409,24 @@ mixin _$Parameters implements DiagnosticableTreeMixin {
                 reference_strength_multiple) &&
             (identical(other.negative_prompt, negative_prompt) ||
                 other.negative_prompt == negative_prompt) &&
-            (identical(other.deliberate_euler_ancestral_bug,
-                    deliberate_euler_ancestral_bug) ||
+            (identical(other.deliberate_euler_ancestral_bug, deliberate_euler_ancestral_bug) ||
                 other.deliberate_euler_ancestral_bug ==
                     deliberate_euler_ancestral_bug) &&
             (identical(other.prefer_brownian, prefer_brownian) ||
-                other.prefer_brownian == prefer_brownian));
+                other.prefer_brownian == prefer_brownian) &&
+            const DeepCollectionEquality().equals(
+                other.director_reference_descriptions,
+                director_reference_descriptions) &&
+            const DeepCollectionEquality().equals(
+                other.director_reference_images, director_reference_images) &&
+            const DeepCollectionEquality().equals(
+                other.director_reference_information_extracted,
+                director_reference_information_extracted) &&
+            const DeepCollectionEquality().equals(
+                other.director_reference_secondary_strength_values,
+                director_reference_secondary_strength_values) &&
+            const DeepCollectionEquality().equals(
+                other.director_reference_strength_values, director_reference_strength_values));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -436,12 +462,19 @@ mixin _$Parameters implements DiagnosticableTreeMixin {
         const DeepCollectionEquality().hash(reference_strength_multiple),
         negative_prompt,
         deliberate_euler_ancestral_bug,
-        prefer_brownian
+        prefer_brownian,
+        const DeepCollectionEquality().hash(director_reference_descriptions),
+        const DeepCollectionEquality().hash(director_reference_images),
+        const DeepCollectionEquality()
+            .hash(director_reference_information_extracted),
+        const DeepCollectionEquality()
+            .hash(director_reference_secondary_strength_values),
+        const DeepCollectionEquality().hash(director_reference_strength_values)
       ]);
 
   @override
   String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
-    return 'Parameters(params_version: $params_version, width: $width, height: $height, scale: $scale, sampler: $sampler, steps: $steps, n_samples: $n_samples, ucPreset: $ucPreset, qualityToggle: $qualityToggle, autoSmea: $autoSmea, dynamic_thresholding: $dynamic_thresholding, controlnet_strength: $controlnet_strength, legacy: $legacy, add_original_image: $add_original_image, cfg_rescale: $cfg_rescale, noise_schedule: $noise_schedule, legacy_v3_extend: $legacy_v3_extend, skip_cfg_above_sigma: $skip_cfg_above_sigma, use_coords: $use_coords, legacy_uc: $legacy_uc, normalize_reference_strength_multiple: $normalize_reference_strength_multiple, v4_prompt: $v4_prompt, v4_negative_prompt: $v4_negative_prompt, seed: $seed, characterPrompts: $characterPrompts, reference_image_multiple: $reference_image_multiple, reference_strength_multiple: $reference_strength_multiple, negative_prompt: $negative_prompt, deliberate_euler_ancestral_bug: $deliberate_euler_ancestral_bug, prefer_brownian: $prefer_brownian)';
+    return 'Parameters(params_version: $params_version, width: $width, height: $height, scale: $scale, sampler: $sampler, steps: $steps, n_samples: $n_samples, ucPreset: $ucPreset, qualityToggle: $qualityToggle, autoSmea: $autoSmea, dynamic_thresholding: $dynamic_thresholding, controlnet_strength: $controlnet_strength, legacy: $legacy, add_original_image: $add_original_image, cfg_rescale: $cfg_rescale, noise_schedule: $noise_schedule, legacy_v3_extend: $legacy_v3_extend, skip_cfg_above_sigma: $skip_cfg_above_sigma, use_coords: $use_coords, legacy_uc: $legacy_uc, normalize_reference_strength_multiple: $normalize_reference_strength_multiple, v4_prompt: $v4_prompt, v4_negative_prompt: $v4_negative_prompt, seed: $seed, characterPrompts: $characterPrompts, reference_image_multiple: $reference_image_multiple, reference_strength_multiple: $reference_strength_multiple, negative_prompt: $negative_prompt, deliberate_euler_ancestral_bug: $deliberate_euler_ancestral_bug, prefer_brownian: $prefer_brownian, director_reference_descriptions: $director_reference_descriptions, director_reference_images: $director_reference_images, director_reference_information_extracted: $director_reference_information_extracted, director_reference_secondary_strength_values: $director_reference_secondary_strength_values, director_reference_strength_values: $director_reference_strength_values)';
   }
 }
 
@@ -481,7 +514,12 @@ abstract mixin class $ParametersCopyWith<$Res> {
       List<double> reference_strength_multiple,
       String negative_prompt,
       bool deliberate_euler_ancestral_bug,
-      bool prefer_brownian});
+      bool prefer_brownian,
+      List<DirectorReferenceDescription> director_reference_descriptions,
+      List<String> director_reference_images,
+      List<int> director_reference_information_extracted,
+      List<double> director_reference_secondary_strength_values,
+      List<double> director_reference_strength_values});
 
   $V4PromptCopyWith<$Res> get v4_prompt;
   $V4NegativePromptCopyWith<$Res> get v4_negative_prompt;
@@ -529,6 +567,11 @@ class _$ParametersCopyWithImpl<$Res> implements $ParametersCopyWith<$Res> {
     Object? negative_prompt = null,
     Object? deliberate_euler_ancestral_bug = null,
     Object? prefer_brownian = null,
+    Object? director_reference_descriptions = null,
+    Object? director_reference_images = null,
+    Object? director_reference_information_extracted = null,
+    Object? director_reference_secondary_strength_values = null,
+    Object? director_reference_strength_values = null,
   }) {
     return _then(_self.copyWith(
       params_version: null == params_version
@@ -652,6 +695,29 @@ class _$ParametersCopyWithImpl<$Res> implements $ParametersCopyWith<$Res> {
           ? _self.prefer_brownian
           : prefer_brownian // ignore: cast_nullable_to_non_nullable
               as bool,
+      director_reference_descriptions: null == director_reference_descriptions
+          ? _self.director_reference_descriptions
+          : director_reference_descriptions // ignore: cast_nullable_to_non_nullable
+              as List<DirectorReferenceDescription>,
+      director_reference_images: null == director_reference_images
+          ? _self.director_reference_images
+          : director_reference_images // ignore: cast_nullable_to_non_nullable
+              as List<String>,
+      director_reference_information_extracted: null ==
+              director_reference_information_extracted
+          ? _self.director_reference_information_extracted
+          : director_reference_information_extracted // ignore: cast_nullable_to_non_nullable
+              as List<int>,
+      director_reference_secondary_strength_values: null ==
+              director_reference_secondary_strength_values
+          ? _self.director_reference_secondary_strength_values
+          : director_reference_secondary_strength_values // ignore: cast_nullable_to_non_nullable
+              as List<double>,
+      director_reference_strength_values: null ==
+              director_reference_strength_values
+          ? _self.director_reference_strength_values
+          : director_reference_strength_values // ignore: cast_nullable_to_non_nullable
+              as List<double>,
     ));
   }
 
@@ -709,10 +775,25 @@ class _Parameters with DiagnosticableTreeMixin implements Parameters {
       final List<double> reference_strength_multiple = const [],
       required this.negative_prompt,
       required this.deliberate_euler_ancestral_bug,
-      required this.prefer_brownian})
+      required this.prefer_brownian,
+      final List<DirectorReferenceDescription> director_reference_descriptions =
+          const [],
+      final List<String> director_reference_images = const [],
+      final List<int> director_reference_information_extracted = const [],
+      final List<double> director_reference_secondary_strength_values =
+          const [],
+      final List<double> director_reference_strength_values = const []})
       : _characterPrompts = characterPrompts,
         _reference_image_multiple = reference_image_multiple,
-        _reference_strength_multiple = reference_strength_multiple;
+        _reference_strength_multiple = reference_strength_multiple,
+        _director_reference_descriptions = director_reference_descriptions,
+        _director_reference_images = director_reference_images,
+        _director_reference_information_extracted =
+            director_reference_information_extracted,
+        _director_reference_secondary_strength_values =
+            director_reference_secondary_strength_values,
+        _director_reference_strength_values =
+            director_reference_strength_values;
   factory _Parameters.fromJson(Map<String, dynamic> json) =>
       _$ParametersFromJson(json);
 
@@ -799,6 +880,57 @@ class _Parameters with DiagnosticableTreeMixin implements Parameters {
   final bool deliberate_euler_ancestral_bug;
   @override
   final bool prefer_brownian;
+  final List<DirectorReferenceDescription> _director_reference_descriptions;
+  @override
+  @JsonKey()
+  List<DirectorReferenceDescription> get director_reference_descriptions {
+    if (_director_reference_descriptions is EqualUnmodifiableListView)
+      return _director_reference_descriptions;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_director_reference_descriptions);
+  }
+
+  final List<String> _director_reference_images;
+  @override
+  @JsonKey()
+  List<String> get director_reference_images {
+    if (_director_reference_images is EqualUnmodifiableListView)
+      return _director_reference_images;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_director_reference_images);
+  }
+
+  final List<int> _director_reference_information_extracted;
+  @override
+  @JsonKey()
+  List<int> get director_reference_information_extracted {
+    if (_director_reference_information_extracted is EqualUnmodifiableListView)
+      return _director_reference_information_extracted;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_director_reference_information_extracted);
+  }
+
+  final List<double> _director_reference_secondary_strength_values;
+  @override
+  @JsonKey()
+  List<double> get director_reference_secondary_strength_values {
+    if (_director_reference_secondary_strength_values
+        is EqualUnmodifiableListView)
+      return _director_reference_secondary_strength_values;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(
+        _director_reference_secondary_strength_values);
+  }
+
+  final List<double> _director_reference_strength_values;
+  @override
+  @JsonKey()
+  List<double> get director_reference_strength_values {
+    if (_director_reference_strength_values is EqualUnmodifiableListView)
+      return _director_reference_strength_values;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_director_reference_strength_values);
+  }
 
   /// Create a copy of Parameters
   /// with the given fields replaced by the non-null parameter values.
@@ -852,7 +984,17 @@ class _Parameters with DiagnosticableTreeMixin implements Parameters {
       ..add(DiagnosticsProperty('negative_prompt', negative_prompt))
       ..add(DiagnosticsProperty(
           'deliberate_euler_ancestral_bug', deliberate_euler_ancestral_bug))
-      ..add(DiagnosticsProperty('prefer_brownian', prefer_brownian));
+      ..add(DiagnosticsProperty('prefer_brownian', prefer_brownian))
+      ..add(DiagnosticsProperty(
+          'director_reference_descriptions', director_reference_descriptions))
+      ..add(DiagnosticsProperty(
+          'director_reference_images', director_reference_images))
+      ..add(DiagnosticsProperty('director_reference_information_extracted',
+          director_reference_information_extracted))
+      ..add(DiagnosticsProperty('director_reference_secondary_strength_values',
+          director_reference_secondary_strength_values))
+      ..add(DiagnosticsProperty('director_reference_strength_values',
+          director_reference_strength_values));
   }
 
   @override
@@ -894,8 +1036,7 @@ class _Parameters with DiagnosticableTreeMixin implements Parameters {
                 other.use_coords == use_coords) &&
             (identical(other.legacy_uc, legacy_uc) ||
                 other.legacy_uc == legacy_uc) &&
-            (identical(other.normalize_reference_strength_multiple,
-                    normalize_reference_strength_multiple) ||
+            (identical(other.normalize_reference_strength_multiple, normalize_reference_strength_multiple) ||
                 other.normalize_reference_strength_multiple ==
                     normalize_reference_strength_multiple) &&
             (identical(other.v4_prompt, v4_prompt) ||
@@ -912,12 +1053,24 @@ class _Parameters with DiagnosticableTreeMixin implements Parameters {
                 _reference_strength_multiple) &&
             (identical(other.negative_prompt, negative_prompt) ||
                 other.negative_prompt == negative_prompt) &&
-            (identical(other.deliberate_euler_ancestral_bug,
-                    deliberate_euler_ancestral_bug) ||
+            (identical(other.deliberate_euler_ancestral_bug, deliberate_euler_ancestral_bug) ||
                 other.deliberate_euler_ancestral_bug ==
                     deliberate_euler_ancestral_bug) &&
             (identical(other.prefer_brownian, prefer_brownian) ||
-                other.prefer_brownian == prefer_brownian));
+                other.prefer_brownian == prefer_brownian) &&
+            const DeepCollectionEquality().equals(
+                other._director_reference_descriptions,
+                _director_reference_descriptions) &&
+            const DeepCollectionEquality().equals(
+                other._director_reference_images, _director_reference_images) &&
+            const DeepCollectionEquality().equals(
+                other._director_reference_information_extracted,
+                _director_reference_information_extracted) &&
+            const DeepCollectionEquality().equals(
+                other._director_reference_secondary_strength_values,
+                _director_reference_secondary_strength_values) &&
+            const DeepCollectionEquality().equals(
+                other._director_reference_strength_values, _director_reference_strength_values));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -953,12 +1106,19 @@ class _Parameters with DiagnosticableTreeMixin implements Parameters {
         const DeepCollectionEquality().hash(_reference_strength_multiple),
         negative_prompt,
         deliberate_euler_ancestral_bug,
-        prefer_brownian
+        prefer_brownian,
+        const DeepCollectionEquality().hash(_director_reference_descriptions),
+        const DeepCollectionEquality().hash(_director_reference_images),
+        const DeepCollectionEquality()
+            .hash(_director_reference_information_extracted),
+        const DeepCollectionEquality()
+            .hash(_director_reference_secondary_strength_values),
+        const DeepCollectionEquality().hash(_director_reference_strength_values)
       ]);
 
   @override
   String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
-    return 'Parameters(params_version: $params_version, width: $width, height: $height, scale: $scale, sampler: $sampler, steps: $steps, n_samples: $n_samples, ucPreset: $ucPreset, qualityToggle: $qualityToggle, autoSmea: $autoSmea, dynamic_thresholding: $dynamic_thresholding, controlnet_strength: $controlnet_strength, legacy: $legacy, add_original_image: $add_original_image, cfg_rescale: $cfg_rescale, noise_schedule: $noise_schedule, legacy_v3_extend: $legacy_v3_extend, skip_cfg_above_sigma: $skip_cfg_above_sigma, use_coords: $use_coords, legacy_uc: $legacy_uc, normalize_reference_strength_multiple: $normalize_reference_strength_multiple, v4_prompt: $v4_prompt, v4_negative_prompt: $v4_negative_prompt, seed: $seed, characterPrompts: $characterPrompts, reference_image_multiple: $reference_image_multiple, reference_strength_multiple: $reference_strength_multiple, negative_prompt: $negative_prompt, deliberate_euler_ancestral_bug: $deliberate_euler_ancestral_bug, prefer_brownian: $prefer_brownian)';
+    return 'Parameters(params_version: $params_version, width: $width, height: $height, scale: $scale, sampler: $sampler, steps: $steps, n_samples: $n_samples, ucPreset: $ucPreset, qualityToggle: $qualityToggle, autoSmea: $autoSmea, dynamic_thresholding: $dynamic_thresholding, controlnet_strength: $controlnet_strength, legacy: $legacy, add_original_image: $add_original_image, cfg_rescale: $cfg_rescale, noise_schedule: $noise_schedule, legacy_v3_extend: $legacy_v3_extend, skip_cfg_above_sigma: $skip_cfg_above_sigma, use_coords: $use_coords, legacy_uc: $legacy_uc, normalize_reference_strength_multiple: $normalize_reference_strength_multiple, v4_prompt: $v4_prompt, v4_negative_prompt: $v4_negative_prompt, seed: $seed, characterPrompts: $characterPrompts, reference_image_multiple: $reference_image_multiple, reference_strength_multiple: $reference_strength_multiple, negative_prompt: $negative_prompt, deliberate_euler_ancestral_bug: $deliberate_euler_ancestral_bug, prefer_brownian: $prefer_brownian, director_reference_descriptions: $director_reference_descriptions, director_reference_images: $director_reference_images, director_reference_information_extracted: $director_reference_information_extracted, director_reference_secondary_strength_values: $director_reference_secondary_strength_values, director_reference_strength_values: $director_reference_strength_values)';
   }
 }
 
@@ -1000,7 +1160,12 @@ abstract mixin class _$ParametersCopyWith<$Res>
       List<double> reference_strength_multiple,
       String negative_prompt,
       bool deliberate_euler_ancestral_bug,
-      bool prefer_brownian});
+      bool prefer_brownian,
+      List<DirectorReferenceDescription> director_reference_descriptions,
+      List<String> director_reference_images,
+      List<int> director_reference_information_extracted,
+      List<double> director_reference_secondary_strength_values,
+      List<double> director_reference_strength_values});
 
   @override
   $V4PromptCopyWith<$Res> get v4_prompt;
@@ -1050,6 +1215,11 @@ class __$ParametersCopyWithImpl<$Res> implements _$ParametersCopyWith<$Res> {
     Object? negative_prompt = null,
     Object? deliberate_euler_ancestral_bug = null,
     Object? prefer_brownian = null,
+    Object? director_reference_descriptions = null,
+    Object? director_reference_images = null,
+    Object? director_reference_information_extracted = null,
+    Object? director_reference_secondary_strength_values = null,
+    Object? director_reference_strength_values = null,
   }) {
     return _then(_Parameters(
       params_version: null == params_version
@@ -1173,6 +1343,29 @@ class __$ParametersCopyWithImpl<$Res> implements _$ParametersCopyWith<$Res> {
           ? _self.prefer_brownian
           : prefer_brownian // ignore: cast_nullable_to_non_nullable
               as bool,
+      director_reference_descriptions: null == director_reference_descriptions
+          ? _self._director_reference_descriptions
+          : director_reference_descriptions // ignore: cast_nullable_to_non_nullable
+              as List<DirectorReferenceDescription>,
+      director_reference_images: null == director_reference_images
+          ? _self._director_reference_images
+          : director_reference_images // ignore: cast_nullable_to_non_nullable
+              as List<String>,
+      director_reference_information_extracted: null ==
+              director_reference_information_extracted
+          ? _self._director_reference_information_extracted
+          : director_reference_information_extracted // ignore: cast_nullable_to_non_nullable
+              as List<int>,
+      director_reference_secondary_strength_values: null ==
+              director_reference_secondary_strength_values
+          ? _self._director_reference_secondary_strength_values
+          : director_reference_secondary_strength_values // ignore: cast_nullable_to_non_nullable
+              as List<double>,
+      director_reference_strength_values: null ==
+              director_reference_strength_values
+          ? _self._director_reference_strength_values
+          : director_reference_strength_values // ignore: cast_nullable_to_non_nullable
+              as List<double>,
     ));
   }
 
@@ -2390,6 +2583,405 @@ class __$CharacterPromptCopyWithImpl<$Res>
     return $CenterCopyWith<$Res>(_self.center, (value) {
       return _then(_self.copyWith(center: value));
     });
+  }
+}
+
+/// @nodoc
+mixin _$DirectorReferenceDescription implements DiagnosticableTreeMixin {
+  DirectorCaption get caption;
+  bool get legacy_uc;
+
+  /// Create a copy of DirectorReferenceDescription
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  $DirectorReferenceDescriptionCopyWith<DirectorReferenceDescription>
+      get copyWith => _$DirectorReferenceDescriptionCopyWithImpl<
+              DirectorReferenceDescription>(
+          this as DirectorReferenceDescription, _$identity);
+
+  /// Serializes this DirectorReferenceDescription to a JSON map.
+  Map<String, dynamic> toJson();
+
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    properties
+      ..add(DiagnosticsProperty('type', 'DirectorReferenceDescription'))
+      ..add(DiagnosticsProperty('caption', caption))
+      ..add(DiagnosticsProperty('legacy_uc', legacy_uc));
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is DirectorReferenceDescription &&
+            (identical(other.caption, caption) || other.caption == caption) &&
+            (identical(other.legacy_uc, legacy_uc) ||
+                other.legacy_uc == legacy_uc));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(runtimeType, caption, legacy_uc);
+
+  @override
+  String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
+    return 'DirectorReferenceDescription(caption: $caption, legacy_uc: $legacy_uc)';
+  }
+}
+
+/// @nodoc
+abstract mixin class $DirectorReferenceDescriptionCopyWith<$Res> {
+  factory $DirectorReferenceDescriptionCopyWith(
+          DirectorReferenceDescription value,
+          $Res Function(DirectorReferenceDescription) _then) =
+      _$DirectorReferenceDescriptionCopyWithImpl;
+  @useResult
+  $Res call({DirectorCaption caption, bool legacy_uc});
+
+  $DirectorCaptionCopyWith<$Res> get caption;
+}
+
+/// @nodoc
+class _$DirectorReferenceDescriptionCopyWithImpl<$Res>
+    implements $DirectorReferenceDescriptionCopyWith<$Res> {
+  _$DirectorReferenceDescriptionCopyWithImpl(this._self, this._then);
+
+  final DirectorReferenceDescription _self;
+  final $Res Function(DirectorReferenceDescription) _then;
+
+  /// Create a copy of DirectorReferenceDescription
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? caption = null,
+    Object? legacy_uc = null,
+  }) {
+    return _then(_self.copyWith(
+      caption: null == caption
+          ? _self.caption
+          : caption // ignore: cast_nullable_to_non_nullable
+              as DirectorCaption,
+      legacy_uc: null == legacy_uc
+          ? _self.legacy_uc
+          : legacy_uc // ignore: cast_nullable_to_non_nullable
+              as bool,
+    ));
+  }
+
+  /// Create a copy of DirectorReferenceDescription
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $DirectorCaptionCopyWith<$Res> get caption {
+    return $DirectorCaptionCopyWith<$Res>(_self.caption, (value) {
+      return _then(_self.copyWith(caption: value));
+    });
+  }
+}
+
+/// @nodoc
+@JsonSerializable()
+class _DirectorReferenceDescription
+    with DiagnosticableTreeMixin
+    implements DirectorReferenceDescription {
+  const _DirectorReferenceDescription(
+      {required this.caption, required this.legacy_uc});
+  factory _DirectorReferenceDescription.fromJson(Map<String, dynamic> json) =>
+      _$DirectorReferenceDescriptionFromJson(json);
+
+  @override
+  final DirectorCaption caption;
+  @override
+  final bool legacy_uc;
+
+  /// Create a copy of DirectorReferenceDescription
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  _$DirectorReferenceDescriptionCopyWith<_DirectorReferenceDescription>
+      get copyWith => __$DirectorReferenceDescriptionCopyWithImpl<
+          _DirectorReferenceDescription>(this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$DirectorReferenceDescriptionToJson(
+      this,
+    );
+  }
+
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    properties
+      ..add(DiagnosticsProperty('type', 'DirectorReferenceDescription'))
+      ..add(DiagnosticsProperty('caption', caption))
+      ..add(DiagnosticsProperty('legacy_uc', legacy_uc));
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _DirectorReferenceDescription &&
+            (identical(other.caption, caption) || other.caption == caption) &&
+            (identical(other.legacy_uc, legacy_uc) ||
+                other.legacy_uc == legacy_uc));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(runtimeType, caption, legacy_uc);
+
+  @override
+  String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
+    return 'DirectorReferenceDescription(caption: $caption, legacy_uc: $legacy_uc)';
+  }
+}
+
+/// @nodoc
+abstract mixin class _$DirectorReferenceDescriptionCopyWith<$Res>
+    implements $DirectorReferenceDescriptionCopyWith<$Res> {
+  factory _$DirectorReferenceDescriptionCopyWith(
+          _DirectorReferenceDescription value,
+          $Res Function(_DirectorReferenceDescription) _then) =
+      __$DirectorReferenceDescriptionCopyWithImpl;
+  @override
+  @useResult
+  $Res call({DirectorCaption caption, bool legacy_uc});
+
+  @override
+  $DirectorCaptionCopyWith<$Res> get caption;
+}
+
+/// @nodoc
+class __$DirectorReferenceDescriptionCopyWithImpl<$Res>
+    implements _$DirectorReferenceDescriptionCopyWith<$Res> {
+  __$DirectorReferenceDescriptionCopyWithImpl(this._self, this._then);
+
+  final _DirectorReferenceDescription _self;
+  final $Res Function(_DirectorReferenceDescription) _then;
+
+  /// Create a copy of DirectorReferenceDescription
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $Res call({
+    Object? caption = null,
+    Object? legacy_uc = null,
+  }) {
+    return _then(_DirectorReferenceDescription(
+      caption: null == caption
+          ? _self.caption
+          : caption // ignore: cast_nullable_to_non_nullable
+              as DirectorCaption,
+      legacy_uc: null == legacy_uc
+          ? _self.legacy_uc
+          : legacy_uc // ignore: cast_nullable_to_non_nullable
+              as bool,
+    ));
+  }
+
+  /// Create a copy of DirectorReferenceDescription
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $DirectorCaptionCopyWith<$Res> get caption {
+    return $DirectorCaptionCopyWith<$Res>(_self.caption, (value) {
+      return _then(_self.copyWith(caption: value));
+    });
+  }
+}
+
+/// @nodoc
+mixin _$DirectorCaption implements DiagnosticableTreeMixin {
+  String get base_caption;
+  List<CharCaption> get char_captions;
+
+  /// Create a copy of DirectorCaption
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  $DirectorCaptionCopyWith<DirectorCaption> get copyWith =>
+      _$DirectorCaptionCopyWithImpl<DirectorCaption>(
+          this as DirectorCaption, _$identity);
+
+  /// Serializes this DirectorCaption to a JSON map.
+  Map<String, dynamic> toJson();
+
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    properties
+      ..add(DiagnosticsProperty('type', 'DirectorCaption'))
+      ..add(DiagnosticsProperty('base_caption', base_caption))
+      ..add(DiagnosticsProperty('char_captions', char_captions));
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is DirectorCaption &&
+            (identical(other.base_caption, base_caption) ||
+                other.base_caption == base_caption) &&
+            const DeepCollectionEquality()
+                .equals(other.char_captions, char_captions));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(runtimeType, base_caption,
+      const DeepCollectionEquality().hash(char_captions));
+
+  @override
+  String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
+    return 'DirectorCaption(base_caption: $base_caption, char_captions: $char_captions)';
+  }
+}
+
+/// @nodoc
+abstract mixin class $DirectorCaptionCopyWith<$Res> {
+  factory $DirectorCaptionCopyWith(
+          DirectorCaption value, $Res Function(DirectorCaption) _then) =
+      _$DirectorCaptionCopyWithImpl;
+  @useResult
+  $Res call({String base_caption, List<CharCaption> char_captions});
+}
+
+/// @nodoc
+class _$DirectorCaptionCopyWithImpl<$Res>
+    implements $DirectorCaptionCopyWith<$Res> {
+  _$DirectorCaptionCopyWithImpl(this._self, this._then);
+
+  final DirectorCaption _self;
+  final $Res Function(DirectorCaption) _then;
+
+  /// Create a copy of DirectorCaption
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? base_caption = null,
+    Object? char_captions = null,
+  }) {
+    return _then(_self.copyWith(
+      base_caption: null == base_caption
+          ? _self.base_caption
+          : base_caption // ignore: cast_nullable_to_non_nullable
+              as String,
+      char_captions: null == char_captions
+          ? _self.char_captions
+          : char_captions // ignore: cast_nullable_to_non_nullable
+              as List<CharCaption>,
+    ));
+  }
+}
+
+/// @nodoc
+@JsonSerializable()
+class _DirectorCaption with DiagnosticableTreeMixin implements DirectorCaption {
+  const _DirectorCaption(
+      {required this.base_caption,
+      final List<CharCaption> char_captions = const []})
+      : _char_captions = char_captions;
+  factory _DirectorCaption.fromJson(Map<String, dynamic> json) =>
+      _$DirectorCaptionFromJson(json);
+
+  @override
+  final String base_caption;
+  final List<CharCaption> _char_captions;
+  @override
+  @JsonKey()
+  List<CharCaption> get char_captions {
+    if (_char_captions is EqualUnmodifiableListView) return _char_captions;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_char_captions);
+  }
+
+  /// Create a copy of DirectorCaption
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  _$DirectorCaptionCopyWith<_DirectorCaption> get copyWith =>
+      __$DirectorCaptionCopyWithImpl<_DirectorCaption>(this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$DirectorCaptionToJson(
+      this,
+    );
+  }
+
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    properties
+      ..add(DiagnosticsProperty('type', 'DirectorCaption'))
+      ..add(DiagnosticsProperty('base_caption', base_caption))
+      ..add(DiagnosticsProperty('char_captions', char_captions));
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _DirectorCaption &&
+            (identical(other.base_caption, base_caption) ||
+                other.base_caption == base_caption) &&
+            const DeepCollectionEquality()
+                .equals(other._char_captions, _char_captions));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(runtimeType, base_caption,
+      const DeepCollectionEquality().hash(_char_captions));
+
+  @override
+  String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
+    return 'DirectorCaption(base_caption: $base_caption, char_captions: $char_captions)';
+  }
+}
+
+/// @nodoc
+abstract mixin class _$DirectorCaptionCopyWith<$Res>
+    implements $DirectorCaptionCopyWith<$Res> {
+  factory _$DirectorCaptionCopyWith(
+          _DirectorCaption value, $Res Function(_DirectorCaption) _then) =
+      __$DirectorCaptionCopyWithImpl;
+  @override
+  @useResult
+  $Res call({String base_caption, List<CharCaption> char_captions});
+}
+
+/// @nodoc
+class __$DirectorCaptionCopyWithImpl<$Res>
+    implements _$DirectorCaptionCopyWith<$Res> {
+  __$DirectorCaptionCopyWithImpl(this._self, this._then);
+
+  final _DirectorCaption _self;
+  final $Res Function(_DirectorCaption) _then;
+
+  /// Create a copy of DirectorCaption
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $Res call({
+    Object? base_caption = null,
+    Object? char_captions = null,
+  }) {
+    return _then(_DirectorCaption(
+      base_caption: null == base_caption
+          ? _self.base_caption
+          : base_caption // ignore: cast_nullable_to_non_nullable
+              as String,
+      char_captions: null == char_captions
+          ? _self._char_captions
+          : char_captions // ignore: cast_nullable_to_non_nullable
+              as List<CharCaption>,
+    ));
   }
 }
 

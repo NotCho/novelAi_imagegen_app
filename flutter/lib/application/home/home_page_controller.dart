@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:get/get.dart';
 import 'package:naiapp/application/home/auto_generation_controller.dart';
+import 'package:naiapp/application/home/director_tool_controller.dart';
 import 'package:naiapp/application/home/home_image_controller.dart';
 import 'package:naiapp/application/home/home_setting_controller.dart';
 import 'package:naiapp/application/home/image_load_controller.dart';
@@ -26,6 +27,8 @@ class HomePageController extends SkeletonController {
   AutoGenerationController autoGenerationController =
       Get.find<AutoGenerationController>();
   ImageLoadController imageLoadController = Get.find<ImageLoadController>();
+  DirectorToolController directorToolController =
+      Get.find<DirectorToolController>();
 
   final isGenerating = false.obs;
   final RxBool _addQualityTags = false.obs;
@@ -280,8 +283,11 @@ class HomePageController extends SkeletonController {
 
     final result = await _novelAIRepository.generateImage(setting: setting);
     result.fold(
-      (l) => Get.snackbar('오류', '이미지 생성 중 오류가 발생했습니다: $l',
-          backgroundColor: Colors.red, colorText: Colors.white),
+      (l) {
+        print('이미지 생성 중 오류 발생: $l');
+        Get.snackbar('오류', '이미지 생성 중 오류가 발생했습니다: $l',
+            backgroundColor: Colors.red, colorText: Colors.white);
+      },
       (base64Str) {
         getAnlasRemaining(); // Anlas 잔여량 갱신
         final imageBytes = base64Decode(base64Str);
@@ -540,6 +546,55 @@ class HomePageController extends SkeletonController {
       neg = negativeDef + neg;
     }
 
+    // 디렉터 툴 데이터 준비
+    List<df.DirectorReferenceDescription> directorDescriptions = [];
+    List<String> directorImages = [];
+    List<int> directorInfoExtracted = [];
+    List<double> directorSecondaryStrengths = [];
+    List<double> directorStrengths = [];
+
+    if (directorToolController.isEnabled) {
+      print('Director Tool is enabled');
+      print('Base caption: ${directorToolController.getBaseCaption()}');
+      print('Fidelity: ${directorToolController.fidelity.value}');
+      print(
+          'Image base64 length: ${directorToolController.referenceImageBase64.value.length}');
+
+      directorDescriptions.add(
+        df.DirectorReferenceDescription(
+          caption: df.DirectorCaption(
+            base_caption: directorToolController.getBaseCaption(),
+            char_captions: [],
+          ),
+          legacy_uc: false,
+        ),
+      );
+      directorImages.add(directorToolController.referenceImageBase64.value);
+      directorInfoExtracted.add(1);
+      directorSecondaryStrengths.add(0.0);
+      final double clampedStrength =
+          directorToolController.fidelity.value.clamp(0.0, 1.0);
+      directorStrengths.add(clampedStrength);
+
+      print(
+          'Director arrays prepared - descriptions: ${directorDescriptions.length}, images: ${directorImages.length}');
+    } else {
+      print('Director Tool is disabled');
+    }
+
+    final bool isDirectorEnabled = directorToolController.isEnabled;
+    final bool hasCharCaptions = charCapPos.isNotEmpty;
+
+    final int paramsVersion = isDirectorEnabled ? 3 : 1;
+    final bool legacyMode = isDirectorEnabled ? false : true;
+    final bool addOriginalImage = isDirectorEnabled ? true : false;
+    final bool normalizeReferenceStrengthMultiple =
+        isDirectorEnabled ? true : false;
+    final bool legacyV3Extend = isDirectorEnabled ? false : true;
+    final bool qualityToggle = isDirectorEnabled ? true : false;
+    final bool v4PromptUseCoords =
+        isDirectorEnabled ? hasCharCaptions : true;
+
     final setting = df.DiffusionModel(
       input: pos,
       parameters: df.Parameters(
@@ -551,26 +606,27 @@ class HomePageController extends SkeletonController {
         scale: promptGuidance,
         n_samples: 1,
         ucPreset: 0,
-        qualityToggle: false,
+        qualityToggle: qualityToggle,
         autoSmea: false,
         dynamic_thresholding: false,
         controlnet_strength: 1,
-        legacy: true,
+        legacy: legacyMode,
         legacy_uc: false,
-        normalize_reference_strength_multiple: false,
-        legacy_v3_extend: true,
+        normalize_reference_strength_multiple:
+            normalizeReferenceStrengthMultiple,
+        legacy_v3_extend: legacyV3Extend,
         skip_cfg_above_sigma: null,
         use_coords: false,
-        params_version: 1,
+        params_version: paramsVersion,
         v4_prompt: df.V4Prompt(
           caption: df.Caption(
             base_caption: pos,
             char_captions: charCapPos,
           ),
           use_order: true,
-          use_coords: true,
+          use_coords: v4PromptUseCoords,
         ),
-        add_original_image: false,
+        add_original_image: addOriginalImage,
         v4_negative_prompt: df.V4NegativePrompt(
           caption: df.Caption(base_caption: neg, char_captions: charCapNeg),
           legacy_uc: false,
@@ -583,6 +639,12 @@ class HomePageController extends SkeletonController {
         negative_prompt: neg,
         reference_image_multiple: vibeBytes,
         reference_strength_multiple: vibeStrengths,
+        director_reference_descriptions: directorDescriptions,
+        director_reference_images: directorImages,
+        director_reference_information_extracted: directorInfoExtracted,
+        director_reference_secondary_strength_values:
+            directorSecondaryStrengths,
+        director_reference_strength_values: directorStrengths,
       ),
       model: usingModel.value,
       action: 'generate',
@@ -616,6 +678,21 @@ class HomePageController extends SkeletonController {
         prevExtractionStrength: 0.0.obs);
     homeImageController.vibeParseImageBytes.add(vibeImage);
     Get.back();
+  }
+
+  Future<void> addDirectorReferenceImage(Uint8List image) async {
+    if (image.isEmpty) {
+      Get.snackbar('오류', '이미지를 선택해주세요.',
+          backgroundColor: Colors.red, colorText: Colors.white);
+      return;
+    }
+
+    final success = directorToolController.setReferenceImage(image);
+    if (success) {
+      Get.back();
+      Get.snackbar('성공', '레퍼런스 이미지가 설정되었습니다.',
+          backgroundColor: Colors.green, colorText: Colors.white);
+    }
   }
 
   Future<void> getVibeBytes() async {

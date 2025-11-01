@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/services.dart';
 import 'package:flutter_foreground_task/ui/with_foreground_task.dart';
+import 'package:naiapp/application/home/director_tool_controller.dart';
 import 'package:naiapp/application/home/home_image_controller.dart';
 import 'package:naiapp/application/home/home_setting_controller.dart';
 import 'package:naiapp/view/core/page.dart';
@@ -10,6 +11,7 @@ import 'package:flutter/material.dart';
 import 'package:naiapp/view/core/util/design_system.dart';
 import 'package:naiapp/view/home/home_appBar.dart';
 import 'package:naiapp/view/home/home_char_prompt.dart';
+import 'package:naiapp/view/home/home_director_tool.dart';
 import 'package:naiapp/view/home/home_imageView.dart';
 import 'package:naiapp/view/home/home_main_prompt.dart';
 import 'package:naiapp/view/home/home_setting.dart';
@@ -287,7 +289,9 @@ class HomePage extends GetView<HomePageController> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           AnlasWarningWidget(
-              homeSettingController: controller.homeSettingController),
+            homeSettingController: controller.homeSettingController,
+            directorToolController: controller.directorToolController,
+          ),
         ],
       ),
     );
@@ -378,7 +382,7 @@ class HomePage extends GetView<HomePageController> {
   Widget _expandedContent(BuildContext context) {
     return Expanded(
       child: DefaultTabController(
-        length: 4,
+        length: 5,
         child: Column(
           children: [
             // 탭 바 디자인 개선
@@ -391,33 +395,37 @@ class HomePage extends GetView<HomePageController> {
                 color: SkeletonColorScheme.surfaceColor.withValues(alpha: 0.5),
               ),
               margin: const EdgeInsets.all(SkeletonSpacing.smallSpacing),
-              child: SingleChildScrollView(
-                child: TabBar(
-                  tabs: [
-                    _buildTab(
-                        icon: Icons.text_fields,
-                        iconColor: SkeletonColorScheme.accentColor,
-                        label: '프롬프트'),
-                    _buildTab(
-                        icon: Icons.person,
-                        iconColor: SkeletonColorScheme.negativeColor,
-                        label: '캐릭터'),
-                    _buildTab(
-                        icon: Icons.settings,
-                        iconColor: SkeletonColorScheme.primaryColor,
-                        label: '설정'),
-                    _buildTab(
-                        icon: Icons.image,
-                        iconColor: SkeletonColorScheme.textSecondaryColor,
-                        label: "이미지")
-                  ],
-                  indicatorColor: SkeletonColorScheme.primaryColor,
-                  indicatorWeight: 3,
-                  indicatorSize: TabBarIndicatorSize.tab,
-                  labelColor: SkeletonColorScheme.textColor,
-                  unselectedLabelColor: SkeletonColorScheme.textSecondaryColor,
-                  dividerColor: Colors.transparent,
-                ),
+              child: TabBar(
+                tabAlignment:  TabAlignment.center,
+                isScrollable: true,
+                tabs: [
+                  _buildTab(
+                      icon: Icons.text_fields,
+                      iconColor: SkeletonColorScheme.accentColor,
+                      label: '프롬프트'),
+                  _buildTab(
+                      icon: Icons.person,
+                      iconColor: SkeletonColorScheme.negativeColor,
+                      label: '캐릭터'),
+                  _buildTab(
+                      icon: Icons.photo_camera,
+                      iconColor: SkeletonColorScheme.newGreenColor,
+                      label: '디렉터'),
+                  _buildTab(
+                      icon: Icons.settings,
+                      iconColor: SkeletonColorScheme.primaryColor,
+                      label: '설정'),
+                  _buildTab(
+                      icon: Icons.image,
+                      iconColor: SkeletonColorScheme.textSecondaryColor,
+                      label: "이미지")
+                ],
+                indicatorColor: SkeletonColorScheme.primaryColor,
+                indicatorWeight: 3,
+                indicatorSize: TabBarIndicatorSize.tab,
+                labelColor: SkeletonColorScheme.textColor,
+                unselectedLabelColor: SkeletonColorScheme.textSecondaryColor,
+                dividerColor: Colors.transparent,
               ),
             ),
 
@@ -432,6 +440,7 @@ class HomePage extends GetView<HomePageController> {
                       negativePromptController:
                           controller.negativePromptController),
                   HomeCharPrompt(),
+                  HomeDirectorTool(),
                   HomeSetting(),
                   HomeLoadImage(),
                 ],
@@ -477,8 +486,13 @@ class HomePage extends GetView<HomePageController> {
 
 class AnlasWarningWidget extends StatelessWidget {
   final HomeSettingController homeSettingController;
+  final DirectorToolController directorToolController;
 
-  const AnlasWarningWidget({super.key, required this.homeSettingController});
+  AnlasWarningWidget({
+    super.key,
+    required this.homeSettingController,
+    required this.directorToolController,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -495,9 +509,11 @@ class AnlasWarningWidget extends StatelessWidget {
           (double.parse(homeSettingController.ySizeController.text)).toInt();
       bool tooBig = pixels > 1024 * 1024;
       bool tooManySteps = homeSettingController.samplingSteps > 28;
+      bool directorEnabled =
+          directorToolController.referenceImage.value != null;
 
       // 경고사항이 없으면 빈 컨테이너 반환
-      if (!tooBig && !tooManySteps) {
+      if (!tooBig && !tooManySteps && !directorEnabled) {
         return const SizedBox.shrink();
       }
       return Container(
@@ -539,22 +555,33 @@ class AnlasWarningWidget extends StatelessWidget {
                     children: [
                       if (tooBig) ...[
                         Text(
-                          "크기: ${homeSettingController.xSizeController.text}x${homeSettingController.ySizeController.text}",
+                          "크기: ${homeSettingController.xSizeController.text}x${homeSettingController.ySizeController.text} ",
                           style: TextStyle(
                             color: SkeletonColorScheme.negativeColor,
                             fontSize: 9,
                             fontWeight: FontWeight.w500,
                           ),
                         ),
-                        if (tooManySteps) const SizedBox(width: 6),
                       ],
                       if (tooManySteps)
                         Text(
-                          "스텝: ${homeSettingController.samplingSteps}",
+                          "스텝: ${homeSettingController.samplingSteps} ",
                           style: TextStyle(
                             color: SkeletonColorScheme.negativeColor,
                             fontSize: 9,
                             fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      if (directorEnabled)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 2),
+                          child: Text(
+                            "캐릭터 레퍼런스 ON",
+                            style: TextStyle(
+                              color: SkeletonColorScheme.negativeColor,
+                              fontSize: 9,
+                              fontWeight: FontWeight.w500,
+                            ),
                           ),
                         ),
                     ],

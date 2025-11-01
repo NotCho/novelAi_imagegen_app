@@ -280,6 +280,19 @@ class HomeAppBar extends GetView<HomePageController> {
                         },
                       ),
                     ),
+                    const SizedBox(width: SkeletonSpacing.spacing),
+                    Expanded(
+                      child: buildDialogButton(
+                        '레퍼런스',
+                        color: SkeletonColorScheme.primaryColor,
+                        onPressed: () {
+                          controller.addDirectorReferenceImage(
+                            controller
+                                .imageLoadController.loadedImageBytes.value,
+                          );
+                        },
+                      ),
+                    ),
                   ],
                 ),
 

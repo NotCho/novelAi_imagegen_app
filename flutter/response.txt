@@ -1,0 +1,18 @@
+curl 'https://image.novelai.net/ai/generate-image' \
+  -H 'accept: */*' \
+  -H 'accept-language: ko,en-US;q=0.9,en;q=0.8,ja;q=0.7' \
+  -H 'authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjdjVU8yOHh5WUVMa0tIdm1Wcms2SyIsIm5jIjoiUTlCOW1BNmVMT250bXB4VmhyYjJnIiwiaWF0IjoxNzYxNDY5NzI2LCJleHAiOjE3NjQwNjE3MjZ9._xJKiIR1q61F4ZqWYTq5k8pgbP9MWupVGjROrGNTdbg' \
+  -H 'content-type: application/json' \
+  -H 'origin: https://novelai.net' \
+  -H 'priority: u=1, i' \
+  -H 'referer: https://novelai.net/' \
+  -H 'sec-ch-ua: "Google Chrome";v="141", "Not?A_Brand";v="8", "Chromium";v="141"' \
+  -H 'sec-ch-ua-mobile: ?0' \
+  -H 'sec-ch-ua-platform: "macOS"' \
+  -H 'sec-fetch-dest: empty' \
+  -H 'sec-fetch-mode: cors' \
+  -H 'sec-fetch-site: same-site' \
+  -H 'user-agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36' \
+  -H 'x-correlation-id: 16C7Qy' \
+  -H 'x-initiated-at: 2025-11-01T06:52:31.168Z' \
+  --data-raw '{"input":"car, -1::human::, sky, very aesthetic, masterpiece, no text","model":"nai-diffusion-4-5-full","action":"generate","parameters":{"params_version":3,"width":832,"height":1216,"scale":5,"sampler":"k_euler_ancestral","steps":23,"seed":4044388311,"n_samples":1,"ucPreset":0,"qualityToggle":true,"autoSmea":false,"dynamic_thresholding":false,"controlnet_strength":1,"legacy":false,"add_original_image":true,"cfg_rescale":0,"noise_schedule":"karras","legacy_v3_extend":false,"skip_cfg_above_sigma":null,"use_coords":false,"legacy_uc":false,"normalize_reference_strength_multiple":true,"inpaintImg2ImgStrength":1,"characterPrompts":[],"director_reference_images":[],"director_reference_descriptions":[{"caption":{"base_caption":"character&style","char_captions":[]},"legacy_uc":false}],"director_reference_information_extracted":[1],"director_reference_strength_values":[1],"director_reference_secondary_strength_values":[0],"v4_prompt":{"caption":{"base_caption":"car, -1::human::, sky, very aesthetic, masterpiece, no text","char_captions":[]},"use_coords":false,"use_order":true},"v4_negative_prompt":{"caption":{"base_caption":"nsfw, lowres, artistic error, film grain, scan artifacts, worst quality, bad quality, jpeg artifacts, very displeasing, chromatic aberration, dithering, halftone, screentone, multiple views, logo, too many watermarks, negative space, blank page","char_captions":[]},"legacy_uc":false},"negative_prompt":"nsfw, lowres, artistic error, film grain, scan artifacts, worst quality, bad quality, jpeg artifacts, very displeasing, chromatic aberration, dithering, halftone, screentone, multiple views, logo, too many watermarks, negative space, blank page","deliberate_euler_ancestral_bug":false,"prefer_brownian":true},"use_new_shared_trial":true}'

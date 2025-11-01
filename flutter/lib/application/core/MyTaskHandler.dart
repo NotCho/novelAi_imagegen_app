@@ -1,6 +1,5 @@
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:flutter_foreground_task/task_handler.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 @pragma('vm:entry-point')
 class MyTaskHandler extends TaskHandler {
