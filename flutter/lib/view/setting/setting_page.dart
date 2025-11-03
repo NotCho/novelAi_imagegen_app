@@ -30,6 +30,17 @@ class SettingPage extends GetView<SettingPageController> {
                         style: SkeletonTextTheme.body2Long
                             .copyWith(color: SkeletonColorScheme.newG600)),
                   ))),
+          _buildListTile(
+              title: "앱 정보",
+              icon: Icons.info,
+              onTap: () {
+                // controller.showAppInfo();
+              },
+              trailing: Text(
+                controller.global.currentClientVersion.value,
+                style: SkeletonTextTheme.body2Long
+                    .copyWith(color: SkeletonColorScheme.newG600),
+              )),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
             child: Divider(

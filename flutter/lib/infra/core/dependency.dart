@@ -33,6 +33,7 @@ Future<void> injectDependencies() async {
   Get.put<ISkeletonRouter>(SkeletonRouter());
   Get.put<GlobalController>(GlobalController());
   Get.put(ImageCacheManager(), permanent: true);
+
 }
 
 Future<void> _requestPermissions() async {

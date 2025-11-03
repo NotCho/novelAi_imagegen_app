@@ -4,16 +4,23 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:naiapp/application/core/router.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../infra/service/ImageSaveManager.dart';
 
 class GlobalController extends GetxController {
+  GlobalController() {
+    getCurrentClientVersion();
+  }
+
   final _isLoading = false.obs;
 
   bool get isLoading => _isLoading.value;
 
   set isLoading(bool value) => _isLoading.value = value;
+
+  RxString currentClientVersion = '버전 로드 실패'.obs;
 
   String _jwtToken = '';
   final router = Get.find<ISkeletonRouter>();
@@ -37,6 +44,12 @@ class GlobalController extends GetxController {
         child: const Text('확인'),
       ),
     );
+  }
+
+  Future<void> getCurrentClientVersion() {
+    return PackageInfo.fromPlatform().then((PackageInfo packageInfo) {
+      currentClientVersion.value = packageInfo.version;
+    });
   }
 
   Future<void> saveMultipleImages(List<Uint8List> imageBytesList) async {
