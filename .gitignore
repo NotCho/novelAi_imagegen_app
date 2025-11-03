@@ -89,6 +89,9 @@ GoogleService-Info.plist
 **/*.jks
 **/*.p12
 **/*.pem
+nai-login-b8ba8d8f1788.json
+*.service-account.json
+*.firebase-key.json
 
 # Firebase
 .firebase/

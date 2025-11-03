@@ -57,7 +57,7 @@ class HomeSetting extends GetView<HomePageController> {
         children: [
           // 설정 타이틀
           Obx(
-            ()=> SettingsCard(
+            () => SettingsCard(
               title:
                   '최근 프리셋: ${(controller.homeSettingController.selectedPreset.value.isNotEmpty) ? controller.homeSettingController.selectedPreset.value : "없음"}',
               icon: Icons.save,
@@ -70,8 +70,8 @@ class HomeSetting extends GetView<HomePageController> {
                         runSpacing: SkeletonSpacing.smallSpacing,
                         children: [
                           // 저장된 프리셋 버튼들
-                          for (final presetName
-                              in controller.homeSettingController.presetMap.keys)
+                          for (final presetName in controller
+                              .homeSettingController.presetMap.keys)
                             GestureDetector(
                               onLongPress: () {
                                 // 프리셋 삭제 다이얼로그 표시
@@ -324,30 +324,40 @@ class HomeSetting extends GetView<HomePageController> {
             icon: Icons.casino,
             child: Row(
               children: [
-                Expanded(
-                  child: TextField(
-                    enabled: !controller.homeSettingController.randomSeed.value,
-                    keyboardType: TextInputType.number,
-                    style:
-                        const TextStyle(color: SkeletonColorScheme.textColor),
-                    decoration: InputDecoration(
-                      labelText: '시드 값',
-                      labelStyle: const TextStyle(
-                          color: SkeletonColorScheme.textSecondaryColor),
-                      filled: true,
-                      fillColor: SkeletonColorScheme.cardColor,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(
-                            SkeletonSpacing.borderRadius / 2),
-                        borderSide: const BorderSide(
-                            color: SkeletonColorScheme.surfaceColor),
+                Obx(
+                  () => Expanded(
+                    child: TextField(
+                      enabled:
+                          !controller.homeSettingController.randomSeed.value,
+                      keyboardType: TextInputType.number,
+                      style:
+                          const TextStyle(color: SkeletonColorScheme.textColor),
+                      decoration: InputDecoration(
+                        labelText: '시드 값',
+                        labelStyle: const TextStyle(
+                            color: SkeletonColorScheme.textSecondaryColor),
+                        filled: true,
+                        fillColor: SkeletonColorScheme.cardColor,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(
+                              SkeletonSpacing.borderRadius / 2),
+                          borderSide: const BorderSide(
+                              color: SkeletonColorScheme.surfaceColor),
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 8),
+                        suffixIcon: IconButton(
+                          onPressed: (){
+                            controller.homeSettingController
+                                .seedController.text = "";
+                          },
+                          icon: const Icon(Icons.refresh,
+                              color: SkeletonColorScheme.primaryColor),
+                        ),
                       ),
-                      contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 8),
-                      suffixIcon: const Icon(Icons.refresh,
-                          color: SkeletonColorScheme.primaryColor),
+                      controller:
+                          controller.homeSettingController.seedController,
                     ),
-                    controller: controller.homeSettingController.seedController,
                   ),
                 ),
                 const SizedBox(width: 16),
@@ -378,6 +388,8 @@ class HomeSetting extends GetView<HomePageController> {
                           onChanged: (value) {
                             controller.homeSettingController.randomSeed.value =
                                 value;
+                            controller
+                                .homeSettingController.seedController.text = '';
                           },
                           activeColor: SkeletonColorScheme.primaryColor,
                           activeTrackColor: SkeletonColorScheme.primaryColor

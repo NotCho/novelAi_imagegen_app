@@ -356,23 +356,25 @@ class HomePage extends GetView<HomePageController> {
               width: 1,
             ),
           ),
-          child: Row(
-            children: [
-              Icon(
-                controller.isPanelExpanded.value
-                    ? Icons.keyboard_arrow_down
-                    : Icons.keyboard_arrow_up,
-                color: SkeletonColorScheme.primaryColor,
-              ),
-              const SizedBox(width: 6),
-              Text(
-                controller.isPanelExpanded.value ? "접기" : "펼치기",
-                style: const TextStyle(
-                  color: SkeletonColorScheme.textColor,
-                  fontWeight: FontWeight.w500,
+          child: Obx(()=>
+             Row(
+              children: [
+                Icon(
+                  controller.isPanelExpanded.value
+                      ? Icons.keyboard_arrow_down
+                      : Icons.keyboard_arrow_up,
+                  color: SkeletonColorScheme.primaryColor,
                 ),
-              ),
-            ],
+                const SizedBox(width: 6),
+                Text(
+                  controller.isPanelExpanded.value ? "접기" : "펼치기",
+                  style: const TextStyle(
+                    color: SkeletonColorScheme.textColor,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

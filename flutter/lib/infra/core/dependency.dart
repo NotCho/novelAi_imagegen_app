@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
@@ -9,6 +10,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../application/core/global_controller.dart';
 import '../../application/core/router.dart';
+import '../../application/function/remote_config_service.dart';
 import '../../application/home/image_cache_manager.dart';
 import '../../domain/core/i_connection.dart';
 import 'connection.dart';
@@ -23,6 +25,8 @@ Future<void> injectDependencies() async {
     print('웹 환경에서는 포그라운드 서비스를 사용하지 않습니다');
   }
 
+  await _initializeFirebase();
+
   /// Repo
   Get.put<SharedPreferences>(await SharedPreferences.getInstance());
   Get.put<IConnection>(JSEO.instance);
@@ -31,9 +35,21 @@ Future<void> injectDependencies() async {
 
   /// Service
   Get.put<ISkeletonRouter>(SkeletonRouter());
+  Get.put<RemoteConfigService>(
+    await RemoteConfigService.initialize(),
+    permanent: true,
+  );
   Get.put<GlobalController>(GlobalController());
   Get.put(ImageCacheManager(), permanent: true);
+}
 
+Future<void> _initializeFirebase() async {
+  try {
+    await Firebase.initializeApp();
+  } catch (e) {
+    print('Firebase 초기화 실패: $e');
+    rethrow;
+  }
 }
 
 Future<void> _requestPermissions() async {
@@ -42,7 +58,8 @@ Future<void> _requestPermissions() async {
 
   try {
     // Android 13+: 알림 권한 요청
-    final permission = await FlutterForegroundTask.checkNotificationPermission();
+    final permission =
+        await FlutterForegroundTask.checkNotificationPermission();
     if (permission != NotificationPermission.granted) {
       await FlutterForegroundTask.requestNotificationPermission();
     }
