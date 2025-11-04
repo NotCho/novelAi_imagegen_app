@@ -87,16 +87,16 @@ class HomeSetting extends GetView<HomePageController> {
                                                 SkeletonColorScheme.textColor)),
                                     content: RichText(
                                       text: TextSpan(
-                                        text: '$presetName',
+                                        text: presetName,
                                         style: const TextStyle(
                                           fontWeight: FontWeight.bold,
                                           fontSize: 16,
                                           color: SkeletonColorScheme.textColor,
                                         ),
-                                        children: [
+                                        children: const [
                                           TextSpan(
                                             text: ' 프리셋을 삭제할까요?',
-                                            style: const TextStyle(
+                                            style: TextStyle(
                                               fontWeight: FontWeight.normal,
                                               fontSize: 14,
                                               color: SkeletonColorScheme
@@ -134,16 +134,16 @@ class HomeSetting extends GetView<HomePageController> {
                                                 SkeletonColorScheme.textColor)),
                                     content: RichText(
                                       text: TextSpan(
-                                        text: '$presetName',
+                                        text: presetName,
                                         style: const TextStyle(
                                           fontWeight: FontWeight.bold,
                                           fontSize: 16,
                                           color: SkeletonColorScheme.textColor,
                                         ),
-                                        children: [
+                                        children: const [
                                           TextSpan(
                                             text: ' 프리셋을 불러올까요?',
-                                            style: const TextStyle(
+                                            style: TextStyle(
                                               fontWeight: FontWeight.normal,
                                               fontSize: 14,
                                               color: SkeletonColorScheme
@@ -391,7 +391,7 @@ class HomeSetting extends GetView<HomePageController> {
                             controller
                                 .homeSettingController.seedController.text = '';
                           },
-                          activeColor: SkeletonColorScheme.primaryColor,
+                          activeThumbColor: SkeletonColorScheme.primaryColor,
                           activeTrackColor: SkeletonColorScheme.primaryColor
                               .withValues(alpha: 0.3),
                         ),
@@ -451,7 +451,7 @@ class HomeSetting extends GetView<HomePageController> {
             color: SkeletonColorScheme.textSecondaryColor,
             fontSize: 12,
           ),
-          hintText: '${isWidth ? '832' : '1216'}',
+          hintText: isWidth ? '832' : '1216',
           hintStyle: const TextStyle(
             color: SkeletonColorScheme.textSecondaryColor,
             fontSize: 12,
@@ -660,7 +660,7 @@ class HomeSetting extends GetView<HomePageController> {
                               .value)
                           ? '매번 다른 크기로 자동 생성'
                           : "자동 생성시에 활성 가능",
-                      style: TextStyle(
+                      style: const TextStyle(
                         color: SkeletonColorScheme.textSecondaryColor,
                         fontSize: 12,
                       ),
@@ -679,7 +679,7 @@ class HomeSetting extends GetView<HomePageController> {
                       controller.homeSettingController.autoChangeSize.value =
                           value;
                     },
-                    activeColor: (controller
+                    activeThumbColor: (controller
                             .autoGenerationController.autoGenerateEnabled.value)
                         ? SkeletonColorScheme.accentColor
                         : SkeletonColorScheme.negativeColor,
@@ -812,15 +812,14 @@ class HomeSetting extends GetView<HomePageController> {
                   onPressed: () {
                     bool result =
                         controller.homeSettingController.addSizeOption();
-                    if (result)
+                    if (result) {
                       listKey.currentState?.insertItem(controller
                               .homeSettingController
                               .sizeOptionsWithCustom
                               .length -
                           1);
+                    }
                   },
-                  child: SizedBox(
-                      height: 56, child: const Icon(Icons.add, size: 18)),
                   style: ElevatedButton.styleFrom(
                     backgroundColor:
                         SkeletonColorScheme.primaryColor.withValues(alpha: 0.2),
@@ -831,6 +830,8 @@ class HomeSetting extends GetView<HomePageController> {
                           SkeletonSpacing.borderRadius / 2),
                     ),
                   ),
+                  child: const SizedBox(
+                      height: 56, child: Icon(Icons.add, size: 18)),
                 ),
               ],
             ),

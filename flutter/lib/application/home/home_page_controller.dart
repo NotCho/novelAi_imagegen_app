@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'dart:math';
-import 'dart:typed_data';
 
 import 'package:dartz/dartz.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:get/get.dart';
@@ -78,7 +78,7 @@ class HomePageController extends SkeletonController {
   ScrollController characterScrollController =
       ScrollController(); // 스크롤 컨트롤러 추가
 
-  Rx<df.Center> characterPositions = df.Center(x: 0.5, y: 0.5).obs;
+  Rx<df.Center> characterPositions = const df.Center(x: 0.5, y: 0.5).obs;
 
   void setCharacterPosition(int x, int y) {
     // 소수점 첫째자리 까지만 저장
@@ -180,7 +180,9 @@ class HomePageController extends SkeletonController {
         final setting = df.DiffusionModel.fromJson(data);
         loadSetting(setting);
       } catch (e) {
-        print('Error loading last settings: $e');
+        if (kDebugMode) {
+          print('Error loading last settings: $e');
+        }
       }
     }
   }
@@ -221,7 +223,9 @@ class HomePageController extends SkeletonController {
             homeSettingController.sizeOptionsWithCustom
                 .add(Size(width.toDouble(), height.toDouble()));
           } catch (e) {
-            print('Invalid custom size format: $size');
+            if (kDebugMode) {
+              print('Invalid custom size format: $size');
+            }
           }
         }
       }
@@ -284,7 +288,9 @@ class HomePageController extends SkeletonController {
     final result = await _novelAIRepository.generateImage(setting: setting);
     result.fold(
       (l) {
-        print('이미지 생성 중 오류 발생: $l');
+        if (kDebugMode) {
+          print('이미지 생성 중 오류 발생: $l');
+        }
         Get.snackbar('오류', '이미지 생성 중 오류가 발생했습니다: $l',
             backgroundColor: Colors.red, colorText: Colors.white);
       },
@@ -352,8 +358,9 @@ class HomePageController extends SkeletonController {
   }
 
   void loadFromHistory(int index) {
-    if (index < 0 || index >= homeImageController.generationHistory.length)
+    if (index < 0 || index >= homeImageController.generationHistory.length) {
       return;
+    }
     final item = homeImageController.generationHistory[index];
     homeImageController.generatedImagePath.value = item.imagePath;
 

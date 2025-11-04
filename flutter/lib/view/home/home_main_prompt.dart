@@ -82,7 +82,7 @@ class HomeMainPrompt extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(
                 color: color.withValues(alpha: 0.2),
-                borderRadius: BorderRadius.only(
+                borderRadius: const BorderRadius.only(
                   topLeft: Radius.circular(SkeletonSpacing.borderRadius - 1),
                   topRight: Radius.circular(SkeletonSpacing.borderRadius - 1),
                 ),

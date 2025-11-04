@@ -62,7 +62,7 @@ class LoginPage extends GetView<LoginPageController> {
                                     shape: BoxShape.circle,
                                     boxShadow: [
                                       BoxShadow(
-                                        color: Colors.black.withOpacity(0.3),
+                                        color: Colors.black.withValues(alpha: 0.3),
                                         blurRadius: 15,
                                         spreadRadius: 5,
                                       ),
@@ -132,7 +132,7 @@ class LoginPage extends GetView<LoginPageController> {
                   width: 1,
                 ),
               ),
-              child: Row(
+              child: const Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Icon(Icons.login, color: primaryColor, size: 16),
@@ -196,7 +196,7 @@ class LoginPage extends GetView<LoginPageController> {
                     const SizedBox(width: smallSpacing),
                     Text(
                       (controller.inProgress.value) ? "로그인 중.." : "로그인",
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                       ),

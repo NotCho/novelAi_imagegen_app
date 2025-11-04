@@ -237,8 +237,6 @@ class WebPMetadataParser {
         packedBytes.add(byte);
       }
 
-      print('패킹된 바이트 수: ${packedBytes.length}');
-      print('패킹된 첫 20바이트: ${packedBytes.take(20).toList()}');
 
       return packedBytes;
     } catch (e) {
@@ -465,7 +463,6 @@ class WebPMetadataParser {
   /// WebP EXIF/XMP 메타데이터 청크에서 추출 시도
   static Map<String, String>? extractWebPExifMetadata(Uint8List bytes) {
     try {
-      print('WebP EXIF 청크 검색 시도');
 
       if (bytes.length < 12) return null;
 
@@ -525,7 +522,6 @@ class WebPMetadataParser {
 
           // EXIF 청크 처리
           if (chunkId == 'EXIF') {
-            print('EXIF 청크 발견, 메타데이터 검색');
             final exifData = bytes.sublist(dataStart, dataEnd);
             final jsonResult = _searchJsonInBytes(exifData, 'EXIF');
             if (jsonResult != null) {

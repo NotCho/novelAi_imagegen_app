@@ -295,8 +295,9 @@ class NovelAIRepository implements INovelAIRepository {
 
         double? prevExtractionStrength =
             base64imageData[i].prevExtractionStrength?.value;
-        if (extractionStrength == null && prevExtractionStrength == null)
+        if (extractionStrength == null && prevExtractionStrength == null) {
           continue;
+        }
 
         if (base64imageData[i].image == null) continue;
         if (extractionStrength == prevExtractionStrength) continue;

@@ -11,7 +11,7 @@ class SettingPage extends GetView<SettingPageController> {
   @override
   Widget build(BuildContext context) {
     return SkeletonScaffold(
-      appBar: SkeletonAppBar(
+      appBar: const SkeletonAppBar(
         backgroundColor: SkeletonColorScheme.backgroundColor,
         titleText: "설정",
       ),
@@ -41,8 +41,8 @@ class SettingPage extends GetView<SettingPageController> {
                 style: SkeletonTextTheme.body2Long
                     .copyWith(color: SkeletonColorScheme.newG600),
               )),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16.0),
             child: Divider(
               color: SkeletonColorScheme.textSecondaryColor,
             ),

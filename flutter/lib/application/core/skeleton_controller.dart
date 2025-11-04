@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:naiapp/application/core/router.dart';
 
@@ -9,6 +10,7 @@ abstract class SkeletonController extends GetxController {
   final _isInitLoading = true.obs;
 
   set isLoading(bool value) => global.isLoading = value;
+
   bool get isLoading => global.isLoading;
 
   bool get isInitLoading => _isInitLoading.value;
@@ -21,7 +23,9 @@ abstract class SkeletonController extends GetxController {
   Future<void> onInit() async {
     super.onInit();
     final initialLoadResult = await initLoading();
-    print('initialLoadResult: $initialLoadResult');
+    if (kDebugMode) {
+      print('initialLoadResult: $initialLoadResult');
+    }
     _isInitLoading.value = false;
     if (!initialLoadResult) {
       await global.pageInitLoadingFail();

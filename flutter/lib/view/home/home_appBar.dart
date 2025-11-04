@@ -6,7 +6,7 @@ import 'package:naiapp/view/core/util/design_system.dart';
 import '../../application/home/home_page_controller.dart';
 
 class HomeAppBar extends GetView<HomePageController> {
-  HomeAppBar({super.key});
+  const HomeAppBar({super.key});
 
   // 모델 선택 드롭다운 위젯
   @override
@@ -55,7 +55,7 @@ class HomeAppBar extends GetView<HomePageController> {
                 style: const TextStyle(color: SkeletonColorScheme.textColor),
                 icon: const Icon(Icons.arrow_drop_down,
                     color: SkeletonColorScheme.primaryColor),
-                value: controller.usingModel.value,
+                initialValue: controller.usingModel.value,
                 items: controller.modelNames.keys.toList().map((String value) {
                   return DropdownMenuItem<String>(
                     value: value,
@@ -130,11 +130,11 @@ class HomeAppBar extends GetView<HomePageController> {
         borderRadius: BorderRadius.circular(SkeletonSpacing.borderRadius),
       ),
       // 다이얼로그 크기 제한 추가! ㅋㅋㅋ
-      contentPadding: EdgeInsets.all(16),
-      insetPadding: EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+      contentPadding: const EdgeInsets.all(16),
+      insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
       // 화면 여백
 
-      title: Container(
+      title: SizedBox(
         width: 320, // 고정 너비 설정
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -162,7 +162,7 @@ class HomeAppBar extends GetView<HomePageController> {
                   onPressed: () async {
                     controller.imageLoadController.cancelImageLoad();
                   },
-                  icon: Icon(
+                  icon: const Icon(
                     Icons.close,
                     color: SkeletonColorScheme.textColor,
                     size: 25,
@@ -174,7 +174,7 @@ class HomeAppBar extends GetView<HomePageController> {
 
       content: Container(
         width: 320, // 고정 너비 설정
-        constraints: BoxConstraints(
+        constraints: const BoxConstraints(
           maxWidth: 320, // 최대 너비 제한
           maxHeight: 400, // 최대 높이도 제한 (선택사항)
         ),
@@ -301,7 +301,7 @@ class HomeAppBar extends GetView<HomePageController> {
                 // 상태 텍스트 영역 - 크기 제한!
                 Container(
                   width: double.infinity, // 부모 너비에 맞춤
-                  constraints: BoxConstraints(
+                  constraints: const BoxConstraints(
                     maxHeight: 60, // 최대 높이 제한
                   ),
                   child: _loadImageStatusBuilder(),
@@ -322,7 +322,7 @@ class HomeAppBar extends GetView<HomePageController> {
     return Obx(
       () => Container(
         width: double.infinity, // 부모 너비에 맞춤
-        padding: EdgeInsets.all(8),
+        padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
           color: SkeletonColorScheme.surfaceColor.withOpacity(0.3),
           borderRadius: BorderRadius.circular(4),
@@ -362,14 +362,14 @@ class HomeAppBar extends GetView<HomePageController> {
           onTap: onPressed,
           child: Padding(
             padding: padding ??
-                EdgeInsets.symmetric(
+                const EdgeInsets.symmetric(
                     horizontal: SkeletonSpacing.spacing,
                     vertical: SkeletonSpacing.smallSpacing),
             child: Center(
               // 중앙 정렬 추가
               child: Text(
                 title,
-                style: TextStyle(
+                style: const TextStyle(
                   color: SkeletonColorScheme.textColor,
                   fontSize: 12,
                   fontWeight: FontWeight.w500,

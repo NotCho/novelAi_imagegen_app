@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 
 abstract class ISkeletonRouter {
@@ -34,7 +35,9 @@ class SkeletonRouter implements ISkeletonRouter {
   Future<String> toParser(String prompt) async {
     final result =
         await Get.toNamed('/home/parse', arguments: {'prompt': prompt});
-    print(result);
+    if (kDebugMode) {
+      print(result);
+    }
     return result?.toString() ?? '';
   }
 
@@ -43,6 +46,7 @@ class SkeletonRouter implements ISkeletonRouter {
     Get.toNamed('/home/image');
   }
 
+  @override
   void toSetting() {
     Get.toNamed('/home/setting');
   }

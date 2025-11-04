@@ -1,8 +1,8 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'dart:typed_data';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
@@ -33,16 +33,9 @@ class GlobalController extends GetxController {
   String? _downloadedApkPath;
   bool _hasPromptedUpdate = false;
 
-  String _jwtToken = '';
   final RemoteConfigService _remoteConfigService =
       Get.find<RemoteConfigService>();
   final router = Get.find<ISkeletonRouter>();
-
-  set jwtToken(String jwtToken) {
-    _jwtToken = jwtToken;
-  }
-
-  String get jwtToken => _jwtToken;
 
   RemoteConfigUpdateInfo? get updateInfo => _updateInfo.value;
 
@@ -81,7 +74,9 @@ class GlobalController extends GetxController {
         forceRemoteFetch: forceRemoteFetch,
       );
       _updateInfo.value = info;
-      print('원격 구성에서 업데이트 정보 가져옴: ${info.latestVersion}');
+      if (kDebugMode) {
+        print('원격 구성에서 업데이트 정보 가져옴: ${info.latestVersion}');
+      }
 
       final clientVersion = currentClientVersion.value;
       _isUpdateAvailable.value = info.isValid &&
@@ -91,11 +86,14 @@ class GlobalController extends GetxController {
           : false;
 
       if (_isUpdateAvailable.value) {
-
-        print('업데이트가 필요합니다. ${clientVersion}');
+        if (kDebugMode) {
+          print('업데이트가 필요합니다. $clientVersion');
+        }
         _promptUpdateIfNeeded(forcePrompt: forceRemoteFetch);
       } else if (forceRemoteFetch) {
-        print('업데이트가 필요하지 않습니다.$clientVersion');
+        if (kDebugMode) {
+          print('업데이트가 필요하지 않습니다.$clientVersion');
+        }
         _hasPromptedUpdate = false;
       }
     } finally {
@@ -126,7 +124,6 @@ class GlobalController extends GetxController {
     if (changelog.isNotEmpty) {
       buffer
         ..writeln()
-
         ..writeln('변경 사항')
         ..writeln(changelog);
     }

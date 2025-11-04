@@ -63,7 +63,7 @@ class ParserPage extends GetView<ParserPageController> {
             // 그라데이션 컬러
             child: Column(
               children: [
-                Row(
+                const Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text("-10.0 (부정)",
@@ -98,7 +98,7 @@ class ParserPage extends GetView<ParserPageController> {
                     borderRadius:
                         BorderRadius.circular(SkeletonSpacing.borderRadius),
                   ),
-                  child: Row(
+                  child: const Row(
                     mainAxisSize: MainAxisSize.max,
                     children: [Text(" ")],
                   ),
@@ -225,7 +225,7 @@ class ParserPage extends GetView<ParserPageController> {
   Widget _buildTagSection() {
     return SingleChildScrollView(
       child: Container(
-        padding: EdgeInsets.all(8),
+        padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
           color: SkeletonColorScheme.surfaceColor.withValues(alpha: 0.3),
           borderRadius: BorderRadius.circular(SkeletonSpacing.borderRadius),
@@ -291,9 +291,9 @@ class ParserPage extends GetView<ParserPageController> {
             const SizedBox(width: SkeletonSpacing.spacing),
             Expanded(
               child: TextField(
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   hintText: "태그 이름을 수정하세요",
-                  hintStyle: const TextStyle(
+                  hintStyle: TextStyle(
                     color: SkeletonColorScheme.textSecondaryColor,
                   ),
                   border: InputBorder.none,
@@ -423,7 +423,7 @@ class ParserPage extends GetView<ParserPageController> {
                             divisions: 100,
                             label: currentTag.weight.toStringAsFixed(2),
                           ),
-                          Row(
+                          const Row(
                             crossAxisAlignment: CrossAxisAlignment.center,
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
@@ -443,7 +443,7 @@ class ParserPage extends GetView<ParserPageController> {
                               ),
                             ],
                           ),
-                          Positioned.fill(
+                          const Positioned.fill(
                             child: Align(
                               alignment: Alignment((1.0 + 10) / 20 * 2 - 1, -1),
                               child: Text(

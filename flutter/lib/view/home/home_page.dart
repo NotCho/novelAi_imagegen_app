@@ -1,6 +1,5 @@
 import 'dart:convert';
 
-import 'package:flutter/services.dart';
 import 'package:flutter_foreground_task/ui/with_foreground_task.dart';
 import 'package:naiapp/application/home/director_tool_controller.dart';
 import 'package:naiapp/application/home/home_image_controller.dart';
@@ -40,13 +39,13 @@ class HomePage extends GetView<HomePageController> {
                 },
                 child: SkeletonScaffold(
                   floatingActionButton: _buildAutoGenerationButton(),
-                  appBar: SkeletonAppBar(
+                  appBar: const SkeletonAppBar(
                     isLeftTitle: true,
                     titleText: "AI 이미지 생성기",
                     isLeftIconDisplayed: false,
                     customAction: Expanded(
                       child: Padding(
-                          padding: const EdgeInsets.all(
+                          padding: EdgeInsets.all(
                               SkeletonSpacing.smallSpacing),
                           child: HomeAppBar()),
                     ),
@@ -64,7 +63,7 @@ class HomePage extends GetView<HomePageController> {
                   body: Column(
                     children: [
                       Obx(() => history()),
-                      Expanded(child: HomeImageView()),
+                      const Expanded(child: HomeImageView()),
                     ],
                   ),
                 ),
@@ -138,7 +137,7 @@ class HomePage extends GetView<HomePageController> {
               height: 1,
             ),
             ConstrainedBox(
-              constraints: BoxConstraints(
+              constraints: const BoxConstraints(
                 maxHeight: 110,
               ),
               child: ListView.builder(
@@ -314,7 +313,7 @@ class HomePage extends GetView<HomePageController> {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
+          const Icon(
             Icons.account_balance_wallet,
             color: SkeletonColorScheme.primaryColor,
             size: 14,
@@ -441,8 +440,8 @@ class HomePage extends GetView<HomePageController> {
                           controller.positivePromptController,
                       negativePromptController:
                           controller.negativePromptController),
-                  HomeCharPrompt(),
-                  HomeDirectorTool(),
+                  const HomeCharPrompt(),
+                  const HomeDirectorTool(),
                   HomeSetting(),
                   HomeLoadImage(),
                 ],
@@ -490,7 +489,7 @@ class AnlasWarningWidget extends StatelessWidget {
   final HomeSettingController homeSettingController;
   final DirectorToolController directorToolController;
 
-  AnlasWarningWidget({
+  const AnlasWarningWidget({
     super.key,
     required this.homeSettingController,
     required this.directorToolController,
@@ -534,7 +533,7 @@ class AnlasWarningWidget extends StatelessWidget {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(
+              const Icon(
                 Icons.warning_amber_rounded,
                 color: SkeletonColorScheme.negativeColor,
                 size: 14,
@@ -544,7 +543,7 @@ class AnlasWarningWidget extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
+                  const Text(
                     "Anlas 차감 주의!",
                     style: TextStyle(
                       color: SkeletonColorScheme.negativeColor,
@@ -558,7 +557,7 @@ class AnlasWarningWidget extends StatelessWidget {
                       if (tooBig) ...[
                         Text(
                           "크기: ${homeSettingController.xSizeController.text}x${homeSettingController.ySizeController.text} ",
-                          style: TextStyle(
+                          style: const TextStyle(
                             color: SkeletonColorScheme.negativeColor,
                             fontSize: 9,
                             fontWeight: FontWeight.w500,
@@ -568,15 +567,15 @@ class AnlasWarningWidget extends StatelessWidget {
                       if (tooManySteps)
                         Text(
                           "스텝: ${homeSettingController.samplingSteps} ",
-                          style: TextStyle(
+                          style: const TextStyle(
                             color: SkeletonColorScheme.negativeColor,
                             fontSize: 9,
                             fontWeight: FontWeight.w500,
                           ),
                         ),
                       if (directorEnabled)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 2),
+                        const Padding(
+                          padding: EdgeInsets.only(top: 2),
                           child: Text(
                             "캐릭터 레퍼런스 ON",
                             style: TextStyle(
@@ -655,7 +654,7 @@ class AutoGenerateWarningWidget extends StatelessWidget {
                                             onChanged: (value) => controller
                                                 .autoGenerationController
                                                 .toggleAutoGenerate(),
-                                            activeColor:
+                                            activeThumbColor:
                                                 SkeletonColorScheme.accentColor,
                                             activeTrackColor:
                                                 SkeletonColorScheme.accentColor
@@ -754,7 +753,7 @@ class AutoGenerateWarningWidget extends StatelessWidget {
                               0)
                             Text(
                               '횟수 제한\n${controller.autoGenerationController.currentAutoGenerateCount}/${controller.autoGenerationController.maxAutoGenerateCount}회',
-                              style: TextStyle(
+                              style: const TextStyle(
                                 color: SkeletonColorScheme.textColor,
                                 fontSize: 12,
                                 fontWeight: FontWeight.w500,
@@ -833,7 +832,7 @@ class AutoGenerateWarningWidget extends StatelessWidget {
                 children: [
                   // 조절 버튼 디자인 개선
                   _buildValueAdjustButton(
-                      icon: Icon(Icons.remove,
+                      icon: const Icon(Icons.remove,
                           color: SkeletonColorScheme.textColor, size: 18),
                       onPressed: () {
                         if (controller.autoGenerationController
@@ -872,7 +871,7 @@ class AutoGenerateWarningWidget extends StatelessWidget {
                   ),
                   const SizedBox(width: SkeletonSpacing.smallSpacing),
                   _buildValueAdjustButton(
-                      icon: Icon(Icons.add,
+                      icon: const Icon(Icons.add,
                           color: SkeletonColorScheme.textColor, size: 18),
                       onPressed: () {
                         if (controller.autoGenerationController
@@ -913,8 +912,8 @@ class AutoGenerateWarningWidget extends StatelessWidget {
                           .setAutoGenerateRandomDelay(value),
                     ),
                     const SizedBox(height: SkeletonSpacing.spacing),
-                    Text("0을 입력하면 무제한",
-                        style: const TextStyle(
+                    const Text("0을 입력하면 무제한",
+                        style: TextStyle(
                           color: SkeletonColorScheme.textSecondaryColor,
                         )),
                     const SizedBox(height: SkeletonSpacing.smallSpacing),
@@ -928,7 +927,7 @@ class AutoGenerateWarningWidget extends StatelessWidget {
                                 .autoGenerateCountController,
                             keyboardType: TextInputType.number,
                             decoration: InputDecoration(
-                              labelStyle: TextStyle(
+                              labelStyle: const TextStyle(
                                 color: SkeletonColorScheme.textSecondaryColor,
                               ),
                               border: OutlineInputBorder(

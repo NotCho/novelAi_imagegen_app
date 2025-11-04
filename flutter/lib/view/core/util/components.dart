@@ -183,14 +183,14 @@ class PromptDialog extends StatelessWidget {
                 ),
               ],
             ),
-            SizedBox(height: SkeletonSpacing.spacing),
+            const SizedBox(height: SkeletonSpacing.spacing),
             ConstrainedBox(
               constraints: BoxConstraints(
                 maxHeight: Get.height * 0.33,
               ),
               child: TextField(
                 controller: textController,
-                style: TextStyle(color: SkeletonColorScheme.textColor),
+                style: const TextStyle(color: SkeletonColorScheme.textColor),
                 maxLines: null,
                 decoration: InputDecoration(
                   hintText: '프롬프트를 입력하세요...',
@@ -217,7 +217,7 @@ class PromptDialog extends StatelessWidget {
                 ),
               ),
             ),
-            SizedBox(height: SkeletonSpacing.spacing),
+            const SizedBox(height: SkeletonSpacing.spacing),
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
@@ -231,7 +231,6 @@ class PromptDialog extends StatelessWidget {
                     }
                     Get.back();
                   },
-                  child: Icon(Icons.recycling),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: color.withValues(alpha: 0.1),
                     foregroundColor: color,
@@ -240,6 +239,7 @@ class PromptDialog extends StatelessWidget {
                           SkeletonSpacing.borderRadius / 2),
                     ),
                   ),
+                  child: const Icon(Icons.recycling),
                 ),
                 const SizedBox(width: SkeletonSpacing.smallSpacing),
                 ElevatedButton(
@@ -383,7 +383,7 @@ class DropDownBuild extends StatelessWidget {
       ),
       dropdownColor: SkeletonColorScheme.surfaceColor,
       style: const TextStyle(color: SkeletonColorScheme.textColor),
-      value: value,
+      initialValue: value,
       items: items.map((String value) {
         return DropdownMenuItem<String>(
           value: value,

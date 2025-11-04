@@ -9,7 +9,9 @@ import '../../application/home/home_image_controller.dart';
 import '../core/util/design_system.dart';
 
 class HomeImageView extends GetView<HomeImageController> {
-  final int historyMax = 30; // 최대 히스토리 개수
+  final int historyMax = 30;
+
+  const HomeImageView({super.key}); // 최대 히스토리 개수
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -153,7 +155,7 @@ class HomeImageView extends GetView<HomeImageController> {
                   else {
                     return Container(
                       padding: const EdgeInsets.all(SkeletonSpacing.spacing),
-                      child: Center(
+                      child: const Center(
                         child: Text(
                           '더 이상 이미지가 없습니다',
                           style: TextStyle(
@@ -204,7 +206,7 @@ class HomeImageView extends GetView<HomeImageController> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          SizedBox(height: SkeletonSpacing.spacing * 5),
+          const SizedBox(height: SkeletonSpacing.spacing * 5),
           Container(
             padding: const EdgeInsets.all(SkeletonSpacing.spacing),
             decoration: BoxDecoration(
@@ -217,7 +219,7 @@ class HomeImageView extends GetView<HomeImageController> {
               size: 64,
             ),
           ),
-          SizedBox(height: SkeletonSpacing.spacing),
+          const SizedBox(height: SkeletonSpacing.spacing),
           Container(
             padding: const EdgeInsets.symmetric(
                 horizontal: SkeletonSpacing.spacing,
@@ -235,7 +237,7 @@ class HomeImageView extends GetView<HomeImageController> {
               ),
             ),
           ),
-          SizedBox(height: SkeletonSpacing.spacing),
+          const SizedBox(height: SkeletonSpacing.spacing),
           const Text(
             '아래 패널에서 프롬프트를 입력하고 생성 버튼을 눌러보세요',
             style: TextStyle(

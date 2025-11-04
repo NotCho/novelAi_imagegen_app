@@ -1,6 +1,5 @@
 import 'dart:convert';
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:naiapp/application/core/skeleton_controller.dart';
 import '../../domain/gen/diffusion_model.dart' as df;
@@ -131,7 +130,7 @@ class HomeImageController extends SkeletonController {
 
         // centers 정보 가져오기
         List<dynamic> centersRaw = charCaption['centers'] ?? [];
-        df.Center center = df.Center(x: 0.5, y: 0.5); // 기본값
+        df.Center center = const df.Center(x: 0.5, y: 0.5); // 기본값
 
         if (centersRaw.isNotEmpty) {
           final centerData = centersRaw[0];

@@ -7,6 +7,8 @@ import '../core/util/components.dart';
 import '../core/util/design_system.dart';
 
 class HomeCharPrompt extends GetView<HomePageController> {
+  const HomeCharPrompt({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Row(
@@ -481,7 +483,7 @@ class HomeCharPrompt extends GetView<HomePageController> {
               borderRadius:
                   BorderRadius.circular(SkeletonSpacing.borderRadius / 2),
             ),
-            padding: EdgeInsets.symmetric(
+            padding: const EdgeInsets.symmetric(
                 horizontal: SkeletonSpacing.spacing,
                 vertical: SkeletonSpacing.smallSpacing),
           ),
@@ -629,7 +631,7 @@ class HomeCharPrompt extends GetView<HomePageController> {
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(
                 color: promptColor.withValues(alpha: 0.2),
-                borderRadius: BorderRadius.only(
+                borderRadius: const BorderRadius.only(
                   topLeft: Radius.circular(SkeletonSpacing.borderRadius - 1),
                   topRight: Radius.circular(SkeletonSpacing.borderRadius - 1),
                 ),

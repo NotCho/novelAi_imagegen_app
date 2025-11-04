@@ -10,7 +10,7 @@ Future<void> main() async {
 
   await injectDependencies();
   // if()
-  runApp(WithForegroundTask(child: const AppWidget()));
+  runApp(const WithForegroundTask(child: AppWidget()));
 }
 
 @pragma('vm:entry-point')
