@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:naiapp/application/core/global_controller.dart';
 import 'package:naiapp/application/core/skeleton_controller.dart';
 import 'package:naiapp/application/home/home_image_controller.dart';
 import 'package:naiapp/application/home/home_page_controller.dart';

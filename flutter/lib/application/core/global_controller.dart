@@ -16,6 +16,7 @@ import 'package:flutter/services.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 import '../../infra/service/ImageSaveManager.dart';
+import '../../view/core/util/design_system.dart';
 
 class GlobalController extends GetxController {
   final _isLoading = false.obs;
@@ -116,42 +117,32 @@ class GlobalController extends GetxController {
     final info = _updateInfo.value;
     if (info == null) return;
 
-    final buffer = StringBuffer()
-      ..writeln('현재 버전: ${currentClientVersion.value}')
-      ..writeln('최신 버전: ${info.latestVersion.split('+')[0]}');
-
-    final changelog = info.changelog.trim();
-    if (changelog.isNotEmpty) {
-      buffer
-        ..writeln()
-        ..writeln('변경 사항')
-        ..writeln(changelog);
+    final changelogText = info.changelog.trim();
+    if (kDebugMode) {
+      print('업데이트 다이얼로그 - changelog: ${changelogText.isEmpty ? "(비어있음)" : changelogText}');
     }
 
-    Get.defaultDialog(
-      title: '업데이트 안내',
-      middleText: buffer.toString(),
-      barrierDismissible: !info.forceUpdate,
-      onWillPop: () async => !info.forceUpdate,
-      confirm: TextButton(
-        onPressed: () {
+    Get.dialog(
+      _UpdateDialog(
+        currentVersion: currentClientVersion.value,
+        latestVersion: info.latestVersion.split('+')[0],
+        changelog: changelogText,
+        forceUpdate: info.forceUpdate,
+        onUpdate: () {
           if (Get.isDialogOpen ?? false) {
             Get.back();
           }
           downloadAndInstallApk();
         },
-        child: const Text('업데이트'),
-      ),
-      cancel: info.forceUpdate
-          ? null
-          : TextButton(
-              onPressed: () {
+        onCancel: info.forceUpdate
+            ? null
+            : () {
                 if (Get.isDialogOpen ?? false) {
                   Get.back();
                 }
               },
-              child: const Text('나중에'),
-            ),
+      ),
+      barrierDismissible: !info.forceUpdate,
     );
   }
 
@@ -185,18 +176,41 @@ class GlobalController extends GetxController {
 
     _isDownloadingUpdate.value = true;
     _downloadProgress.value = 0.0;
-    isLoading = true;
+    // isLoading은 설정하지 않음 - 다운로드 진행도 다이얼로그를 표시하기 위해
+    // isLoading을 true로 설정하면 SkeletonLoadingOverlay가 전체 화면을 덮어버림
+
+    // 다운로드 진행도 다이얼로그 표시
+    Get.dialog(
+      _DownloadProgressDialog(),
+      barrierDismissible: false,
+    );
 
     try {
       _downloadedApkPath = await _downloadApkFile(url);
+      
+      // 다운로드 완료 후 다이얼로그 닫기
+      if (Get.isDialogOpen ?? false) {
+        Get.back();
+      }
+      
       await _installApk(_downloadedApkPath!);
     } catch (e, stackTrace) {
       debugPrint('APK 다운로드/설치 실패: $e\n$stackTrace');
+      
+      // 에러 발생 시 다이얼로그 닫기
+      if (Get.isDialogOpen ?? false) {
+        Get.back();
+      }
+      
       _showSnackBar('업데이트 실패', '다운로드 중 문제가 발생했습니다. 잠시 후 다시 시도해주세요.');
     } finally {
-      isLoading = false;
       _isDownloadingUpdate.value = false;
       _downloadProgress.value = 0.0;
+      
+      // 혹시 남아있는 다이얼로그 닫기
+      if (Get.isDialogOpen ?? false) {
+        Get.back();
+      }
     }
   }
 
@@ -303,21 +317,6 @@ class GlobalController extends GetxController {
     );
   }
 
-  Future<void> tryLogin() async {}
-
-  Future<void> pageInitLoadingFail() async {
-    Get.defaultDialog(
-      title: '알림',
-      middleText: '페이지를 불러오는데 실패했습니다.',
-      confirm: TextButton(
-        onPressed: () {
-          Get.back();
-        },
-        child: const Text('확인'),
-      ),
-    );
-  }
-
   Future<void> getCurrentClientVersion() async {
     try {
       final packageInfo = await PackageInfo.fromPlatform();
@@ -328,6 +327,299 @@ class GlobalController extends GetxController {
     }
   }
 
+  Future<void> tryLogin() async {}
+
+  Future<void> pageInitLoadingFail() async {}
+}
+
+// 다운로드 진행도 다이얼로그 위젯
+class _DownloadProgressDialog extends StatelessWidget {
+  const _DownloadProgressDialog();
+
+  @override
+  Widget build(BuildContext context) {
+    final controller = Get.find<GlobalController>();
+    
+    return Dialog(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(SkeletonSpacing.borderRadius),
+      ),
+      backgroundColor: SkeletonColorScheme.cardColor,
+      child: Container(
+        constraints: BoxConstraints(
+          maxWidth: Get.width * 0.8,
+        ),
+        padding: const EdgeInsets.all(SkeletonSpacing.spacing),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // 제목
+            Row(
+              children: [
+                Icon(
+                  Icons.download,
+                  color: SkeletonColorScheme.primaryColor,
+                  size: 24,
+                ),
+                const SizedBox(width: SkeletonSpacing.smallSpacing),
+                Text(
+                  '업데이트 다운로드',
+                  style: SkeletonTextTheme.newBody18Bold.copyWith(
+                    color: SkeletonColorScheme.textColor,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: SkeletonSpacing.spacing),
+            
+            // 진행도 표시
+            Obx(() {
+              final progress = controller.downloadProgress;
+              final percentage = (progress * 100).toStringAsFixed(1);
+              
+              return Column(
+                children: [
+                  // 진행률 텍스트
+                  Text(
+                    '$percentage%',
+                    style: SkeletonTextTheme.newBody16Bold.copyWith(
+                      color: SkeletonColorScheme.primaryColor,
+                    ),
+                  ),
+                  const SizedBox(height: SkeletonSpacing.smallSpacing),
+                  
+                  // 진행률 바
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: LinearProgressIndicator(
+                      value: progress,
+                      minHeight: 8,
+                      backgroundColor: SkeletonColorScheme.surfaceColor.withValues(alpha: 0.3),
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        SkeletonColorScheme.primaryColor,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: SkeletonSpacing.smallSpacing),
+                  
+                  // 상태 텍스트
+                  Text(
+                    progress >= 1.0 ? '다운로드 완료' : '다운로드 중...',
+                    style: SkeletonTextTheme.newBody12.copyWith(
+                      color: SkeletonColorScheme.textSecondaryColor,
+                    ),
+                  ),
+                ],
+              );
+            }),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// 업데이트 다이얼로그 위젯
+class _UpdateDialog extends StatelessWidget {
+  final String currentVersion;
+  final String latestVersion;
+  final String changelog;
+  final bool forceUpdate;
+  final VoidCallback onUpdate;
+  final VoidCallback? onCancel;
+
+  const _UpdateDialog({
+    required this.currentVersion,
+    required this.latestVersion,
+    required this.changelog,
+    required this.forceUpdate,
+    required this.onUpdate,
+    this.onCancel,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(SkeletonSpacing.borderRadius),
+      ),
+      backgroundColor: SkeletonColorScheme.cardColor,
+      child: Container(
+        constraints: BoxConstraints(
+          maxWidth: Get.width * 0.9,
+          maxHeight: Get.height * 0.7,
+        ),
+        padding: const EdgeInsets.all(SkeletonSpacing.spacing),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // 제목
+            Row(
+              children: [
+                Icon(
+                  Icons.system_update,
+                  color: SkeletonColorScheme.primaryColor,
+                  size: 24,
+                ),
+                const SizedBox(width: SkeletonSpacing.smallSpacing),
+                Text(
+                  '업데이트 안내',
+                  style: SkeletonTextTheme.newBody18Bold.copyWith(
+                    color: SkeletonColorScheme.textColor,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: SkeletonSpacing.spacing),
+
+            // 버전 정보
+            Container(
+              padding: const EdgeInsets.all(SkeletonSpacing.smallSpacing),
+              decoration: BoxDecoration(
+                color: SkeletonColorScheme.surfaceColor.withValues(alpha: 0.5),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '현재 버전',
+                        style: SkeletonTextTheme.newBody12.copyWith(
+                          color: SkeletonColorScheme.textSecondaryColor,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        currentVersion,
+                        style: SkeletonTextTheme.newBody14Bold.copyWith(
+                          color: SkeletonColorScheme.textColor,
+                        ),
+                      ),
+                    ],
+                  ),
+                  Icon(
+                    Icons.arrow_forward,
+                    color: SkeletonColorScheme.primaryColor,
+                    size: 20,
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        '최신 버전',
+                        style: SkeletonTextTheme.newBody12.copyWith(
+                          color: SkeletonColorScheme.textSecondaryColor,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        latestVersion,
+                        style: SkeletonTextTheme.newBody14Bold.copyWith(
+                          color: SkeletonColorScheme.primaryColor,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+
+            // 변경 사항
+            const SizedBox(height: SkeletonSpacing.spacing),
+            Text(
+              '변경 사항',
+              style: SkeletonTextTheme.newBody14Bold.copyWith(
+                color: SkeletonColorScheme.textColor,
+              ),
+            ),
+            const SizedBox(height: SkeletonSpacing.smallSpacing),
+            Container(
+              constraints: BoxConstraints(
+                maxHeight: Get.height * 0.3,
+              ),
+              padding: const EdgeInsets.all(SkeletonSpacing.smallSpacing),
+              decoration: BoxDecoration(
+                color: SkeletonColorScheme.surfaceColor.withValues(alpha: 0.3),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: SkeletonColorScheme.surfaceColor.withValues(alpha: 0.5),
+                  width: 1,
+                ),
+              ),
+              child: SingleChildScrollView(
+                child: Text(
+                  changelog.isNotEmpty 
+                      ? changelog 
+                      : '변경 사항이 없습니다.',
+                  style: SkeletonTextTheme.newBody14.copyWith(
+                    color: changelog.isNotEmpty 
+                        ? SkeletonColorScheme.textColor 
+                        : SkeletonColorScheme.textSecondaryColor,
+                    height: 1.5,
+                  ),
+                ),
+              ),
+            ),
+
+            // 버튼
+            const SizedBox(height: SkeletonSpacing.spacing),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                if (onCancel != null) ...[
+                  TextButton(
+                    onPressed: onCancel,
+                    style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: SkeletonSpacing.spacing,
+                        vertical: SkeletonSpacing.smallSpacing,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    child: Text(
+                      '나중에',
+                      style: SkeletonTextTheme.newBody14.copyWith(
+                        color: SkeletonColorScheme.textSecondaryColor,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: SkeletonSpacing.smallSpacing),
+                ],
+                ElevatedButton(
+                  onPressed: onUpdate,
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: SkeletonSpacing.spacing,
+                      vertical: SkeletonSpacing.smallSpacing,
+                    ),
+                    backgroundColor: SkeletonColorScheme.primaryColor,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  child: Text(
+                    '업데이트',
+                    style: SkeletonTextTheme.newBody14Bold.copyWith(
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+extension GlobalControllerExtensions on GlobalController {
   Future<void> saveMultipleImages(List<Uint8List> imageBytesList) async {
     await ExifPreservingImageSaver().saveMultipleImagesWithExif(imageBytesList,
         saveInPng: Get.find<SharedPreferences>().getBool('pngMode') ?? true);

@@ -6,6 +6,7 @@ import 'package:get/get.dart';
 import 'dart:math' as math;
 
 import '../../application/home/home_image_controller.dart';
+import '../../infra/service/webp_image_parser.dart';
 import '../core/util/design_system.dart';
 
 class HomeImageView extends GetView<HomeImageController> {
@@ -65,18 +66,23 @@ class HomeImageView extends GetView<HomeImageController> {
                     final historyItem =
                         controller.generationHistory[reversedIndex];
                     return Stack(
-                      alignment:  Alignment.bottomCenter,
+                      alignment: Alignment.bottomCenter,
                       children: [
-                        Container(
-                          padding:
-                              const EdgeInsets.all(SkeletonSpacing.spacing),
-                          decoration: BoxDecoration(
-                            color: SkeletonColorScheme.surfaceColor
-                                .withValues(alpha: 0.3),
-                          ),
-                          child: Image.memory(
-                            base64Decode(historyItem.imagePath),
-                            fit: BoxFit.contain,
+                        InkWell(
+                          onLongPress: () {
+                            Get.dialog(longTapDialog());
+                          },
+                          child: Container(
+                            padding:
+                                const EdgeInsets.all(SkeletonSpacing.spacing),
+                            decoration: BoxDecoration(
+                              color: SkeletonColorScheme.surfaceColor
+                                  .withValues(alpha: 0.3),
+                            ),
+                            child: Image.memory(
+                              base64Decode(historyItem.imagePath),
+                              fit: BoxFit.contain,
+                            ),
                           ),
                         ),
                         Positioned(
@@ -248,5 +254,167 @@ class HomeImageView extends GetView<HomeImageController> {
         ],
       ),
     );
+  }
+
+  Widget longTapDialog() {
+    return AlertDialog(
+      backgroundColor: SkeletonColorScheme.cardColor,
+      title: Text("클립보드에 복사",
+          style: SkeletonTextTheme.newBody18Bold.copyWith(color: Colors.white)),
+      content: Row(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          ClipRRect(
+            child: Container(
+              height: 100,
+              width: 100,
+              decoration: BoxDecoration(
+                color: SkeletonColorScheme.surfaceColor.withValues(alpha: 0.3),
+              ),
+              child: Image.memory(
+                controller.currentImageBytes.value,
+                fit: BoxFit.contain,
+              ),
+            ),
+          ),
+          Expanded(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  decoration: BoxDecoration(
+                      color: SkeletonColorScheme.surfaceColor,
+                      borderRadius: BorderRadius.circular(
+                        SkeletonSpacing.borderRadius,
+                      )),
+                  child: Column(mainAxisSize: MainAxisSize.min, children: [
+                    Text("프롬프트",
+                        style: SkeletonTextTheme.newBody14
+                            .copyWith(color: Colors.white)),
+                    Row(
+                      children: [
+                        Expanded(child: _buildCopyButton("긍정", "positive")),
+                        SkeletonSpacing.hTiny,
+                        Expanded(child: _buildCopyButton("부정", "negative")),
+                      ],
+                    ),
+                  ]),
+                ),
+                SkeletonSpacing.vTiny,
+                Container(
+                  padding: EdgeInsets.symmetric(horizontal: 16),
+                  width: double.infinity,
+                  child: _buildCopyButton("시드", "seed"),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCopyButton(String label, String type) {
+    return InkWell(
+      onTap: () => _copyToClipboard(type),
+      child: Container(
+        padding: const EdgeInsets.all(SkeletonSpacing.smallSpacing),
+        decoration: BoxDecoration(
+            color: SkeletonColorScheme.primaryColor,
+            borderRadius: BorderRadius.circular(8)),
+        child: Center(
+          child: Text(label,
+              style: SkeletonTextTheme.newBody12.copyWith(color: Colors.white)),
+        ),
+      ),
+    );
+  }
+
+  void _copyToClipboard(String type) {
+    try {
+      // 현재 이미지에서 메타데이터 추출
+      final textChunks = WebPMetadataParser.extractMetadata(
+          controller.currentImageBytes.value);
+
+      if (textChunks == null || textChunks.isEmpty) {
+        Get.snackbar(
+          '오류',
+          '메타데이터를 찾을 수 없습니다',
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+          snackPosition: SnackPosition.BOTTOM,
+        );
+        return;
+      }
+
+      // 메타데이터에서 정보 추출
+      final jsonStr = textChunks['Comment'] ?? '';
+      if (jsonStr.isEmpty) {
+        Get.snackbar(
+          '오류',
+          '메타데이터가 비어있습니다',
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+          snackPosition: SnackPosition.BOTTOM,
+        );
+        return;
+      }
+
+      final Map<String, dynamic> exifData = jsonDecode(jsonStr);
+      String textToCopy = '';
+
+      if (type == "positive") {
+        // 긍정 프롬프트 추출
+        final v4Prompt = exifData['v4_prompt'] ?? {};
+        final caption = v4Prompt['caption'] ?? {};
+        textToCopy = caption['base_caption'] ?? '';
+      } else if (type == "negative") {
+        // 부정 프롬프트 추출
+        final v4NegativePrompt = exifData['v4_negative_prompt'] ?? {};
+        final caption = v4NegativePrompt['caption'] ?? {};
+        textToCopy = caption['base_caption'] ?? '';
+      } else if (type == "seed") {
+        // 시드 추출
+        final int seed = exifData['seed'] ?? 999999999;
+        textToCopy = seed.toString();
+      }
+
+      if (textToCopy.isEmpty && type != "seed") {
+        Get.snackbar(
+          '오류',
+          '${type == "positive" ? "긍정" : "부정"} 프롬프트를 찾을 수 없습니다',
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+          snackPosition: SnackPosition.BOTTOM,
+        );
+        return;
+      }
+
+      // 클립보드에 복사
+      Clipboard.setData(ClipboardData(text: textToCopy));
+      Get.snackbar(
+        '복사 완료',
+        type == "positive"
+            ? '긍정 프롬프트가 클립보드에 복사되었습니다'
+            : type == "negative"
+                ? '부정 프롬프트가 클립보드에 복사되었습니다'
+                : '시드가 클립보드에 복사되었습니다',
+        backgroundColor: SkeletonColorScheme.primaryColor.withValues(alpha: 0.9),
+        colorText: Colors.white,
+        snackPosition: SnackPosition.BOTTOM,
+        margin: const EdgeInsets.all(16),
+        borderRadius: SkeletonSpacing.borderRadius,
+        duration: const Duration(seconds: 2),
+      );
+    } catch (e) {
+      Get.snackbar(
+        '오류',
+        '복사 중 오류가 발생했습니다: $e',
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+        snackPosition: SnackPosition.BOTTOM,
+      );
+    }
   }
 }

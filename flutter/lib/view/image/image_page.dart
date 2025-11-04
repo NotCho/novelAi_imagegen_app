@@ -4,6 +4,7 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:naiapp/application/core/global_controller.dart';
 import 'package:naiapp/application/home/home_image_controller.dart';
 import 'package:naiapp/view/core/page.dart';
 import 'package:naiapp/view/core/util/design_system.dart';

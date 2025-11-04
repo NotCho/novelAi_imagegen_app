@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:naiapp/application/core/global_controller.dart';
 import 'package:naiapp/application/core/skeleton_controller.dart';
 import '../../domain/gen/diffusion_model.dart' as df;
 

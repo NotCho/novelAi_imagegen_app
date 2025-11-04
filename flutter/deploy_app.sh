@@ -37,6 +37,7 @@ APP_VERSION=""
 CHANGELOG_TEXT=""
 FORCE_UPDATE="false"
 NOTES_FILE=""
+USE_AUTO_CHANGELOG="false"
 
 print_usage() {
   cat <<'EOF'
@@ -47,6 +48,7 @@ Options:
   --version <value>     Remote Config에 적용할 앱 버전 (기본값: pubspec.yaml의 version 값)
   --notes <file>        변경 사항을 파일에서 읽어 Remote Config changelog에 반영
   --notes-text <text>   변경 사항을 문자열로 직접 지정
+  --auto-changelog      changes.json에서 현재 버전의 변경사항을 자동으로 추출
   --force-update        Remote Config의 force_update 값을 true로 설정
   -h, --help            도움말 출력 후 종료
 
@@ -76,6 +78,9 @@ while [[ $# -gt 0 ]]; do
       shift
       [[ $# -gt 0 ]] || { echo "--notes-text 플래그에는 문자열이 필요합니다" >&2; exit 1; }
       CHANGELOG_TEXT="$1"
+      ;;
+    --auto-changelog)
+      USE_AUTO_CHANGELOG="true"
       ;;
     --force-update)
       FORCE_UPDATE="true"
@@ -165,8 +170,42 @@ if [[ -z "$APP_VERSION" ]]; then
   exit 1
 fi
 
+# 버전에서 + 빌드 번호 제거 (예: 1.1.0+9 -> 1.1.0)
+APP_VERSION_SEMVER="${APP_VERSION%%+*}"
+
 log "APK: ${APK_PATH}"
 log "버전: ${APP_VERSION}"
+
+# ------------------------------
+# Extract changelog from changes.json if --auto-changelog is enabled
+# ------------------------------
+if [[ "$USE_AUTO_CHANGELOG" == "true" ]] && [[ -z "$CHANGELOG_TEXT" ]]; then
+  CHANGES_JSON_PATH="$PROJECT_DIR/../changes.json"
+  
+  if [[ -f "$CHANGES_JSON_PATH" ]]; then
+    log "changes.json에서 버전 ${APP_VERSION_SEMVER}의 변경사항 추출 중..."
+    
+    # jq를 사용하여 해당 버전의 변경사항 추출 및 포맷팅 (description만 사용)
+    CHANGELOG_FROM_JSON=$(jq -r --arg version "$APP_VERSION_SEMVER" '
+      if .[$version] then
+        .[$version].changes | 
+        map("• " + .description) | 
+        join("\n")
+      else
+        ""
+      end
+    ' "$CHANGES_JSON_PATH" 2>/dev/null)
+    
+    if [[ -n "$CHANGELOG_FROM_JSON" ]]; then
+      CHANGELOG_TEXT="$CHANGELOG_FROM_JSON"
+      log "변경사항 추출 완료"
+    else
+      log "경고: changes.json에서 버전 ${APP_VERSION_SEMVER}의 변경사항을 찾을 수 없습니다."
+    fi
+  else
+    log "경고: changes.json 파일을 찾을 수 없습니다: $CHANGES_JSON_PATH"
+  fi
+fi
 
 # ------------------------------
 # Upload to Firebase Storage
