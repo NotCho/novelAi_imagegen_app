@@ -62,7 +62,7 @@ class LoginPage extends GetView<LoginPageController> {
                                     shape: BoxShape.circle,
                                     boxShadow: [
                                       BoxShadow(
-                                        color: Colors.black.withValues(alpha: 0.3),
+                                        color: Colors.black.withOpacity(0.3),
                                         blurRadius: 15,
                                         spreadRadius: 5,
                                       ),

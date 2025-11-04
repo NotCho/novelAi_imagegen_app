@@ -239,7 +239,7 @@ class PromptDialog extends StatelessWidget {
                           SkeletonSpacing.borderRadius / 2),
                     ),
                   ),
-                  child: const Icon(Icons.recycling),
+                  child: Icon(Icons.recycling),
                 ),
                 const SizedBox(width: SkeletonSpacing.smallSpacing),
                 ElevatedButton(

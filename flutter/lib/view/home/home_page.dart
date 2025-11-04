@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter/services.dart';
 import 'package:flutter_foreground_task/ui/with_foreground_task.dart';
 import 'package:naiapp/application/home/director_tool_controller.dart';
 import 'package:naiapp/application/home/home_image_controller.dart';
@@ -39,13 +40,13 @@ class HomePage extends GetView<HomePageController> {
                 },
                 child: SkeletonScaffold(
                   floatingActionButton: _buildAutoGenerationButton(),
-                  appBar: const SkeletonAppBar(
+                  appBar: SkeletonAppBar(
                     isLeftTitle: true,
                     titleText: "AI 이미지 생성기",
                     isLeftIconDisplayed: false,
                     customAction: Expanded(
                       child: Padding(
-                          padding: EdgeInsets.all(
+                          padding: const EdgeInsets.all(
                               SkeletonSpacing.smallSpacing),
                           child: HomeAppBar()),
                     ),
@@ -63,7 +64,7 @@ class HomePage extends GetView<HomePageController> {
                   body: Column(
                     children: [
                       Obx(() => history()),
-                      const Expanded(child: HomeImageView()),
+                      Expanded(child: HomeImageView()),
                     ],
                   ),
                 ),
@@ -440,7 +441,7 @@ class HomePage extends GetView<HomePageController> {
                           controller.positivePromptController,
                       negativePromptController:
                           controller.negativePromptController),
-                  const HomeCharPrompt(),
+                  HomeCharPrompt(),
                   const HomeDirectorTool(),
                   HomeSetting(),
                   HomeLoadImage(),

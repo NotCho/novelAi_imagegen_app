@@ -830,8 +830,8 @@ class HomeSetting extends GetView<HomePageController> {
                           SkeletonSpacing.borderRadius / 2),
                     ),
                   ),
-                  child: const SizedBox(
-                      height: 56, child: Icon(Icons.add, size: 18)),
+                  child: SizedBox(
+                      height: 56, child: const Icon(Icons.add, size: 18)),
                 ),
               ],
             ),

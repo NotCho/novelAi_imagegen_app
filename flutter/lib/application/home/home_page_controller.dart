@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'dart:math';
+import 'dart:typed_data';
 
 import 'package:dartz/dartz.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:get/get.dart';
@@ -180,9 +180,7 @@ class HomePageController extends SkeletonController {
         final setting = df.DiffusionModel.fromJson(data);
         loadSetting(setting);
       } catch (e) {
-        if (kDebugMode) {
-          print('Error loading last settings: $e');
-        }
+        print('Error loading last settings: $e');
       }
     }
   }
@@ -223,9 +221,7 @@ class HomePageController extends SkeletonController {
             homeSettingController.sizeOptionsWithCustom
                 .add(Size(width.toDouble(), height.toDouble()));
           } catch (e) {
-            if (kDebugMode) {
-              print('Invalid custom size format: $size');
-            }
+            print('Invalid custom size format: $size');
           }
         }
       }
@@ -288,9 +284,7 @@ class HomePageController extends SkeletonController {
     final result = await _novelAIRepository.generateImage(setting: setting);
     result.fold(
       (l) {
-        if (kDebugMode) {
-          print('이미지 생성 중 오류 발생: $l');
-        }
+        print('이미지 생성 중 오류 발생: $l');
         Get.snackbar('오류', '이미지 생성 중 오류가 발생했습니다: $l',
             backgroundColor: Colors.red, colorText: Colors.white);
       },
