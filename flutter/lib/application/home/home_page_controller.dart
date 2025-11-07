@@ -93,7 +93,6 @@ class HomePageController extends SkeletonController {
     characterPrompts[selectedCharacterIndex.value]['prompt'] =
         characterPrompts[selectedCharacterIndex.value]['prompt']
             .copyWith(center: characterPositions.value);
-    print('Character position set to: x=$parsedX, y=$parsedY');
     update();
   }
 
@@ -180,7 +179,6 @@ class HomePageController extends SkeletonController {
         final setting = df.DiffusionModel.fromJson(data);
         loadSetting(setting);
       } catch (e) {
-        print('Error loading last settings: $e');
       }
     }
   }
@@ -194,7 +192,6 @@ class HomePageController extends SkeletonController {
         final setting = df.DiffusionModel.fromJson(data);
         loadSetting(setting);
       } catch (e) {
-        print('Error loading last settings: $e');
       }
     }
     if (prefs.getString("NOVEL_AI_ACCESS_KEY") == null) {
@@ -221,7 +218,6 @@ class HomePageController extends SkeletonController {
             homeSettingController.sizeOptionsWithCustom
                 .add(Size(width.toDouble(), height.toDouble()));
           } catch (e) {
-            print('Invalid custom size format: $size');
           }
         }
       }
@@ -284,7 +280,6 @@ class HomePageController extends SkeletonController {
     final result = await _novelAIRepository.generateImage(setting: setting);
     result.fold(
       (l) {
-        print('이미지 생성 중 오류 발생: $l');
         Get.snackbar('오류', '이미지 생성 중 오류가 발생했습니다: $l',
             backgroundColor: Colors.red, colorText: Colors.white);
       },
@@ -555,11 +550,6 @@ class HomePageController extends SkeletonController {
     List<double> directorStrengths = [];
 
     if (directorToolController.isEnabled) {
-      print('Director Tool is enabled');
-      print('Base caption: ${directorToolController.getBaseCaption()}');
-      print('Fidelity: ${directorToolController.fidelity.value}');
-      print(
-          'Image base64 length: ${directorToolController.referenceImageBase64.value.length}');
 
       directorDescriptions.add(
         df.DirectorReferenceDescription(
@@ -577,10 +567,7 @@ class HomePageController extends SkeletonController {
           directorToolController.fidelity.value.clamp(0.0, 1.0);
       directorStrengths.add(clampedStrength);
 
-      print(
-          'Director arrays prepared - descriptions: ${directorDescriptions.length}, images: ${directorImages.length}');
     } else {
-      print('Director Tool is disabled');
     }
 
     final bool isDirectorEnabled = directorToolController.isEnabled;
@@ -701,7 +688,6 @@ class HomePageController extends SkeletonController {
         homeImageController.vibeParseImageBytes, usingModel.value);
     result.fold(
       (l) {
-        print(l);
         Get.snackbar('오류', 'Vibe 이미지 파싱 중 오류가 발생했습니다: $l',
             backgroundColor: Colors.red, colorText: Colors.white);
       },

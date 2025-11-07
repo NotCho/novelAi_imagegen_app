@@ -33,156 +33,154 @@ class HomeCharPrompt extends GetView<HomePageController> {
         ],
       ),
       width: 70,
-      child: Container(
-        child: Column(
-          children: [
-            // 타이틀 헤더
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-              decoration: BoxDecoration(
-                color: SkeletonColorScheme.primaryColor.withValues(alpha: 0.2),
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(SkeletonSpacing.borderRadius - 1),
-                  topRight: Radius.circular(SkeletonSpacing.borderRadius - 1),
-                ),
-              ),
-              child: const Text(
-                '목록',
-                style: TextStyle(
-                  color: SkeletonColorScheme.primaryColor,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 12,
-                ),
+      child: Column(
+        children: [
+          // 타이틀 헤더
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+            decoration: BoxDecoration(
+              color: SkeletonColorScheme.primaryColor.withValues(alpha: 0.2),
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(SkeletonSpacing.borderRadius - 1),
+                topRight: Radius.circular(SkeletonSpacing.borderRadius - 1),
               ),
             ),
+            child: const Text(
+              '목록',
+              style: TextStyle(
+                color: SkeletonColorScheme.primaryColor,
+                fontWeight: FontWeight.bold,
+                fontSize: 12,
+              ),
+            ),
+          ),
 
-            // 캐릭터 리스트
-            Expanded(
-              child: Obx(
-                () => ListView.builder(
-                  physics: const ClampingScrollPhysics(),
-                  controller: controller.characterScrollController,
-                  itemCount: controller.characterPrompts.length + 1,
-                  itemBuilder: (context, index) {
-                    return Obx(
-                      () => Container(
-                        decoration: BoxDecoration(
-                          color: controller.selectedCharacterIndex.value == index
-                              ? SkeletonColorScheme.primaryColor
-                                  .withValues(alpha: 0.2)
-                              : Colors.transparent,
-                          border: const Border(
-                            bottom: BorderSide(
-                              color: SkeletonColorScheme.surfaceColor,
-                              width: 0.5,
-                            ),
+          // 캐릭터 리스트
+          Expanded(
+            child: Obx(
+              () => ListView.builder(
+                physics: const ClampingScrollPhysics(),
+                controller: controller.characterScrollController,
+                itemCount: controller.characterPrompts.length + 1,
+                itemBuilder: (context, index) {
+                  return Obx(
+                    () => Container(
+                      decoration: BoxDecoration(
+                        color: controller.selectedCharacterIndex.value == index
+                            ? SkeletonColorScheme.primaryColor
+                                .withValues(alpha: 0.2)
+                            : Colors.transparent,
+                        border: const Border(
+                          bottom: BorderSide(
+                            color: SkeletonColorScheme.surfaceColor,
+                            width: 0.5,
                           ),
                         ),
-                        child: (index == controller.characterPrompts.length)
-                            ? Material(
-                                color: Colors.transparent,
-                                child: InkWell(
-                                  onTap: controller.onCharaAddButtonTap,
+                      ),
+                      child: (index == controller.characterPrompts.length)
+                          ? Material(
+                              color: Colors.transparent,
+                              child: InkWell(
+                                onTap: controller.onCharaAddButtonTap,
+                                child: Container(
+                                  height: 50,
+                                  alignment: Alignment.center,
                                   child: Container(
-                                    height: 50,
-                                    alignment: Alignment.center,
-                                    child: Container(
-                                      padding: const EdgeInsets.all(6),
-                                      decoration: BoxDecoration(
-                                        color: SkeletonColorScheme.primaryColor
-                                            .withValues(alpha: 0.2),
-                                        shape: BoxShape.circle,
-                                      ),
-                                      child: const Icon(Icons.add,
-                                          color: SkeletonColorScheme.primaryColor,
-                                          size: 16),
+                                    padding: const EdgeInsets.all(6),
+                                    decoration: BoxDecoration(
+                                      color: SkeletonColorScheme.primaryColor
+                                          .withValues(alpha: 0.2),
+                                      shape: BoxShape.circle,
                                     ),
+                                    child: const Icon(Icons.add,
+                                        color: SkeletonColorScheme.primaryColor,
+                                        size: 16),
                                   ),
                                 ),
-                              )
-                            : Material(
-                                color: Colors.transparent,
-                                child: InkWell(
-                                  onTap: () => controller.onCharaTap(index),
-                                  child: SizedBox(
-                                    height: 60,
-                                    child: Column(
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      children: [
-                                        const SizedBox(height: 4),
-                                        Container(
-                                          width: 30,
-                                          height: 30,
-                                          alignment: Alignment.center,
-                                          decoration: BoxDecoration(
+                              ),
+                            )
+                          : Material(
+                              color: Colors.transparent,
+                              child: InkWell(
+                                onTap: () => controller.onCharaTap(index),
+                                child: SizedBox(
+                                  height: 60,
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      const SizedBox(height: 4),
+                                      Container(
+                                        width: 30,
+                                        height: 30,
+                                        alignment: Alignment.center,
+                                        decoration: BoxDecoration(
+                                          color: controller
+                                                      .selectedCharacterIndex
+                                                      .value ==
+                                                  index
+                                              ? SkeletonColorScheme.primaryColor
+                                                  .withValues(alpha: 0.3)
+                                              : SkeletonColorScheme.surfaceColor
+                                                  .withValues(alpha: 0.3),
+                                          shape: BoxShape.circle,
+                                          border: Border.all(
                                             color: controller
                                                         .selectedCharacterIndex
                                                         .value ==
                                                     index
-                                                ? SkeletonColorScheme.primaryColor
-                                                    .withValues(alpha: 0.3)
-                                                : SkeletonColorScheme.surfaceColor
-                                                    .withValues(alpha: 0.3),
-                                            shape: BoxShape.circle,
-                                            border: Border.all(
-                                              color: controller
-                                                          .selectedCharacterIndex
-                                                          .value ==
-                                                      index
-                                                  ? SkeletonColorScheme
-                                                      .primaryColor
-                                                  : Colors.transparent,
-                                              width: 1,
-                                            ),
-                                          ),
-                                          child: Text(
-                                            "${index + 1}",
-                                            textAlign: TextAlign.center,
-                                            style: TextStyle(
-                                              color: (controller
-                                                          .selectedCharacterIndex
-                                                          .value ==
-                                                      index)
-                                                  ? SkeletonColorScheme
-                                                      .primaryColor
-                                                  : SkeletonColorScheme
-                                                      .textSecondaryColor,
-                                              fontWeight: (controller
-                                                          .selectedCharacterIndex
-                                                          .value ==
-                                                      index)
-                                                  ? FontWeight.bold
-                                                  : FontWeight.normal,
-                                            ),
+                                                ? SkeletonColorScheme
+                                                    .primaryColor
+                                                : Colors.transparent,
+                                            width: 1,
                                           ),
                                         ),
-                                        const SizedBox(height: 4),
-                                        Text(
-                                          "캐릭터",
+                                        child: Text(
+                                          "${index + 1}",
+                                          textAlign: TextAlign.center,
                                           style: TextStyle(
                                             color: (controller
                                                         .selectedCharacterIndex
                                                         .value ==
                                                     index)
-                                                ? SkeletonColorScheme.primaryColor
+                                                ? SkeletonColorScheme
+                                                    .primaryColor
                                                 : SkeletonColorScheme
                                                     .textSecondaryColor,
-                                            fontSize: 10,
+                                            fontWeight: (controller
+                                                        .selectedCharacterIndex
+                                                        .value ==
+                                                    index)
+                                                ? FontWeight.bold
+                                                : FontWeight.normal,
                                           ),
                                         ),
-                                      ],
-                                    ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        "캐릭터",
+                                        style: TextStyle(
+                                          color: (controller
+                                                      .selectedCharacterIndex
+                                                      .value ==
+                                                  index)
+                                              ? SkeletonColorScheme.primaryColor
+                                              : SkeletonColorScheme
+                                                  .textSecondaryColor,
+                                          fontSize: 10,
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
                               ),
-                      ),
-                    );
-                  },
-                ),
+                            ),
+                    ),
+                  );
+                },
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

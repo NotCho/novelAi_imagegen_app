@@ -225,7 +225,6 @@ class NovelAIRepository implements INovelAIRepository {
       'accept': 'application/json',
     };
     String endPoint = '$_suggestionUrl?model=$model&prompt=$prompt';
-    print(endPoint);
 
     try {
       final resp = await _httpClient.get(
@@ -304,7 +303,6 @@ class NovelAIRepository implements INovelAIRepository {
 
         String base64image = base64Encode(base64imageData[i].image!);
         final body = jsonEncode({'image': base64image, 'model': model});
-        print('Vibe parse body: $body');
 
         final resp = await _httpClient.post(
           Uri.parse(_vibeParseUrl),

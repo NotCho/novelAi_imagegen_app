@@ -22,7 +22,6 @@ Future<void> injectDependencies() async {
     await _requestPermissions();
     _initForegroundService();
   } else {
-    print('웹 환경에서는 포그라운드 서비스를 사용하지 않습니다');
   }
 
   await _initializeFirebase();
@@ -47,7 +46,6 @@ Future<void> _initializeFirebase() async {
   try {
     await Firebase.initializeApp();
   } catch (e) {
-    print('Firebase 초기화 실패: $e');
     rethrow;
   }
 }
@@ -70,7 +68,6 @@ Future<void> _requestPermissions() async {
       }
     }
   } catch (e) {
-    print('권한 요청 중 오류 발생: $e');
     // 권한 요청이 실패해도 앱 진행
   }
 }
@@ -100,7 +97,6 @@ void _initForegroundService() {
       ),
     );
   } catch (e) {
-    print('포그라운드 서비스 초기화 중 오류 발생: $e');
     // 초기화 실패해도 앱 진행
   }
 }
@@ -108,7 +104,6 @@ void _initForegroundService() {
 // 포그라운드 서비스 시작 (사용하는 곳에서 호출)
 Future<void> startForegroundService() async {
   if (kIsWeb) {
-    print('웹에서는 포그라운드 서비스를 지원하지 않습니다');
     return;
   }
 
@@ -119,7 +114,6 @@ Future<void> startForegroundService() async {
       callback: _foregroundTaskCallback,
     );
   } catch (e) {
-    print('포그라운드 서비스 시작 실패: $e');
   }
 }
 
@@ -130,7 +124,6 @@ Future<void> stopForegroundService() async {
   try {
     await FlutterForegroundTask.stopService();
   } catch (e) {
-    print('포그라운드 서비스 중지 실패: $e');
   }
 }
 
@@ -138,5 +131,4 @@ Future<void> stopForegroundService() async {
 @pragma('vm:entry-point')
 void _foregroundTaskCallback() {
   // 백그라운드에서 실행될 작업
-  print('포그라운드 서비스 실행 중...');
 }

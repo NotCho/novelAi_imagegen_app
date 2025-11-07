@@ -347,9 +347,9 @@ class HomeSetting extends GetView<HomePageController> {
                         contentPadding: const EdgeInsets.symmetric(
                             horizontal: 16, vertical: 8),
                         suffixIcon: IconButton(
-                          onPressed: (){
-                            controller.homeSettingController
-                                .seedController.text = "";
+                          onPressed: () {
+                            controller
+                                .homeSettingController.seedController.text = "";
                           },
                           icon: const Icon(Icons.refresh,
                               color: SkeletonColorScheme.primaryColor),
@@ -468,7 +468,7 @@ class HomeSetting extends GetView<HomePageController> {
             borderRadius:
                 BorderRadius.circular(SkeletonSpacing.borderRadius / 2),
             borderSide: BorderSide(
-              color: SkeletonColorScheme.surfaceColor.withOpacity(0.5),
+              color: SkeletonColorScheme.surfaceColor.withValues(alpha: 0.5),
             ),
           ),
           focusedBorder: OutlineInputBorder(
@@ -569,9 +569,8 @@ class HomeSetting extends GetView<HomePageController> {
                   // 가로세로 값 교환 로직
                   final temp =
                       controller.homeSettingController.xSizeController.text;
-                  controller
-                    ..homeSettingController.xSizeController.text =
-                        controller.homeSettingController.ySizeController.text;
+                  controller.homeSettingController.xSizeController.text =
+                      controller.homeSettingController.ySizeController.text;
                   controller.homeSettingController.ySizeController.text = temp;
                 },
                 child: Container(
@@ -830,8 +829,8 @@ class HomeSetting extends GetView<HomePageController> {
                           SkeletonSpacing.borderRadius / 2),
                     ),
                   ),
-                  child: SizedBox(
-                      height: 56, child: const Icon(Icons.add, size: 18)),
+                  child: const SizedBox(
+                      height: 56, child: Icon(Icons.add, size: 18)),
                 ),
               ],
             ),

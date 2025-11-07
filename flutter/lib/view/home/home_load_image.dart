@@ -20,8 +20,10 @@ class HomeLoadImage extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8.0),
       child: SingleChildScrollView(
-        child: Column(
-            children: [_buildVibeTransferCard(), _buildImagetoImageCard()]),
+        child: Column(children: [
+          _buildVibeTransferCard(),
+          //_buildImagetoImageCard(),
+        ]),
       ),
     );
   }
@@ -151,22 +153,6 @@ class HomeLoadImage extends StatelessWidget {
             }),
           ],
         ));
-  }
-
-  Widget _buildImagetoImageCard() {
-    return SettingsCard(
-        title: "Image to Image",
-        icon: Icons.imagesearch_roller_outlined,
-        child: Container(
-            child: const Row(
-          children: [
-            Icon(Icons.close, size: 20, color: Colors.grey),
-            Text(
-              "개발 예정 기능입니다.",
-              style: TextStyle(fontSize: 16, color: Colors.grey),
-            ),
-          ],
-        )));
   }
 }
 

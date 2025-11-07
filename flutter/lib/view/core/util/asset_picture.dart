@@ -38,7 +38,8 @@ class SkeletonPictureAsset extends StatelessWidget {
       case SkeletonPictureAssetType.appBarCrossDark:
         return SvgPicture.asset(
           'assets/icons/icon-close.svg',
-          color: SkeletonColorScheme.newG800,
+          colorFilter:
+              ColorFilter.mode(SkeletonColorScheme.newG800, BlendMode.srcIn),
         );
       case SkeletonPictureAssetType.appBarArrowRight:
         return SvgPicture.asset('assets/icons/arrow-right.svg');
@@ -55,22 +56,28 @@ class SkeletonPictureAsset extends StatelessWidget {
       case SkeletonPictureAssetType.appBarSettingsBlack:
         return SvgPicture.asset(
           'assets/icons/solar_settings-linear.svg',
-          color: SkeletonColorScheme.newG900,
+          colorFilter:
+              ColorFilter.mode(SkeletonColorScheme.newG900, BlendMode.srcIn),
         );
       case SkeletonPictureAssetType.appBarBellDefaultBlack:
         return SvgPicture.asset(
           'assets/icons/bell_default.svg',
-          color: SkeletonColorScheme.newG900,
+          colorFilter:
+              ColorFilter.mode(SkeletonColorScheme.newG900, BlendMode.srcIn),
         );
       case SkeletonPictureAssetType.appBarBellOnBlack:
         return SvgPicture.asset(
           'assets/icons/bell_on.svg',
-          color: SkeletonColorScheme.newG900,
+          colorFilter:
+              ColorFilter.mode(SkeletonColorScheme.newG900, BlendMode.srcIn),
         );
       case SkeletonPictureAssetType.kakao:
         return SvgPicture.asset(
           'assets/images/logos/kakao.svg',
-          color: SkeletonColorScheme.kakaoYellow,
+          colorFilter: ColorFilter.mode(
+            SkeletonColorScheme.kakaoYellow,
+            BlendMode.srcIn,
+          ),
         );
       case SkeletonPictureAssetType.google:
         return SvgPicture.asset('assets/images/logos/google.svg');

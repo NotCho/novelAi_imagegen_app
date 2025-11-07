@@ -38,7 +38,6 @@ class ExifPreservingImageSaver {
       if (metadata != null && metadata.isNotEmpty) {
         if (saveInPng) {
           // PNG는 tEXt 청크에 삽입
-          print('PNG 형식으로 메타데이터와 함께 저장');
           final jsonText = jsonEncode(metadata);
           final modifiedBytes = WebPMetadataEmbedder.addPngTextChunk(
               imageBytes,
@@ -48,37 +47,29 @@ class ExifPreservingImageSaver {
 
           if (modifiedBytes != null) {
             finalImageBytes = modifiedBytes;
-            print('PNG 메타데이터 삽입 성공!');
           } else {
-            print('PNG 메타데이터 삽입 실패, 알파채널 방식 시도');
             final alphaResult = WebPMetadataEmbedder.embedMetadataInWebP(imageBytes, metadata);
             if (alphaResult != null) {
               finalImageBytes = alphaResult;
-              print('PNG 알파채널 메타데이터 삽입 성공!');
             } else {
               _showWarningMessage('메타데이터 삽입에 실패했지만 이미지는 저장됩니다');
             }
           }
         } else {
           // WebP는 청크 방식 우선, 실패시 알파채널 방식
-          print('WebP 형식으로 메타데이터와 함께 저장');
 
           // 방법 1: 청크 방식
           var modifiedBytes = WebPChunkEmbedder.embedMetadataInWebPChunk(imageBytes, metadata);
           if (modifiedBytes != null) {
             finalImageBytes = modifiedBytes;
-            print('WebP 청크 메타데이터 삽입 성공!');
           } else {
-            print('WebP 청크 방식 실패, 알파채널 방식 시도');
 
             // 방법 2: 알파채널 방식
             modifiedBytes = WebPMetadataEmbedder.embedMetadataInWebP(imageBytes, metadata);
 
             if (modifiedBytes != null) {
               finalImageBytes = modifiedBytes;
-              print('WebP 알파채널 메타데이터 삽입 성공!');
             } else {
-              print('WebP 메타데이터 삽입 실패, 원본으로 저장');
               _showWarningMessage('메타데이터 삽입에 실패했지만 이미지는 저장됩니다');
             }
           }
@@ -128,8 +119,6 @@ class ExifPreservingImageSaver {
             ? metadataList[i]
             : null;
 
-        print('이미지 ${i + 1}/${imageBytesList.length} 처리 중...');
-        print('이미지 바이트 길이: ${imageBytes.length}');
 
         Uint8List finalImageBytes = imageBytes;
 
@@ -137,7 +126,6 @@ class ExifPreservingImageSaver {
         if (metadata != null && metadata.isNotEmpty) {
           if (saveInPng) {
             // PNG는 tEXt 청크에 삽입
-            print('이미지 ${i + 1}: PNG 메타데이터 삽입');
             final jsonText = jsonEncode(metadata);
             final modifiedBytes = WebPMetadataEmbedder.addPngTextChunk(
                 imageBytes,
@@ -147,35 +135,28 @@ class ExifPreservingImageSaver {
 
             if (modifiedBytes != null) {
               finalImageBytes = modifiedBytes;
-              print('이미지 ${i + 1}: PNG 메타데이터 삽입 성공');
             } else {
               // PNG 실패시 알파채널 시도
               final alphaResult = WebPMetadataEmbedder.embedMetadataInWebP(imageBytes, metadata);
               if (alphaResult != null) {
                 finalImageBytes = alphaResult;
-                print('이미지 ${i + 1}: PNG 알파채널 메타데이터 삽입 성공');
               } else {
-                print('이미지 ${i + 1}: PNG 메타데이터 삽입 실패');
               }
             }
           } else {
             // WebP는 청크 방식 우선
-            print('이미지 ${i + 1}: WebP 메타데이터 삽입');
 
             var modifiedBytes = WebPMetadataEmbedder.embedMetadataInWebP(imageBytes, metadata);
 
             if (modifiedBytes != null) {
               finalImageBytes = modifiedBytes;
-              print('이미지 ${i + 1}: WebP 청크 메타데이터 삽입 성공');
             } else {
               // 청크 방식 실패시 간단한 방식 시도
               modifiedBytes = WebPMetadataEmbedder.embedMetadataInWebP(imageBytes, metadata);
 
               if (modifiedBytes != null) {
                 finalImageBytes = modifiedBytes;
-                print('이미지 ${i + 1}: WebP 알파채널 메타데이터 삽입 성공');
               } else {
-                print('이미지 ${i + 1}: WebP 메타데이터 삽입 실패');
               }
             }
           }
@@ -194,7 +175,6 @@ class ExifPreservingImageSaver {
 
         // 3. 갤러리에 저장
         final success = await _saveToGalleryPreservingMetadata(tempFile);
-        print('이미지 ${i + 1} 저장 성공 여부: $success');
 
         // 4. 임시 파일 정리
         await tempFile.delete();
@@ -242,7 +222,6 @@ class ExifPreservingImageSaver {
 
       return status.isGranted;
     } catch (e) {
-      print('권한 확인 오류: $e');
       return false;
     }
   }
@@ -280,7 +259,6 @@ class ExifPreservingImageSaver {
 
       return result != null && result.toString().isNotEmpty;
     } catch (e) {
-      print('갤러리 저장 오류: $e');
 
       // 대체 방법: MediaStore 직접 사용 (Android)
       return await _fallbackSaveMethod(imageFile);
@@ -304,7 +282,6 @@ class ExifPreservingImageSaver {
 
       return result != null && result.toString().isNotEmpty;
     } catch (e) {
-      print('대체 저장 방법 실패: $e');
       return false;
     }
   }
@@ -376,47 +353,35 @@ class ExifPreservingImageSaver {
   /// WebP 메타데이터 테스트용 메서드
   Future<void> testWebPMetadata(Uint8List imageBytes, Map<String, String> metadata) async {
     try {
-      print('=== WebP 메타데이터 테스트 시작 ===');
 
       // 1. 메타데이터 삽입
       final modifiedBytes = WebPMetadataEmbedder.embedMetadataInWebP(imageBytes, metadata);
       if (modifiedBytes == null) {
-        print('테스트 실패: 메타데이터 삽입 불가');
         return;
       }
 
-      print('테스트: 메타데이터 삽입 성공');
 
       // 2. 삽입된 메타데이터 추출 테스트
       final extractedMetadata = WebPMetadataParser.extractMetadata(modifiedBytes);
       if (extractedMetadata == null) {
-        print('테스트 실패: 메타데이터 추출 불가');
         return;
       }
 
-      print('테스트: 메타데이터 추출 성공');
-      print('원본 메타데이터: $metadata');
-      print('추출된 메타데이터: $extractedMetadata');
 
       // 3. 데이터 일치 확인
       bool isMatch = true;
       metadata.forEach((key, value) {
         if (extractedMetadata[key] != value) {
-          print('불일치 발견: $key -> 원본: $value, 추출: ${extractedMetadata[key]}');
           isMatch = false;
         }
       });
 
       if (isMatch) {
-        print('✅ 테스트 성공: 메타데이터 완벽 일치!');
       } else {
-        print('❌ 테스트 실패: 메타데이터 불일치');
       }
 
-      print('=== WebP 메타데이터 테스트 완료 ===');
 
     } catch (e) {
-      print('테스트 오류: $e');
     }
   }
 }

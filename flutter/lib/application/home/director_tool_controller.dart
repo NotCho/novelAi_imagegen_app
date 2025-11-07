@@ -32,18 +32,14 @@ class DirectorToolController extends GetxController {
         referenceImage.value = processedBytes;
         referenceImageBase64.value = base64Encode(pngBytes);
 
-        print(
-            'Director Tool: Image processed to ${processedImage.width}x${processedImage.height}, encoded size: ${(pngBytes.length / 1024).toStringAsFixed(2)} KB');
       } else {
         // 디코딩이 되지 않으면 원본 그대로 사용
         referenceImage.value = bytes;
         referenceImageBase64.value = base64Encode(bytes);
-        print('Director Tool: Using original image encoding');
       }
 
       return true;
     } catch (e) {
-      print('Director Tool Error: $e');
       Get.snackbar('오류', '이미지를 불러올 수 없습니다: $e');
       return false;
     }

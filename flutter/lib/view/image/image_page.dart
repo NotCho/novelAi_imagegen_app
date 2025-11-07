@@ -698,9 +698,7 @@ class _ImageGridItemState extends State<ImageGridItem>
       // _decodedImage = base64Decode(widget.imageData);
       _isDecoded = true;
       if (mounted) setState(() {});
-    } catch (e) {
-      print('이미지 로딩 실패: $e');
-    }
+    } catch (e) {}
   }
 
   @override

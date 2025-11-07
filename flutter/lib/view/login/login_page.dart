@@ -58,11 +58,12 @@ class LoginPage extends GetView<LoginPageController> {
                                   width: 120,
                                   height: 120,
                                   decoration: BoxDecoration(
-                                    color: primaryColor.withOpacity(0.2),
+                                    color: primaryColor.withValues(alpha: 0.2),
                                     shape: BoxShape.circle,
                                     boxShadow: [
                                       BoxShadow(
-                                        color: Colors.black.withOpacity(0.3),
+                                        color:
+                                            Colors.black.withValues(alpha: 0.3),
                                         blurRadius: 15,
                                         spreadRadius: 5,
                                       ),
@@ -111,7 +112,7 @@ class LoginPage extends GetView<LoginPageController> {
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.5),
+              color: Colors.black.withValues(alpha: 0.5),
               blurRadius: 10,
               offset: const Offset(0, -3),
             ),
@@ -125,10 +126,10 @@ class LoginPage extends GetView<LoginPageController> {
               padding: const EdgeInsets.symmetric(
                   horizontal: smallSpacing, vertical: smallSpacing),
               decoration: BoxDecoration(
-                color: primaryColor.withOpacity(0.1),
+                color: primaryColor.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(borderRadius / 2),
                 border: Border.all(
-                  color: primaryColor.withOpacity(0.3),
+                  color: primaryColor.withValues(alpha: 0.3),
                   width: 1,
                 ),
               ),
@@ -228,11 +229,11 @@ class LoginPage extends GetView<LoginPageController> {
   }) {
     return Container(
       decoration: BoxDecoration(
-        color: surfaceColor.withOpacity(0.7),
+        color: surfaceColor.withValues(alpha: 0.7),
         borderRadius: BorderRadius.circular(borderRadius),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.2),
+            color: Colors.black.withValues(alpha: 0.2),
             blurRadius: 4,
             offset: const Offset(0, 2),
           ),

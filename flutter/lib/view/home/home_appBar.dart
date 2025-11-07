@@ -1,4 +1,3 @@
-
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -82,7 +81,7 @@ class HomeAppBar extends GetView<HomePageController> {
           IconButton(
             onPressed: () {
               controller.imageLoadController.clearImageDialog();
-              Get.dialog(LoadImageDialog(), barrierDismissible: false);
+              Get.dialog(loadImageDialog(), barrierDismissible: false);
             },
             icon: const Icon(Icons.add_a_photo),
             color: SkeletonColorScheme.textSecondaryColor,
@@ -124,7 +123,7 @@ class HomeAppBar extends GetView<HomePageController> {
     );
   }
 
-  Widget LoadImageDialog() {
+  Widget loadImageDialog() {
     return AlertDialog(
       backgroundColor: SkeletonColorScheme.cardColor,
       shape: RoundedRectangleBorder(
@@ -325,10 +324,11 @@ class HomeAppBar extends GetView<HomePageController> {
         width: double.infinity, // 부모 너비에 맞춤
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: SkeletonColorScheme.surfaceColor.withOpacity(0.3),
+          color: SkeletonColorScheme.surfaceColor.withValues(alpha: 0.3),
           borderRadius: BorderRadius.circular(4),
           border: Border.all(
-            color: SkeletonColorScheme.textSecondaryColor.withOpacity(0.2),
+            color:
+                SkeletonColorScheme.textSecondaryColor.withValues(alpha: 0.2),
           ),
         ),
         child: Text(

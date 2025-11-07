@@ -30,7 +30,6 @@ class ImageCacheManager extends GetxService {
       _imageCache[base64Data] = decoded;
       return decoded;
     } catch (e) {
-      print('이미지 디코딩 실패: $e');
       rethrow;
     }
   }
@@ -56,12 +55,10 @@ class ImageCacheManager extends GetxService {
             await Future.delayed(Duration.zero);
           }
         } catch (e) {
-          print('이미지 $i 캐싱 실패: $e');
         }
       }
     }
 
-    print('이미지 캐싱 완료! 총 ${_imageCache.length}개');
   }
 
   // 오래된 캐시 정리 (LRU 비슷하게, 간단버전)
@@ -71,7 +68,6 @@ class ImageCacheManager extends GetxService {
       for (final key in keysToRemove) {
         _imageCache.remove(key);
       }
-      print('캐시 정리: ${keysToRemove.length}개 제거됨');
     }
   }
 
@@ -83,7 +79,6 @@ class ImageCacheManager extends GetxService {
   // 전체 캐시 정리
   void clearAllCache() {
     _imageCache.clear();
-    print('전체 캐시 정리됨');
   }
 
   // 캐시 상태 확인

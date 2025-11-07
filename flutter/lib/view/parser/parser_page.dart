@@ -503,8 +503,6 @@ class ParserPage extends GetView<ParserPageController> {
                 onPressed: () {
                   if (tagData.text !=
                       controller.currentTagController.text.trim()) {
-                    print(
-                        "태그 수정됨: ${tagData.text} -> ${controller.currentTagController.text.trim()}");
                     int index = controller.parsedData
                         .indexWhere((tag) => tag.text == tagData.text);
                     controller.updateTagText(index);

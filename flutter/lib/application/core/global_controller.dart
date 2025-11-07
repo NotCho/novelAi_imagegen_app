@@ -181,7 +181,7 @@ class GlobalController extends GetxController {
 
     // 다운로드 진행도 다이얼로그 표시
     Get.dialog(
-      _DownloadProgressDialog(),
+      const _DownloadProgressDialog(),
       barrierDismissible: false,
     );
 
@@ -356,7 +356,7 @@ class _DownloadProgressDialog extends StatelessWidget {
             // 제목
             Row(
               children: [
-                Icon(
+                const Icon(
                   Icons.download,
                   color: SkeletonColorScheme.primaryColor,
                   size: 24,
@@ -395,7 +395,7 @@ class _DownloadProgressDialog extends StatelessWidget {
                       value: progress,
                       minHeight: 8,
                       backgroundColor: SkeletonColorScheme.surfaceColor.withValues(alpha: 0.3),
-                      valueColor: AlwaysStoppedAnimation<Color>(
+                      valueColor: const AlwaysStoppedAnimation<Color>(
                         SkeletonColorScheme.primaryColor,
                       ),
                     ),
@@ -457,7 +457,7 @@ class _UpdateDialog extends StatelessWidget {
             // 제목
             Row(
               children: [
-                Icon(
+                const Icon(
                   Icons.system_update,
                   color: SkeletonColorScheme.primaryColor,
                   size: 24,
@@ -501,7 +501,7 @@ class _UpdateDialog extends StatelessWidget {
                       ),
                     ],
                   ),
-                  Icon(
+                  const Icon(
                     Icons.arrow_forward,
                     color: SkeletonColorScheme.primaryColor,
                     size: 20,

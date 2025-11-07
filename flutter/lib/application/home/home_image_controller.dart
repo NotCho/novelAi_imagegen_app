@@ -52,10 +52,8 @@ class HomeImageController extends SkeletonController {
   }
 
   void searchImageByPrompt(String prompt) {
-    print('Searching for prompt: $prompt');
     if (prompt.isEmpty) {
       filteredGenerationHistory.value = generationHistory;
-      print('Prompt is empty, showing all history.');
       return;
     }
 
@@ -63,8 +61,6 @@ class HomeImageController extends SkeletonController {
         .where(
             (item) => item.prompt.toLowerCase().contains(prompt.toLowerCase()))
         .toList();
-    print(
-        'Filtered history count: ${filteredGenerationHistory.length} for prompt: $prompt');
   }
 
   void onPageChanged(int index) {
@@ -91,7 +87,6 @@ class HomeImageController extends SkeletonController {
       // 기본값 설정
       String modelCode = textChunks['Source'] ?? defaultModel;
 
-      print('Model Code: $modelCode');
       String model = defaultModel;
       if (modelCode.contains("B5A2A797")) {
         model = "nai-diffusion-4-5-curated";

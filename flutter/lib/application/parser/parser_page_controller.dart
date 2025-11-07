@@ -51,7 +51,6 @@ class ParserPageController extends SkeletonController {
     data.fold((l) {
       Get.snackbar('Error', l, snackPosition: SnackPosition.BOTTOM);
     }, (r) {
-      print('r.tags: ${r.tags}');
       if (r.tags.isNotEmpty) {
         for (TagModel tag in r.tags) {
           suggestedTags.add(tag);

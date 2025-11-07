@@ -160,7 +160,7 @@ class HomeSettingController extends SkeletonController {
             Get.snackbar(
               '해상도 자동 조정',
               '가로 해상도가 $inputValue → $validValue 로 조정되었습니다.',
-              backgroundColor: Colors.orange.withOpacity(0.8),
+              backgroundColor: Colors.orange.withValues(alpha: 0.8),
               colorText: Colors.white,
               duration: const Duration(seconds: 2),
             );
@@ -173,7 +173,7 @@ class HomeSettingController extends SkeletonController {
             Get.snackbar(
               '해상도 자동 조정',
               '세로 해상도가 $inputValue → $validValue 로 조정되었습니다.',
-              backgroundColor: Colors.orange.withOpacity(0.8),
+              backgroundColor: Colors.orange.withValues(alpha: 0.8),
               colorText: Colors.white,
               duration: const Duration(seconds: 2),
             );
@@ -222,7 +222,6 @@ class HomeSettingController extends SkeletonController {
       // 파싱 오류 시 기본값으로 되돌리기
       xSizeController.text = '832';
       ySizeController.text = '1216';
-      print('해상도 파싱 오류: $e');
     }
   }
 
@@ -317,7 +316,6 @@ class HomeSettingController extends SkeletonController {
       setSettings(setting);
       return setting;
     } catch (e) {
-      print('Error loading preset $presetName: $e');
       Get.snackbar('로드 오류', '$presetName 프리셋을 로드하는 중 오류가 발생했습니다: $e',
           backgroundColor: Colors.red, colorText: Colors.white);
       return null;
@@ -391,7 +389,6 @@ class HomeSettingController extends SkeletonController {
     // SharedPreferences에서 프리셋으로 시작하는 모든 키 가져오기
     final keys =
         prefs.getKeys().where((key) => key.startsWith('preset_')).toList();
-    print('Loaded preset keys: $keys');
 
     for (var key in keys) {
       if (key.startsWith('preset_')) {
@@ -405,7 +402,6 @@ class HomeSettingController extends SkeletonController {
             presetMap[presetName] = setting;
           }
         } catch (e) {
-          print('Error loading preset!: $e');
         }
       }
     }

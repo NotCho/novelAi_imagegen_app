@@ -282,7 +282,7 @@ class HomeImageView extends GetView<HomeImageController> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Container(
-                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   decoration: BoxDecoration(
                       color: SkeletonColorScheme.surfaceColor,
                       borderRadius: BorderRadius.circular(
@@ -303,7 +303,7 @@ class HomeImageView extends GetView<HomeImageController> {
                 ),
                 SkeletonSpacing.vTiny,
                 Container(
-                  padding: EdgeInsets.symmetric(horizontal: 16),
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
                   width: double.infinity,
                   child: _buildCopyButton("시드", "seed"),
                 ),

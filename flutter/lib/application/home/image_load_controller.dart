@@ -57,7 +57,6 @@ class ImageLoadController extends GetxController {
       );
 
       if (result != null) {
-        print('갤러리에서 이미지 선택: ${result.path}');
 
         // 1. File API로 접근 시도
         try {
@@ -70,19 +69,16 @@ class ImageLoadController extends GetxController {
             return;
           }
         } catch (e) {
-          print('File API 접근 실패, 대체 방법 시도: $e');
         }
 
         // 2. readAsBytes 방식 시도
         try {
           final bytes = await result.readAsBytes();
-          print('readAsBytes로 이미지 로드 성공: ${bytes.length} 바이트');
           await _checkImageMetadata(bytes);
           imageCache[base64Encode(bytes)] = bytes;
           loadedImageBytes.value = bytes;
           return;
         } catch (e) {
-          print('readAsBytes 실패, 대체 방법 시도: $e');
         }
 
         // 3. 복사 후 접근 시도
@@ -103,7 +99,6 @@ class ImageLoadController extends GetxController {
             return;
           }
         } catch (e) {
-          print('임시 파일 복사 방식 실패: $e');
         }
 
         // 4. 이미지 디코딩 후 다시 인코딩
@@ -113,7 +108,6 @@ class ImageLoadController extends GetxController {
 
           if (decodedImage != null) {
             final reEncodedBytes = img.encodePng(decodedImage);
-            print('이미지 재인코딩 성공: ${reEncodedBytes.length} 바이트');
 
             final bytes = Uint8List.fromList(reEncodedBytes);
             await _checkImageMetadata(bytes);
@@ -122,7 +116,6 @@ class ImageLoadController extends GetxController {
             return;
           }
         } catch (e) {
-          print('이미지 재인코딩 실패: $e');
         }
 
         // 모든 방법 실패
@@ -130,7 +123,6 @@ class ImageLoadController extends GetxController {
             backgroundColor: Colors.red, colorText: Colors.white);
       }
     } catch (e) {
-      print('갤러리에서 이미지 로드 중 오류: $e');
       Get.snackbar('오류', '갤러리에서 이미지를 불러오는 중 문제가 발생했습니다: $e',
           backgroundColor: Colors.red, colorText: Colors.white);
     }
@@ -145,7 +137,6 @@ class ImageLoadController extends GetxController {
 
       if (textChunks == null || textChunks.isEmpty) {
         loadImageStatus.value = "실패, 메타데이터 없음";
-        print('메타데이터를 찾을 수 없습니다');
         return;
       }
 
@@ -165,22 +156,17 @@ class ImageLoadController extends GetxController {
             loadedImageModel = homeImageController.diffusionModelFromExifMap(
                 defaultModel: homePageController.usingModel.value,
                 textChunks: textChunks);
-            print('DiffusionModel 생성 완료');
           } catch (e) {
             loadImageStatus.value = "실패, 메타데이터 파싱불가: $e\n메타데이터: $metadata";
-            print('Exif 추출 실패: $e');
           }
         } catch (e) {
           loadImageStatus.value = "실패, 메타데이터 파싱불가: $e\n메타데이터: $metadata";
-          print('JSON 파싱 실패: $e');
         }
       } else {
         loadImageStatus.value = "실패, 메타데이터 없음";
-        print('갤러리 이미지에서 메타데이터를 찾을 수 없습니다');
       }
     } catch (e) {
       loadImageStatus.value = "실패, 메타데이터 확인 중 오류: $e";
-      print('메타데이터 확인 중 오류: $e');
     }
   }
 

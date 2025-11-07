@@ -1,6 +1,5 @@
 import 'dart:convert';
 
-import 'package:flutter/services.dart';
 import 'package:flutter_foreground_task/ui/with_foreground_task.dart';
 import 'package:naiapp/application/home/director_tool_controller.dart';
 import 'package:naiapp/application/home/home_image_controller.dart';
@@ -40,13 +39,13 @@ class HomePage extends GetView<HomePageController> {
                 },
                 child: SkeletonScaffold(
                   floatingActionButton: _buildAutoGenerationButton(),
-                  appBar: SkeletonAppBar(
+                  appBar: const SkeletonAppBar(
                     isLeftTitle: true,
                     titleText: "AI 이미지 생성기",
                     isLeftIconDisplayed: false,
                     customAction: Expanded(
                       child: Padding(
-                          padding: const EdgeInsets.all(
+                          padding: EdgeInsets.all(
                               SkeletonSpacing.smallSpacing),
                           child: HomeAppBar()),
                     ),
@@ -64,7 +63,7 @@ class HomePage extends GetView<HomePageController> {
                   body: Column(
                     children: [
                       Obx(() => history()),
-                      Expanded(child: HomeImageView()),
+                      const Expanded(child: HomeImageView()),
                     ],
                   ),
                 ),
@@ -156,15 +155,12 @@ class HomePage extends GetView<HomePageController> {
                     return GestureDetector(
                       onTap: () {
                         if (index < 29) {
-                          print("인덱스로 이동: $index");
                           homeImageController.imageViewPageController
                               .animateToPage(index,
                                   duration: SkeletonSpacing.animationDuration,
                                   curve: Curves.easeIn);
                           return; // 30개 초과시 클릭 무시
                         }
-                        print("끝으로 이동: $index");
-                        print(reversedIndex);
                         homeImageController.currentImageBytes.value =
                             base64Decode(historyItem.imagePath);
 
@@ -441,7 +437,7 @@ class HomePage extends GetView<HomePageController> {
                           controller.positivePromptController,
                       negativePromptController:
                           controller.negativePromptController),
-                  HomeCharPrompt(),
+                  const HomeCharPrompt(),
                   const HomeDirectorTool(),
                   HomeSetting(),
                   HomeLoadImage(),
