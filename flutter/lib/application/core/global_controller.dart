@@ -17,6 +17,7 @@ import 'package:permission_handler/permission_handler.dart';
 
 import '../../infra/service/ImageSaveManager.dart';
 import '../../view/core/util/design_system.dart';
+import '../../view/core/util/app_snackbar.dart';
 
 class GlobalController extends GetxController {
   final _isLoading = false.obs;
@@ -306,13 +307,9 @@ class GlobalController extends GetxController {
   }
 
   void _showSnackBar(String title, String message) {
-    if (Get.isSnackbarOpen) {
-      Get.closeCurrentSnackbar();
-    }
-    Get.snackbar(
+    AppSnackBar.show(
       title,
       message,
-      snackPosition: SnackPosition.BOTTOM,
       duration: const Duration(seconds: 4),
     );
   }

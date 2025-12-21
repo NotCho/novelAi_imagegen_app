@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:naiapp/infra/service/webp_image_parser.dart';
+import 'package:naiapp/view/core/util/app_snackbar.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:image_gallery_saver_plus/image_gallery_saver_plus.dart';
@@ -316,37 +317,33 @@ class ExifPreservingImageSaver {
         ? '모든 이미지가 $format 형식으로 갤러리에 저장되었습니다'
         : '이미지가 $format 형식으로 갤러리에 저장되었습니다';
 
-    Get.snackbar(
-
+    AppSnackBar.show(
       '저장 완료',
       message,
       backgroundColor: Colors.green,
-      colorText: Colors.white,
-      snackPosition: SnackPosition.BOTTOM,
+      textColor: Colors.white,
       duration: const Duration(milliseconds: 1000),
     );
   }
 
   /// 경고 메시지
   void _showWarningMessage(String message) {
-    Get.snackbar(
+    AppSnackBar.show(
       '경고',
       message,
       backgroundColor: Colors.orange,
-      colorText: Colors.white,
-      snackPosition: SnackPosition.BOTTOM,
+      textColor: Colors.white,
       duration: const Duration(seconds: 3),
     );
   }
 
   /// 에러 메시지
   void _showErrorMessage(String message) {
-    Get.snackbar(
+    AppSnackBar.show(
       '오류',
       message,
       backgroundColor: Colors.red,
-      colorText: Colors.white,
-      snackPosition: SnackPosition.BOTTOM,
+      textColor: Colors.white,
     );
   }
 

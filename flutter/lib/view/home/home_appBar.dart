@@ -2,6 +2,7 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:naiapp/view/core/util/design_system.dart';
+import 'package:naiapp/view/core/util/app_snackbar.dart';
 
 import '../../application/home/home_page_controller.dart';
 
@@ -101,12 +102,11 @@ class HomeAppBar extends GetView<HomePageController> {
             () => IconButton(
               onPressed: () {
                 if (controller.homeImageController.generationHistory.isEmpty) {
-                  Get.snackbar(
+                  AppSnackBar.show(
                     '알림',
                     '생성된 이미지가 없습니다.',
-                    snackPosition: SnackPosition.BOTTOM,
                     backgroundColor: Colors.redAccent,
-                    colorText: Colors.white,
+                    textColor: Colors.white,
                   );
                   return;
                 }

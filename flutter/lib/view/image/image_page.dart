@@ -7,6 +7,7 @@ import 'package:get/get.dart';
 import 'package:naiapp/application/core/global_controller.dart';
 import 'package:naiapp/application/home/home_image_controller.dart';
 import 'package:naiapp/view/core/page.dart';
+import 'package:naiapp/view/core/util/app_snackbar.dart';
 import 'package:naiapp/view/core/util/design_system.dart';
 import 'package:photo_view/photo_view.dart';
 import '../../application/home/image_cache_manager.dart';
@@ -223,15 +224,14 @@ class ImagePage extends GetView<ImagePageController> {
                                     child: InkWell(
                                       onTap: () {
                                         controller.saveMultipleImages();
-                                        Get.snackbar(
+                                        AppSnackBar.show(
                                           '다운로드 완료',
                                           '${controller.selectedIndexes.length}개 이미지가 저장되었습니다',
                                           backgroundColor: SkeletonColorScheme
                                               .primaryColor
                                               .withValues(alpha: 0.1),
-                                          colorText:
+                                          textColor:
                                               SkeletonColorScheme.textColor,
-                                          snackPosition: SnackPosition.BOTTOM,
                                           margin: const EdgeInsets.all(16),
                                           borderRadius:
                                               SkeletonSpacing.borderRadius,

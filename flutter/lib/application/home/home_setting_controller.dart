@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../domain/gen/diffusion_model.dart' as df;
+import '../../view/core/util/app_snackbar.dart';
 import '../core/skeleton_controller.dart';
 
 import 'package:get/get.dart';
@@ -102,8 +103,12 @@ class HomeSettingController extends SkeletonController {
 
   bool addSizeOption() {
     if (autoSizeXController.text.isEmpty || autoSizeYController.text.isEmpty) {
-      Get.snackbar('오류', '가로와 세로 해상도를 모두 입력해주세요.',
-          backgroundColor: Colors.red, colorText: Colors.white);
+      AppSnackBar.show(
+        '오류',
+        '가로와 세로 해상도를 모두 입력해주세요.',
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+      );
       return false;
     }
 
@@ -157,11 +162,11 @@ class HomeSettingController extends SkeletonController {
           xSizeController.text = validValue.toString();
           // 사용자에게 알림 (너무 자주 뜨지 않게 조건부로)
           if ((inputValue - validValue).abs() > 32) {
-            Get.snackbar(
+            AppSnackBar.show(
               '해상도 자동 조정',
               '가로 해상도가 $inputValue → $validValue 로 조정되었습니다.',
               backgroundColor: Colors.orange.withValues(alpha: 0.8),
-              colorText: Colors.white,
+              textColor: Colors.white,
               duration: const Duration(seconds: 2),
             );
           }
@@ -170,11 +175,11 @@ class HomeSettingController extends SkeletonController {
         if (inputValue != validValue) {
           ySizeController.text = validValue.toString();
           if ((inputValue - validValue).abs() > 32) {
-            Get.snackbar(
+            AppSnackBar.show(
               '해상도 자동 조정',
               '세로 해상도가 $inputValue → $validValue 로 조정되었습니다.',
               backgroundColor: Colors.orange.withValues(alpha: 0.8),
-              colorText: Colors.white,
+              textColor: Colors.white,
               duration: const Duration(seconds: 2),
             );
           }
@@ -304,8 +309,12 @@ class HomeSettingController extends SkeletonController {
 
     final presetJson = prefs.getString("preset_$presetName");
     if (presetJson == null) {
-      Get.snackbar('프리셋 없음', '$presetName 프리셋이 존재하지 않습니다.',
-          backgroundColor: Colors.orange, colorText: Colors.white);
+      AppSnackBar.show(
+        '프리셋 없음',
+        '$presetName 프리셋이 존재하지 않습니다.',
+        backgroundColor: Colors.orange,
+        textColor: Colors.white,
+      );
       return null;
     }
     try {
@@ -316,8 +325,12 @@ class HomeSettingController extends SkeletonController {
       setSettings(setting);
       return setting;
     } catch (e) {
-      Get.snackbar('로드 오류', '$presetName 프리셋을 로드하는 중 오류가 발생했습니다: $e',
-          backgroundColor: Colors.red, colorText: Colors.white);
+      AppSnackBar.show(
+        '로드 오류',
+        '$presetName 프리셋을 로드하는 중 오류가 발생했습니다: $e',
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+      );
       return null;
     }
   }

@@ -2,6 +2,7 @@ import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 import 'package:naiapp/view/core/page.dart';
 import 'package:naiapp/view/core/util/design_system.dart';
+import 'package:naiapp/view/setting/app_info_page.dart';
 
 import '../../application/setting/setting_page_controller.dart';
 
@@ -34,7 +35,7 @@ class SettingPage extends GetView<SettingPageController> {
               title: "앱 정보",
               icon: Icons.info,
               onTap: () {
-                // controller.showAppInfo();
+                Get.to(() => const AppInfoPage());
               },
               trailing: Text(
                 controller.global.currentClientVersion.value,

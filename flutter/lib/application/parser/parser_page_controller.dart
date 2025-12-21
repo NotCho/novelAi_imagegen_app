@@ -6,6 +6,7 @@ import 'package:get/get.dart';
 import 'package:naiapp/application/home/home_page_controller.dart';
 import 'package:naiapp/domain/gen/i_novelAI_repository.dart';
 import 'package:naiapp/domain/gen/tag_suggestion_model.dart';
+import 'package:naiapp/view/core/util/app_snackbar.dart';
 
 class ParserPageController extends SkeletonController {
   String prompt;
@@ -49,15 +50,14 @@ class ParserPageController extends SkeletonController {
     Either<String, TagSuggestionModel> data = await repository.suggestTags(
         addTagController.text, Get.find<HomePageController>().usingModel.value);
     data.fold((l) {
-      Get.snackbar('Error', l, snackPosition: SnackPosition.BOTTOM);
+      AppSnackBar.show('Error', l);
     }, (r) {
       if (r.tags.isNotEmpty) {
         for (TagModel tag in r.tags) {
           suggestedTags.add(tag);
         }
       } else {
-        Get.snackbar('No Suggestions', 'No tags found for your input.',
-            snackPosition: SnackPosition.BOTTOM);
+        AppSnackBar.show('No Suggestions', 'No tags found for your input.');
       }
     });
   }

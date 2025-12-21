@@ -160,6 +160,18 @@ flutter clean
 log "패키지 의존성 동기화"
 flutter pub get
 
+# ------------------------------
+# Sync changes.json into Flutter assets (for in-app release notes)
+# ------------------------------
+CHANGES_JSON_PATH="$PROJECT_DIR/../changes.json"
+ASSET_CHANGES_JSON_PATH="$PROJECT_DIR/assets/changes.json"
+if [[ -f "$CHANGES_JSON_PATH" ]]; then
+  log "changes.json을 앱 에셋으로 동기화: ${ASSET_CHANGES_JSON_PATH}"
+  cp "$CHANGES_JSON_PATH" "$ASSET_CHANGES_JSON_PATH"
+else
+  log "경고: changes.json 파일을 찾을 수 없습니다: $CHANGES_JSON_PATH"
+fi
+
 log "APK 빌드 (${APK_BUILD_FLAVOR})"
 flutter build apk --${APK_BUILD_FLAVOR}
 

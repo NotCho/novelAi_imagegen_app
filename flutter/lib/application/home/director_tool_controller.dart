@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:get/get.dart';
 import 'dart:convert';
 import 'package:image/image.dart' as img;
+import 'package:naiapp/view/core/util/app_snackbar.dart';
 
 class DirectorToolController extends GetxController {
   // 참조 이미지
@@ -18,7 +19,7 @@ class DirectorToolController extends GetxController {
   /// 상단 이미지 불러오기 다이얼로그에서 전달받은 이미지를 설정
   bool setReferenceImage(Uint8List bytes) {
     if (bytes.isEmpty) {
-      Get.snackbar('오류', '이미지를 선택해주세요.');
+      AppSnackBar.show('오류', '이미지를 선택해주세요.');
       return false;
     }
 
@@ -40,7 +41,7 @@ class DirectorToolController extends GetxController {
 
       return true;
     } catch (e) {
-      Get.snackbar('오류', '이미지를 불러올 수 없습니다: $e');
+      AppSnackBar.show('오류', '이미지를 불러올 수 없습니다: $e');
       return false;
     }
   }

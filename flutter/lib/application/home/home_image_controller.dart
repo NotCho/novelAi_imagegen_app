@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:naiapp/application/core/global_controller.dart';
 import 'package:naiapp/application/core/skeleton_controller.dart';
 import '../../domain/gen/diffusion_model.dart' as df;
+import 'package:naiapp/view/core/util/app_snackbar.dart';
 
 import 'package:get/get.dart';
 import 'dart:typed_data';
@@ -44,8 +45,12 @@ class HomeImageController extends SkeletonController {
 
   Future<void> saveLastImage() async {
     if (generatedImageBytes.value.isEmpty) {
-      Get.snackbar('오류', '저장할 이미지가 없습니다.',
-          backgroundColor: Colors.red, colorText: Colors.white);
+      AppSnackBar.show(
+        '오류',
+        '저장할 이미지가 없습니다.',
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+      );
       return;
     }
     await global.saveImageWithMetadata(generatedImageBytes.value);
@@ -291,8 +296,12 @@ class HomeImageController extends SkeletonController {
   void deleteImages(List<GenerationHistoryItem> selectedItems) {
     // 선택된 인덱스가 유효한지 확인
     if (selectedItems.isEmpty) {
-      Get.snackbar('오류', '잘못된 선택입니다.',
-          backgroundColor: Colors.red, colorText: Colors.white);
+      AppSnackBar.show(
+        '오류',
+        '잘못된 선택입니다.',
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+      );
       return;
     }
 

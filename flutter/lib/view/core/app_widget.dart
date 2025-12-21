@@ -8,6 +8,7 @@ import '../../application/core/global_controller.dart';
 import '../../infra/core/environment.dart';
 import 'loading.dart';
 import 'pages.dart';
+import 'util/app_snackbar.dart';
 
 class AppWidget extends GetView<GlobalController> {
   const AppWidget({super.key});
@@ -30,6 +31,7 @@ class AppWidget extends GetView<GlobalController> {
           enableLog: true,
           // 이걸로!
           builder: tcBuilder,
+          scaffoldMessengerKey: appScaffoldMessengerKey,
           theme: ThemeData(
             appBarTheme: AppBarTheme(
               systemOverlayStyle: SystemUiOverlayStyle.light

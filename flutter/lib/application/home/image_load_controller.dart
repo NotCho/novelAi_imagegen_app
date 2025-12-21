@@ -10,6 +10,7 @@ import 'package:naiapp/application/home/home_image_controller.dart';
 import 'package:naiapp/application/home/home_page_controller.dart';
 import 'package:naiapp/application/home/home_setting_controller.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:naiapp/view/core/util/app_snackbar.dart';
 
 import '../../domain/gen/diffusion_model.dart' as df;
 import '../../infra/service/webp_image_parser.dart';
@@ -119,12 +120,20 @@ class ImageLoadController extends GetxController {
         }
 
         // 모든 방법 실패
-        Get.snackbar('오류', '이미지를 로드할 수 없습니다.',
-            backgroundColor: Colors.red, colorText: Colors.white);
+        AppSnackBar.show(
+          '오류',
+          '이미지를 로드할 수 없습니다.',
+          backgroundColor: Colors.red,
+          textColor: Colors.white,
+        );
       }
     } catch (e) {
-      Get.snackbar('오류', '갤러리에서 이미지를 불러오는 중 문제가 발생했습니다: $e',
-          backgroundColor: Colors.red, colorText: Colors.white);
+      AppSnackBar.show(
+        '오류',
+        '갤러리에서 이미지를 불러오는 중 문제가 발생했습니다: $e',
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+      );
     }
   }
 
@@ -173,14 +182,22 @@ class ImageLoadController extends GetxController {
   /// 이미지에서 설정 불러오기
   void loadFromImage() {
     if (loadedImageBytes.value.isEmpty) {
-      Get.snackbar('오류', '이미지를 불러오지 못했습니다.',
-          backgroundColor: Colors.red, colorText: Colors.white);
+      AppSnackBar.show(
+        '오류',
+        '이미지를 불러오지 못했습니다.',
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+      );
       return;
     }
 
     if (loadedImageModel == null) {
-      Get.snackbar('오류', '메타데이터를 불러오지 못했습니다.',
-          backgroundColor: Colors.red, colorText: Colors.white);
+      AppSnackBar.show(
+        '오류',
+        '메타데이터를 불러오지 못했습니다.',
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+      );
       _checkImageMetadata(loadedImageBytes.value);
       return;
     }
@@ -245,8 +262,12 @@ class ImageLoadController extends GetxController {
     }
 
     Get.back();
-    Get.snackbar('성공', '이미지에서 선택한 설정을 불러왔습니다!',
-        backgroundColor: Colors.green, colorText: Colors.white);
+    AppSnackBar.show(
+      '성공',
+      '이미지에서 선택한 설정을 불러왔습니다!',
+      backgroundColor: Colors.green,
+      textColor: Colors.white,
+    );
   }
 
   /// 이미지 다이얼로그 초기화

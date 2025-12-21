@@ -7,6 +7,7 @@ import 'package:get/get.dart';
 import 'dart:typed_data';
 
 import 'package:naiapp/view/core/util/design_system.dart';
+import 'package:naiapp/view/core/util/app_snackbar.dart';
 
 import '../home/image_cache_manager.dart';
 
@@ -110,10 +111,12 @@ class ImagePageController extends SkeletonController {
           .autoGenerationController.autoGenerateEnabled.value) {
         homePageController.autoGenerationController.autoGenerateEnabled.value =
             false; // 선택 모드 해제 시 자동 생성 비활성화
-        Get.snackbar("선택모드 활성", "성능을 위해 이미지 자동 생성이 비활성화됩니다.",
-            backgroundColor: SkeletonColorScheme.newGreenColor,
-            colorText: SkeletonColorScheme.textColor,
-            snackPosition: SnackPosition.BOTTOM);
+        AppSnackBar.show(
+          "선택모드 활성",
+          "성능을 위해 이미지 자동 생성이 비활성화됩니다.",
+          backgroundColor: SkeletonColorScheme.newGreenColor,
+          textColor: SkeletonColorScheme.textColor,
+        );
       }
     }
     if (!selectMode.value) {
@@ -241,10 +244,12 @@ class ImagePageController extends SkeletonController {
 
   void deleteSelectedImages(List<GenerationHistoryItem> items) {
     if (selectedIndexes.isEmpty) {
-      Get.snackbar("선택된 이미지 없음", "삭제할 이미지를 선택해주세요.",
-          backgroundColor: SkeletonColorScheme.negativeColor,
-          colorText: SkeletonColorScheme.textColor,
-          snackPosition: SnackPosition.BOTTOM);
+      AppSnackBar.show(
+        "선택된 이미지 없음",
+        "삭제할 이미지를 선택해주세요.",
+        backgroundColor: SkeletonColorScheme.negativeColor,
+        textColor: SkeletonColorScheme.textColor,
+      );
       return;
     }
 
@@ -256,10 +261,12 @@ class ImagePageController extends SkeletonController {
     }
     homePageController.homeImageController.deleteImages(selectedItems);
 
-    Get.snackbar("이미지 삭제 완료", "${selectedIndexes.length}개의 이미지가 삭제되었습니다.",
-        backgroundColor: SkeletonColorScheme.newGreenColor,
-        colorText: SkeletonColorScheme.textColor,
-        snackPosition: SnackPosition.BOTTOM);
+    AppSnackBar.show(
+      "이미지 삭제 완료",
+      "${selectedIndexes.length}개의 이미지가 삭제되었습니다.",
+      backgroundColor: SkeletonColorScheme.newGreenColor,
+      textColor: SkeletonColorScheme.textColor,
+    );
     // 선택 모드 해제
     toggleSelectMode();
   }

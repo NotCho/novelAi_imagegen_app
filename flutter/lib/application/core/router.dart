@@ -28,7 +28,7 @@ class SkeletonRouter implements ISkeletonRouter {
 
   @override
   void toHome() {
-    Get.offAllNamed('/home');
+    Get.offAllNamed('/home', );
   }
 
   @override

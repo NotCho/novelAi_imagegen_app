@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:naiapp/domain/gen/tag_suggestion_model.dart';
 import 'package:naiapp/view/core/page.dart';
+import 'package:naiapp/view/core/util/app_snackbar.dart';
 import 'package:naiapp/view/core/util/design_system.dart';
 import 'package:reorderables/reorderables.dart';
 
@@ -820,8 +821,7 @@ class ParserPage extends GetView<ParserPageController> {
           ElevatedButton(
             onPressed: () {
               if (controller.addTagController.text.trim().isEmpty) {
-                Get.snackbar("오류", "태그를 입력해주세요",
-                    snackPosition: SnackPosition.BOTTOM);
+                AppSnackBar.show("오류", "태그를 입력해주세요");
                 return;
               }
               controller.addTag();

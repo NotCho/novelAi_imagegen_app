@@ -19,6 +19,7 @@ import '../../main.dart';
 import '../core/skeleton_controller.dart';
 
 import '../image/image_page_controller.dart';
+import '../../view/core/util/app_snackbar.dart';
 
 class HomePageController extends SkeletonController {
   HomeImageController homeImageController = Get.find<HomeImageController>();
@@ -233,15 +234,18 @@ class HomePageController extends SkeletonController {
   }
 
   void onGridTap() {
-    Get.snackbar(
-      '알림',
-      '이미지 뷰어 모드로 변경합니다.\n이미지 수에 따라 로딩이 길어질 수 있습니다.',
-      backgroundColor: Colors.blue,
-      colorText: Colors.white,
-      snackPosition: SnackPosition.BOTTOM,
-    );
     router.toImage();
-    Get.isDialogOpen ?? Get.back();
+    if (Get.isDialogOpen ?? false) {
+      Get.back();
+    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      AppSnackBar.show(
+        '알림',
+        '이미지 뷰어 모드로 변경합니다.\n이미지 수에 따라 로딩이 길어질 수 있습니다.',
+        backgroundColor: Colors.blue,
+        textColor: Colors.white,
+      );
+    });
   }
 
   static Map<String, String> posMap = {
@@ -280,8 +284,12 @@ class HomePageController extends SkeletonController {
     final result = await _novelAIRepository.generateImage(setting: setting);
     result.fold(
       (l) {
-        Get.snackbar('오류', '이미지 생성 중 오류가 발생했습니다: $l',
-            backgroundColor: Colors.red, colorText: Colors.white);
+        AppSnackBar.show(
+          '오류',
+          '이미지 생성 중 오류가 발생했습니다: $l',
+          backgroundColor: Colors.red,
+          textColor: Colors.white,
+        );
       },
       (base64Str) {
         getAnlasRemaining(); // Anlas 잔여량 갱신
@@ -319,11 +327,11 @@ class HomePageController extends SkeletonController {
                 autoGenerationController.maxAutoGenerateCount.value) {
               autoGenerationController.autoGenerateEnabled.value = false;
               autoGenerationController.cancelAutoGenerateTimer();
-              Get.snackbar(
+              AppSnackBar.show(
                 '알림',
                 '최대 자동 생성 이미지 수에 도달했습니다. 자동 생성이 비활성화됩니다.',
                 backgroundColor: Colors.orange,
-                colorText: Colors.white,
+                textColor: Colors.white,
               );
             }
           }
@@ -402,25 +410,41 @@ class HomePageController extends SkeletonController {
   void loadPreset(String presetName) {
     final setting = homeSettingController.loadPreset(presetName);
     if (setting == null) {
-      Get.snackbar('오류', '프리셋을 불러오는 중 오류가 발생했습니다.',
-          backgroundColor: Colors.red, colorText: Colors.white);
+      AppSnackBar.show(
+        '오류',
+        '프리셋을 불러오는 중 오류가 발생했습니다.',
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+      );
       return;
     }
     loadSetting(setting);
-    Get.snackbar('성공', '프리셋이 불러와졌습니다: $presetName',
-        backgroundColor: Colors.green, colorText: Colors.white);
+    AppSnackBar.show(
+      '성공',
+      '프리셋이 불러와졌습니다: $presetName',
+      backgroundColor: Colors.green,
+      textColor: Colors.white,
+    );
   }
 
   void savePreset(String presetName) {
     if (presetName.isEmpty) {
-      Get.snackbar('오류', '프리셋 이름을 입력해주세요.',
-          backgroundColor: Colors.red, colorText: Colors.white);
+      AppSnackBar.show(
+        '오류',
+        '프리셋 이름을 입력해주세요.',
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+      );
       return;
     }
     final setting = buildSetting();
     homeSettingController.savePreset(presetName, setting);
-    Get.snackbar('성공', '프리셋이 저장되었습니다: $presetName',
-        backgroundColor: Colors.green, colorText: Colors.white);
+    AppSnackBar.show(
+      '성공',
+      '프리셋이 저장되었습니다: $presetName',
+      backgroundColor: Colors.green,
+      textColor: Colors.white,
+    );
   }
 
   df.DiffusionModel buildSetting() {
@@ -655,8 +679,12 @@ class HomePageController extends SkeletonController {
 
   Future<void> addVibeImage(Uint8List image) async {
     if (image.isEmpty) {
-      Get.snackbar('오류', '이미지를 선택해주세요.',
-          backgroundColor: Colors.red, colorText: Colors.white);
+      AppSnackBar.show(
+        '오류',
+        '이미지를 선택해주세요.',
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+      );
       return;
     }
     VibeImage vibeImage = VibeImage(
@@ -670,16 +698,24 @@ class HomePageController extends SkeletonController {
 
   Future<void> addDirectorReferenceImage(Uint8List image) async {
     if (image.isEmpty) {
-      Get.snackbar('오류', '이미지를 선택해주세요.',
-          backgroundColor: Colors.red, colorText: Colors.white);
+      AppSnackBar.show(
+        '오류',
+        '이미지를 선택해주세요.',
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+      );
       return;
     }
 
     final success = directorToolController.setReferenceImage(image);
     if (success) {
       Get.back();
-      Get.snackbar('성공', '레퍼런스 이미지가 설정되었습니다.',
-          backgroundColor: Colors.green, colorText: Colors.white);
+      AppSnackBar.show(
+        '성공',
+        '레퍼런스 이미지가 설정되었습니다.',
+        backgroundColor: Colors.green,
+        textColor: Colors.white,
+      );
     }
   }
 
@@ -688,8 +724,12 @@ class HomePageController extends SkeletonController {
         homeImageController.vibeParseImageBytes, usingModel.value);
     result.fold(
       (l) {
-        Get.snackbar('오류', 'Vibe 이미지 파싱 중 오류가 발생했습니다: $l',
-            backgroundColor: Colors.red, colorText: Colors.white);
+        AppSnackBar.show(
+          '오류',
+          'Vibe 이미지 파싱 중 오류가 발생했습니다: $l',
+          backgroundColor: Colors.red,
+          textColor: Colors.white,
+        );
       },
       (r) {},
     );

@@ -7,6 +7,7 @@ import 'dart:math' as math;
 
 import '../../application/home/home_image_controller.dart';
 import '../../infra/service/webp_image_parser.dart';
+import '../core/util/app_snackbar.dart';
 import '../core/util/design_system.dart';
 
 class HomeImageView extends GetView<HomeImageController> {
@@ -93,14 +94,13 @@ class HomeImageView extends GetView<HomeImageController> {
                             children: [
                               GestureDetector(
                                 onTap: () {
-                                  Get.snackbar(
+                                  AppSnackBar.show(
                                     'Seed 복사됨',
                                     'Seed: ${historyItem.seed}',
                                     backgroundColor: SkeletonColorScheme
                                         .primaryColor
                                         .withValues(alpha: 0.9),
-                                    colorText: Colors.white,
-                                    snackPosition: SnackPosition.BOTTOM,
+                                    textColor: Colors.white,
                                     margin: const EdgeInsets.all(16),
                                     borderRadius: SkeletonSpacing.borderRadius,
                                     duration: const Duration(seconds: 2),
@@ -338,12 +338,11 @@ class HomeImageView extends GetView<HomeImageController> {
           controller.currentImageBytes.value);
 
       if (textChunks == null || textChunks.isEmpty) {
-        Get.snackbar(
+        AppSnackBar.show(
           '오류',
           '메타데이터를 찾을 수 없습니다',
           backgroundColor: Colors.red,
-          colorText: Colors.white,
-          snackPosition: SnackPosition.BOTTOM,
+          textColor: Colors.white,
         );
         return;
       }
@@ -351,12 +350,11 @@ class HomeImageView extends GetView<HomeImageController> {
       // 메타데이터에서 정보 추출
       final jsonStr = textChunks['Comment'] ?? '';
       if (jsonStr.isEmpty) {
-        Get.snackbar(
+        AppSnackBar.show(
           '오류',
           '메타데이터가 비어있습니다',
           backgroundColor: Colors.red,
-          colorText: Colors.white,
-          snackPosition: SnackPosition.BOTTOM,
+          textColor: Colors.white,
         );
         return;
       }
@@ -381,39 +379,37 @@ class HomeImageView extends GetView<HomeImageController> {
       }
 
       if (textToCopy.isEmpty && type != "seed") {
-        Get.snackbar(
+        AppSnackBar.show(
           '오류',
           '${type == "positive" ? "긍정" : "부정"} 프롬프트를 찾을 수 없습니다',
           backgroundColor: Colors.red,
-          colorText: Colors.white,
-          snackPosition: SnackPosition.BOTTOM,
+          textColor: Colors.white,
         );
         return;
       }
 
       // 클립보드에 복사
       Clipboard.setData(ClipboardData(text: textToCopy));
-      Get.snackbar(
+      AppSnackBar.show(
         '복사 완료',
         type == "positive"
             ? '긍정 프롬프트가 클립보드에 복사되었습니다'
             : type == "negative"
                 ? '부정 프롬프트가 클립보드에 복사되었습니다'
                 : '시드가 클립보드에 복사되었습니다',
-        backgroundColor: SkeletonColorScheme.primaryColor.withValues(alpha: 0.9),
-        colorText: Colors.white,
-        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor:
+            SkeletonColorScheme.primaryColor.withValues(alpha: 0.9),
+        textColor: Colors.white,
         margin: const EdgeInsets.all(16),
         borderRadius: SkeletonSpacing.borderRadius,
         duration: const Duration(seconds: 2),
       );
     } catch (e) {
-      Get.snackbar(
+      AppSnackBar.show(
         '오류',
         '복사 중 오류가 발생했습니다: $e',
         backgroundColor: Colors.red,
-        colorText: Colors.white,
-        snackPosition: SnackPosition.BOTTOM,
+        textColor: Colors.white,
       );
     }
   }
