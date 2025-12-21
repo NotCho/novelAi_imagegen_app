@@ -195,17 +195,36 @@ class HomePageController extends SkeletonController {
       } catch (e) {
       }
     }
-    if (prefs.getString("NOVEL_AI_ACCESS_KEY") == null) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        router.toLogin();
-      });
+    final persistentToken = prefs.getString("NOVEL_AI_PERSISTENT_TOKEN");
+    if (persistentToken == null || persistentToken.isEmpty) {
+      // 기존 사용자(AccessKey는 있으나 PersistentToken이 없는 경우) 마이그레이션 시도
+      final accessKey = prefs.getString("NOVEL_AI_ACCESS_KEY");
+      if (accessKey != null && accessKey.isNotEmpty) {
+        final tokenResult = await _novelAIRepository.createPersistentToken();
+        final shouldGoLogin = tokenResult.fold(
+          (l) {
+            print('토큰 생성 중 오류가 발생했습니다: $l');
+            return true;
+          },
+          (r) {
+            print('토큰 생성 성공: $r');
+            return false;
+          },
+        );
+        if (shouldGoLogin) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            router.toLogin();
+          });
+          return true;
+        }
+      } else {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          router.toLogin();
+        });
+        return true;
+      }
     }
 
-    final tokenResult = await _novelAIRepository.createPersistentToken();
-    tokenResult.fold(
-      (l) => print('토큰 생성 중 오류가 발생했습니다: $l'),
-      (r) => print('토큰 생성 성공: $r'),
-    );
     homeSettingController.loadPresets();
     List<String>? list = prefs.getStringList("customSizeList");
 

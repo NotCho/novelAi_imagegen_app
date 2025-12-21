@@ -150,27 +150,97 @@ class LoginPage extends GetView<LoginPageController> {
               ),
             ),
             const SizedBox(height: spacing),
-            // 이메일 입력 필드
-            _buildTextField(
-              controller: controller.emailController,
-              hintText: "이메일을 입력하세요",
-              prefixIcon: Icons.email_outlined,
-              autofillHints: const [
-                AutofillHints.email,
-                AutofillHints.username
-              ],
-              keyboardType: TextInputType.emailAddress,
+            // 로그인 방식 선택
+            Obx(
+              () => Row(
+                children: [
+                  Container(
+                      child: Text("이메일로 로그인",
+                          style: TextStyle(color: textSecondaryColor))),
+                  const SizedBox(width: smallSpacing),
+                  Switch(
+                      value: controller.loginMode.value == 1,
+                      onChanged: (v) {
+                        if (v) {
+                          controller.loginMode.value = 1;
+                        } else {
+                          controller.loginMode.value = 0;
+                        }
+                      }),
+                  const SizedBox(width: smallSpacing),
+                  Container(
+                      child: Text("토큰으로 로그인",
+                          style: TextStyle(color: textSecondaryColor))),
+                ],
+              ),
             ),
             const SizedBox(height: spacing),
-            // 비밀번호 입력 필드
-            _buildTextField(
-              controller: controller.passwordController,
-              hintText: "비밀번호를 입력하세요",
-              isPassword: true,
-              prefixIcon: Icons.lock_outline,
-              autofillHints: const [AutofillHints.password],
-              onSubmitted: (_) => controller.onLogin(),
-            ),
+
+            // 입력 폼
+            Obx(() {
+              if (controller.loginMode.value == 1) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    InkWell(
+                      onTap: () {
+                        controller.showTokenDialog();
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8.0),
+                        child: const Row(
+                          children: [
+                            Icon(Icons.info_outline, color: textSecondaryColor),
+                            SizedBox(width: smallSpacing),
+                            Text(
+                              "토큰 발급 방법",
+                              style: TextStyle(
+                                color: textSecondaryColor,
+                                fontSize: 14,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: spacing),
+                    _buildTextField(
+                      controller: controller.persistentTokenController,
+                      hintText: "pst-*****....",
+                      prefixIcon: Icons.vpn_key_outlined,
+                      keyboardType: TextInputType.visiblePassword,
+                      onSubmitted: (_) => controller.onLogin(),
+                    ),
+                  ],
+                );
+              }
+
+              return Column(
+                children: [
+                  // 이메일 입력 필드
+                  _buildTextField(
+                    controller: controller.emailController,
+                    hintText: "이메일을 입력하세요",
+                    prefixIcon: Icons.email_outlined,
+                    autofillHints: const [
+                      AutofillHints.email,
+                      AutofillHints.username
+                    ],
+                    keyboardType: TextInputType.emailAddress,
+                  ),
+                  const SizedBox(height: spacing),
+                  // 비밀번호 입력 필드
+                  _buildTextField(
+                    controller: controller.passwordController,
+                    hintText: "비밀번호를 입력하세요",
+                    isPassword: true,
+                    prefixIcon: Icons.lock_outline,
+                    autofillHints: const [AutofillHints.password],
+                    onSubmitted: (_) => controller.onLogin(),
+                  ),
+                ],
+              );
+            }),
             const SizedBox(height: spacing),
             // 비밀번호 찾기 링크
             SizedBox(
