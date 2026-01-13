@@ -253,6 +253,22 @@ class HomeSetting extends GetView<HomePageController> {
               ),
             ),
           ),
+          InkWell(
+            child: Container(
+              padding: EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: SkeletonColorScheme.primaryColor.withValues(alpha: 0.3),
+                borderRadius: BorderRadius.circular(12)
+              ),
+              child: Text(
+                "와일드카드 설정",
+                style: SkeletonTextTheme.listTitle,
+              ),
+            ),
+            onTap: () {
+              controller.router.toWildcard();
+            },
+          ),
           Container(
             padding: const EdgeInsets.symmetric(vertical: 8),
             child: const Row(

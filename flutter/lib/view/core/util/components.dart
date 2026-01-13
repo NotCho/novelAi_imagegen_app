@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:naiapp/application/home/home_page_controller.dart';
 import 'design_system.dart'; // 디자인 시스템 임포트 경로 확인 필요
+import 'wildcard_highlight_controller.dart';
 
 class DesignDialog extends StatelessWidget {
   final String textTitle;
@@ -188,8 +189,9 @@ class PromptDialog extends StatelessWidget {
               constraints: BoxConstraints(
                 maxHeight: Get.height * 0.33,
               ),
-              child: TextField(
+              child: WildcardTextField(
                 controller: textController,
+                highlightColor: color,
                 style: const TextStyle(color: SkeletonColorScheme.textColor),
                 maxLines: null,
                 decoration: InputDecoration(

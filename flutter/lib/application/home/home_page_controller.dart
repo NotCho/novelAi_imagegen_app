@@ -19,6 +19,7 @@ import '../../main.dart';
 import '../core/skeleton_controller.dart';
 
 import '../image/image_page_controller.dart';
+import '../wildcard/wildcard_controller.dart';
 import '../../view/core/util/app_snackbar.dart';
 
 class HomePageController extends SkeletonController {
@@ -140,12 +141,16 @@ class HomePageController extends SkeletonController {
 
 // 64의 배수로 변환하는 함수
 
-  void getAnlasRemaining() async {
+  Future<bool> getAnlasRemaining() async {
     final result = await _novelAIRepository.getAnlasRemaining();
-    result.fold(
-      (l) => print('Anlas 잔여량 조회 중 오류 발생: $l'),
+    return result.fold(
+      (l) {
+        print('Anlas 잔여량 조회 중 오류 발생: $l');
+        return false;
+      },
       (r) {
         anlasLeft.value = r;
+        return true;
       },
     );
   }
@@ -242,7 +247,16 @@ class HomePageController extends SkeletonController {
         }
       }
     }
-    getAnlasRemaining();
+
+    // Anlas 잔여량 조회 - 실패 시 로그아웃 후 로그인 화면으로 이동
+    final anlasResult = await getAnlasRemaining();
+    if (!anlasResult) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        logout();
+      });
+      return true;
+    }
+
     return true;
   }
 
@@ -481,6 +495,27 @@ class HomePageController extends SkeletonController {
     var pos = positivePromptController.text;
     var neg = negativePromptController.text;
 
+    // 원본 프롬프트 보존 (저장용 - 와일드카드 포함)
+    final originalPos = pos;
+    final originalNeg = neg;
+
+    // ============================================================
+    // TODO: 테스트 후 디버그 로그 삭제할 것 - 와일드카드 파싱
+    // ============================================================
+    print('========== [WILDCARD DEBUG] ==========');
+    print('[원본 긍정 프롬프트] $pos');
+    print('[원본 부정 프롬프트] $neg');
+    
+    // 와일드카드 파싱 적용 (API 전송용)
+    final wildcardController = Get.find<WildcardController>();
+    pos = wildcardController.parsePrompt(pos);
+    neg = wildcardController.parsePrompt(neg);
+    
+    print('[파싱 후 긍정 프롬프트] $pos');
+    print('[파싱 후 부정 프롬프트] $neg');
+    
+    print('======================================');
+
     // SettingController에서 값 가져오기
     List<int> size;
     int xSize = int.tryParse(homeSettingController.xSizeController.text) ?? 512;
@@ -495,7 +530,9 @@ class HomePageController extends SkeletonController {
         homeSettingController.promptGuidance.value.toDouble();
 
     String sampler = homeSettingController.selectedSamplerValue;
-    List<df.CharacterPrompt> charProm = characterPrompts.map((e) {
+    
+    // 원본 캐릭터 프롬프트 (저장용 - 와일드카드 포함)
+    List<df.CharacterPrompt> charPromOriginal = characterPrompts.map((e) {
       return df.CharacterPrompt(
         prompt: e['positive'].text,
         uc: e['negative'].text,
@@ -503,16 +540,26 @@ class HomePageController extends SkeletonController {
         enabled: true,
       );
     }).toList();
+
+    // 캐릭터 프롬프트에 와일드카드 파싱 적용 (API 전송용)
+    List<df.CharacterPrompt> charProm = characterPrompts.map((e) {
+      return df.CharacterPrompt(
+        prompt: wildcardController.parsePrompt(e['positive'].text),
+        uc: wildcardController.parsePrompt(e['negative'].text),
+        center: e['prompt'].center,
+        enabled: true,
+      );
+    }).toList();
     List<df.CharCaption> charCapPos = characterPrompts.map((e) {
       return df.CharCaption(
-        char_caption: e['positive'].text,
+        char_caption: wildcardController.parsePrompt(e['positive'].text),
         centers: [e['prompt'].center],
       );
     }).toList();
 
     List<df.CharCaption> charCapNeg = characterPrompts.map((e) {
       return df.CharCaption(
-        char_caption: e['negative'].text,
+        char_caption: wildcardController.parsePrompt(e['negative'].text),
         centers: [e['prompt'].center],
       );
     }).toList();
@@ -531,7 +578,7 @@ class HomePageController extends SkeletonController {
     }
 
     final settingOriginal = df.DiffusionModel(
-      input: pos,
+      input: originalPos,
       parameters: df.Parameters(
         seed: storageSeed,
         steps: step,
@@ -554,22 +601,22 @@ class HomePageController extends SkeletonController {
         params_version: 3,
         v4_prompt: df.V4Prompt(
           caption: df.Caption(
-            base_caption: pos,
+            base_caption: originalPos,
           ),
           use_order: true,
           use_coords: false,
         ),
         add_original_image: true,
         v4_negative_prompt: df.V4NegativePrompt(
-          caption: df.Caption(base_caption: neg),
+          caption: df.Caption(base_caption: originalNeg),
           legacy_uc: false,
         ),
         cfg_rescale: cfgReScale,
         noise_schedule: selectedNoiseSchedule.value,
         deliberate_euler_ancestral_bug: false,
         prefer_brownian: true,
-        characterPrompts: charProm,
-        negative_prompt: neg,
+        characterPrompts: charPromOriginal,
+        negative_prompt: originalNeg,
         reference_image_multiple: vibeBytes,
         reference_strength_multiple: vibeStrengths,
       ),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:naiapp/view/core/util/components.dart';
 import '../core/util/design_system.dart';
+import '../core/util/wildcard_highlight_controller.dart';
 
 class HomeMainPrompt extends StatelessWidget {
   final TextEditingController positivePromptController;
@@ -108,9 +109,10 @@ class HomeMainPrompt extends StatelessWidget {
             // 입력 필드
             Padding(
               padding: const EdgeInsets.all(12.0),
-              child: TextField(
+              child: WildcardTextField(
                 enabled: false,
                 controller: controller,
+                highlightColor: color,
                 style: const TextStyle(color: SkeletonColorScheme.textColor),
                 maxLines: 3,
                 decoration: InputDecoration(

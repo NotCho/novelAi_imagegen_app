@@ -12,6 +12,7 @@ import '../../application/core/global_controller.dart';
 import '../../application/core/router.dart';
 import '../../application/function/remote_config_service.dart';
 import '../../application/home/image_cache_manager.dart';
+import '../../application/wildcard/wildcard_controller.dart';
 import '../../domain/core/i_connection.dart';
 import 'connection.dart';
 import 'package:http/http.dart' as http;
@@ -40,6 +41,7 @@ Future<void> injectDependencies() async {
   );
   Get.put<GlobalController>(GlobalController());
   Get.put(ImageCacheManager(), permanent: true);
+  Get.put<WildcardController>(WildcardController(), permanent: true);
 }
 
 Future<void> _initializeFirebase() async {

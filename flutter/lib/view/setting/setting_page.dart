@@ -42,6 +42,16 @@ class SettingPage extends GetView<SettingPageController> {
                 style: SkeletonTextTheme.body2Long
                     .copyWith(color: SkeletonColorScheme.newG600),
               )),
+          _buildListTile(
+              title: "와일드카드 관리",
+              icon: Icons.shuffle,
+              onTap: () {
+                Get.toNamed('/home/wildcard');
+              },
+              trailing: const Icon(
+                Icons.chevron_right,
+                color: SkeletonColorScheme.textSecondaryColor,
+              )),
           const Padding(
             padding: EdgeInsets.symmetric(horizontal: 16.0),
             child: Divider(

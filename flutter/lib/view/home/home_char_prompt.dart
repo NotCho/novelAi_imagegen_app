@@ -5,6 +5,7 @@ import 'package:naiapp/application/home/home_page_controller.dart';
 import '../../domain/gen/diffusion_model.dart' as df;
 import '../core/util/components.dart';
 import '../core/util/design_system.dart';
+import '../core/util/wildcard_highlight_controller.dart';
 
 class HomeCharPrompt extends GetView<HomePageController> {
   const HomeCharPrompt({super.key});
@@ -660,11 +661,12 @@ class HomeCharPrompt extends GetView<HomePageController> {
             // 입력 필드
             Container(
               padding: const EdgeInsets.all(12.0),
-              child: TextField(
+              child: WildcardTextField(
                 enabled: false,
                 controller: controller.characterPrompts[controller
                     .selectedCharacterIndex
                     .value][isPositive ? 'positive' : 'negative'],
+                highlightColor: promptColor,
                 style: const TextStyle(color: SkeletonColorScheme.textColor),
                 maxLines: 3,
                 decoration: InputDecoration(

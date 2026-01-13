@@ -13,6 +13,8 @@ abstract class ISkeletonRouter {
   void toImage();
 
   void toSetting();
+
+  void toWildcard();
 }
 
 class SkeletonRouter implements ISkeletonRouter {
@@ -49,5 +51,10 @@ class SkeletonRouter implements ISkeletonRouter {
   @override
   void toSetting() {
     Get.toNamed('/home/setting');
+  }
+
+  @override
+  void toWildcard() {
+    Get.toNamed('/home/wildcard');
   }
 }

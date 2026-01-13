@@ -5,6 +5,8 @@ import 'package:naiapp/view/parser/parser_page.dart';
 import 'package:naiapp/view/parser/parser_page_binding.dart';
 import 'package:naiapp/view/setting/setting_page.dart';
 import 'package:naiapp/view/setting/setting_page_binding.dart';
+import 'package:naiapp/view/wildcard/wildcard_page.dart';
+import 'package:naiapp/view/wildcard/wildcard_page_binding.dart';
 
 import '../home/home_page_binding.dart';
 import '../image/image_page.dart';
@@ -50,6 +52,12 @@ List<GetPage> allPages = [
       name: "/home/setting",
       page: () => const SettingPage(),
       binding: SettingPageBinding(),
+      transition: Transition.rightToLeft,
+      transitionDuration: const Duration(milliseconds: 200)),
+  GetPage(
+      name: "/home/wildcard",
+      page: () => const WildcardPage(),
+      binding: WildcardPageBinding(),
       transition: Transition.rightToLeft,
       transitionDuration: const Duration(milliseconds: 200)),
 ];

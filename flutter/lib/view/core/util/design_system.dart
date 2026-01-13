@@ -104,20 +104,20 @@ extension SkeletonTextTheme on TextTheme {
   static TextStyle get h5 =>
       _getStyle(fontSize: 15, lineHeight: 20, color: SkeletonColorScheme.title);
 
-  static TextStyle get body0 =>
-      _getStyle(fontSize: 10, lineHeight: 15, color: SkeletonColorScheme.textColor);
+  static TextStyle get body0 => _getStyle(
+      fontSize: 10, lineHeight: 15, color: SkeletonColorScheme.textColor);
 
-  static TextStyle get body1 =>
-      _getStyle(fontSize: 14, lineHeight: 21, color: SkeletonColorScheme.textColor);
+  static TextStyle get body1 => _getStyle(
+      fontSize: 14, lineHeight: 21, color: SkeletonColorScheme.textColor);
 
-  static TextStyle get body2 =>
-      _getStyle(fontSize: 14, lineHeight: 18, color: SkeletonColorScheme.textColor);
+  static TextStyle get body2 => _getStyle(
+      fontSize: 14, lineHeight: 18, color: SkeletonColorScheme.textColor);
 
-  static TextStyle get body2Long =>
-      _getStyle(fontSize: 14, lineHeight: 22, color: SkeletonColorScheme.textColor);
+  static TextStyle get body2Long => _getStyle(
+      fontSize: 14, lineHeight: 22, color: SkeletonColorScheme.textColor);
 
-  static TextStyle get body3 =>
-      _getStyle(fontSize: 12, lineHeight: 19, color: SkeletonColorScheme.textColor);
+  static TextStyle get body3 => _getStyle(
+      fontSize: 12, lineHeight: 19, color: SkeletonColorScheme.textColor);
 
   static TextStyle get body4 => _getStyle(
       fontSize: 12,
@@ -201,11 +201,11 @@ extension SkeletonTextTheme on TextTheme {
       );
 
   static TextStyle get listTitle => _getStyle(
-        fontSize: 18,
-        lineHeight: 18,
-        color: SkeletonColorScheme.black,
-        fontWeight: FontWeight.w500,
-      );
+      fontSize: 14,
+      lineHeight: 18,
+      color: SkeletonColorScheme.newG100,
+      fontWeight: FontWeight.w700,
+      letterSpacing: 10);
 
   static TextStyle get content => _getStyle(
       fontSize: 14, lineHeight: 18, color: SkeletonColorScheme.newG600);
