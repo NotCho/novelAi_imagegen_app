@@ -503,6 +503,18 @@ class HomePageController extends SkeletonController {
     );
   }
 
+  void overwritePreset(String presetName) {
+    final setting =
+        buildSetting(preserveWildcards: true, saveLastSettings: false);
+    homeSettingController.overwritePreset(presetName, setting);
+    AppSnackBar.show(
+      '성공',
+      '프리셋을 덮어썼습니다: $presetName',
+      backgroundColor: Colors.green,
+      textColor: Colors.white,
+    );
+  }
+
   df.DiffusionModel buildSetting({
     bool preserveWildcards = false,
     bool saveLastSettings = true,

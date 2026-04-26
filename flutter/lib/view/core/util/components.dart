@@ -159,6 +159,10 @@ class PromptDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final mediaQuery = MediaQuery.of(context);
+    final availableHeight =
+        mediaQuery.size.height - mediaQuery.viewInsets.bottom;
+
     return Dialog(
       backgroundColor: SkeletonColorScheme.cardColor,
       shape: RoundedRectangleBorder(
@@ -166,7 +170,7 @@ class PromptDialog extends StatelessWidget {
       ),
       child: Container(
         padding: const EdgeInsets.all(SkeletonSpacing.spacing),
-        width: Get.width * 0.9,
+        width: mediaQuery.size.width * 0.9,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -174,12 +178,15 @@ class PromptDialog extends StatelessWidget {
               children: [
                 Icon(Icons.edit, color: color),
                 const SizedBox(width: SkeletonSpacing.smallSpacing),
-                Text(
-                  title,
-                  style: const TextStyle(
-                    color: SkeletonColorScheme.textColor,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
+                Flexible(
+                  child: Text(
+                    title,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: SkeletonColorScheme.textColor,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ],
@@ -187,7 +194,7 @@ class PromptDialog extends StatelessWidget {
             const SizedBox(height: SkeletonSpacing.spacing),
             ConstrainedBox(
               constraints: BoxConstraints(
-                maxHeight: Get.height * 0.33,
+                maxHeight: availableHeight * 0.33,
               ),
               child: WildcardTextField(
                 controller: textController,

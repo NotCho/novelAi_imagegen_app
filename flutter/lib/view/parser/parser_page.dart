@@ -742,95 +742,103 @@ class ParserPage extends GetView<ParserPageController> {
     controller.suggestedTags.clear();
 
     controller.addTagController.text = ''; // 초기화
-    return SizedBox(
-      width: Get.width * 0.8,
-      child: AlertDialog(
-        backgroundColor: SkeletonColorScheme.cardColor,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(SkeletonSpacing.borderRadius),
+    final mediaQuery = MediaQuery.of(Get.context!);
+    final availableHeight =
+        mediaQuery.size.height - mediaQuery.viewInsets.bottom;
+    final suggestionHeight = (availableHeight * 0.22).clamp(96.0, 180.0);
+
+    return AlertDialog(
+      backgroundColor: SkeletonColorScheme.cardColor,
+      insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(SkeletonSpacing.borderRadius),
+      ),
+      title: const Text(
+        "새 태그 추가",
+        style: TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.bold,
+          color: SkeletonColorScheme.textColor,
         ),
-        title: const Text(
-          "새 태그 추가",
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-            color: SkeletonColorScheme.textColor,
-          ),
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              onChanged: (_) {
-                controller.suggestTag();
-              },
-              style: const TextStyle(
-                fontSize: 14,
-                color: SkeletonColorScheme.textColor,
-              ),
-              controller: controller.addTagController,
-              decoration: InputDecoration(
-                hintText: "태그를 입력하세요",
-                hintStyle: const TextStyle(
-                    color: SkeletonColorScheme.textSecondaryColor),
-                border: OutlineInputBorder(
-                  borderRadius:
-                      BorderRadius.circular(SkeletonSpacing.borderRadius),
+      ),
+      content: SizedBox(
+        width: mediaQuery.size.width * 0.8,
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                onChanged: (_) {
+                  controller.suggestTag();
+                },
+                style: const TextStyle(
+                  fontSize: 14,
+                  color: SkeletonColorScheme.textColor,
                 ),
-              ),
-            ),
-            const SizedBox(height: SkeletonSpacing.smallSpacing),
-            Obx(
-              () => Container(
-                decoration: BoxDecoration(
-                  color:
-                      SkeletonColorScheme.surfaceColor.withValues(alpha: 0.3),
-                  borderRadius:
-                      BorderRadius.circular(SkeletonSpacing.borderRadius),
-                  border: Border.all(
-                    color:
-                        SkeletonColorScheme.primaryColor.withValues(alpha: 0.5),
-                    width: 1,
+                controller: controller.addTagController,
+                decoration: InputDecoration(
+                  hintText: "태그를 입력하세요",
+                  hintStyle: const TextStyle(
+                      color: SkeletonColorScheme.textSecondaryColor),
+                  border: OutlineInputBorder(
+                    borderRadius:
+                        BorderRadius.circular(SkeletonSpacing.borderRadius),
                   ),
                 ),
-                padding: const EdgeInsets.all(SkeletonSpacing.spacing),
-                width: Get.width * 0.8,
-                height: Get.width * 0.4,
-                child: SingleChildScrollView(
-                  child: Wrap(
-                      clipBehavior: Clip.hardEdge,
-                      spacing: SkeletonSpacing.smallSpacing,
-                      runSpacing: SkeletonSpacing.smallSpacing,
-                      children: List.generate(
-                        controller.suggestedTags.length,
-                        (index) {
-                          TagModel tag = controller.suggestedTags[index];
-                          return _buildSuggestedChip(tag.tag, tag.count);
-                        },
-                      )),
+              ),
+              const SizedBox(height: SkeletonSpacing.smallSpacing),
+              Obx(
+                () => Container(
+                  decoration: BoxDecoration(
+                    color:
+                        SkeletonColorScheme.surfaceColor.withValues(alpha: 0.3),
+                    borderRadius:
+                        BorderRadius.circular(SkeletonSpacing.borderRadius),
+                    border: Border.all(
+                      color: SkeletonColorScheme.primaryColor
+                          .withValues(alpha: 0.5),
+                      width: 1,
+                    ),
+                  ),
+                  padding: const EdgeInsets.all(SkeletonSpacing.spacing),
+                  width: mediaQuery.size.width * 0.8,
+                  height: suggestionHeight,
+                  child: SingleChildScrollView(
+                    child: Wrap(
+                        clipBehavior: Clip.hardEdge,
+                        spacing: SkeletonSpacing.smallSpacing,
+                        runSpacing: SkeletonSpacing.smallSpacing,
+                        children: List.generate(
+                          controller.suggestedTags.length,
+                          (index) {
+                            TagModel tag = controller.suggestedTags[index];
+                            return _buildSuggestedChip(tag.tag, tag.count);
+                          },
+                        )),
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Get.back(),
-            child: const Text("취소"),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              if (controller.addTagController.text.trim().isEmpty) {
-                AppSnackBar.show("오류", "태그를 입력해주세요");
-                return;
-              }
-              controller.addTag();
-              Get.back();
-            },
-            child: const Text("추가"),
-          ),
-        ],
       ),
+      actions: [
+        TextButton(
+          onPressed: () => Get.back(),
+          child: const Text("취소"),
+        ),
+        ElevatedButton(
+          onPressed: () {
+            if (controller.addTagController.text.trim().isEmpty) {
+              AppSnackBar.show("오류", "태그를 입력해주세요");
+              return;
+            }
+            controller.addTag();
+            Get.back();
+          },
+          child: const Text("추가"),
+        ),
+      ],
     );
   }
 
