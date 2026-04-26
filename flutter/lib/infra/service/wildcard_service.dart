@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:io';
-import 'dart:math';
 
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -13,10 +12,9 @@ class WildcardService {
   static const String _wildcardDirName = 'wildcards';
 
   final SharedPreferences _prefs;
-  final Random _random = Random();
 
   /// 메모리 캐시 (빠른 접근용)
-  Map<String, WildcardModel> _wildcardCache = {};
+  final Map<String, WildcardModel> _wildcardCache = {};
 
   WildcardService(this._prefs);
 
@@ -42,17 +40,41 @@ class WildcardService {
   Future<List<WildcardModel>> loadAllWildcards() async {
     final jsonList = _prefs.getStringList(_wildcardListKey) ?? [];
     final wildcards = <WildcardModel>[];
+    var migrated = false;
 
     for (final jsonStr in jsonList) {
       try {
         final json = jsonDecode(jsonStr) as Map<String, dynamic>;
-        final wildcard = WildcardModel.fromJson(json);
+        var wildcard = WildcardModel.fromJson(json);
+        final storedFilePath = wildcard.filePath;
+
+        if (storedFilePath != null && storedFilePath.isNotEmpty) {
+          final contentFile = await _resolveWildcardFile(storedFilePath);
+          if (await contentFile.exists()) {
+            final fileContent = await contentFile.readAsString();
+            wildcard =
+                WildcardModel.fromText(wildcard.name, fileContent).copyWith(
+              filePath: storedFilePath,
+              createdAt: wildcard.createdAt,
+              updatedAt: wildcard.updatedAt,
+              isEnabled: wildcard.isEnabled,
+            );
+          }
+        } else {
+          wildcard = await _writeWildcardFile(wildcard);
+          migrated = true;
+        }
+
         wildcards.add(wildcard);
         _wildcardCache[wildcard.name] = wildcard;
       } catch (e) {
         // 파싱 에러 무시
-        print('와일드카드 파싱 에러: $e');
+        stderr.writeln('와일드카드 파싱 에러: $e');
       }
+    }
+
+    if (migrated) {
+      await _saveWildcardList(wildcards);
     }
 
     return wildcards;
@@ -61,17 +83,19 @@ class WildcardService {
   /// 와일드카드 저장
   Future<void> saveWildcard(WildcardModel wildcard) async {
     final wildcards = await loadAllWildcards();
+    final savedWildcard = await _writeWildcardFile(wildcard);
 
     // 기존 항목 업데이트 또는 새로 추가
-    final existingIndex = wildcards.indexWhere((w) => w.name == wildcard.name);
+    final existingIndex =
+        wildcards.indexWhere((w) => w.name == savedWildcard.name);
     if (existingIndex >= 0) {
-      wildcards[existingIndex] = wildcard;
+      wildcards[existingIndex] = savedWildcard;
     } else {
-      wildcards.add(wildcard);
+      wildcards.add(savedWildcard);
     }
 
     // 캐시 업데이트
-    _wildcardCache[wildcard.name] = wildcard;
+    _wildcardCache[savedWildcard.name] = savedWildcard;
 
     // 저장
     await _saveWildcardList(wildcards);
@@ -80,15 +104,65 @@ class WildcardService {
   /// 와일드카드 삭제
   Future<void> deleteWildcard(String name) async {
     final wildcards = await loadAllWildcards();
+    final target = wildcards.firstWhere((w) => w.name == name,
+        orElse: () => WildcardModel.fromText(name, ''));
     wildcards.removeWhere((w) => w.name == name);
     _wildcardCache.remove(name);
+    if (target.filePath != null) {
+      final file = await _resolveWildcardFile(target.filePath!);
+      if (await file.exists()) {
+        await file.delete();
+      }
+    }
     await _saveWildcardList(wildcards);
   }
 
   /// 와일드카드 목록을 SharedPreferences에 저장
   Future<void> _saveWildcardList(List<WildcardModel> wildcards) async {
-    final jsonList = wildcards.map((w) => jsonEncode(w.toJson())).toList();
+    final savedWildcards = <WildcardModel>[];
+    for (final wildcard in wildcards) {
+      savedWildcards.add(await _writeWildcardFile(wildcard));
+    }
+
+    final jsonList =
+        savedWildcards.map((w) => jsonEncode(_toMetadataJson(w))).toList();
     await _prefs.setStringList(_wildcardListKey, jsonList);
+  }
+
+  Map<String, dynamic> _toMetadataJson(WildcardModel wildcard) {
+    return {
+      'name': wildcard.name,
+      'weightedOptions': const [],
+      'options': const [],
+      'filePath': wildcard.filePath,
+      'createdAt': wildcard.createdAt.toIso8601String(),
+      'updatedAt': wildcard.updatedAt.toIso8601String(),
+      'isEnabled': wildcard.isEnabled,
+    };
+  }
+
+  Future<WildcardModel> _writeWildcardFile(WildcardModel wildcard) async {
+    final relativePath =
+        wildcard.filePath ?? '${_sanitizeFileName(wildcard.name)}.txt';
+    final file = await _resolveWildcardFile(relativePath);
+    if (!await file.parent.exists()) {
+      await file.parent.create(recursive: true);
+    }
+    await file.writeAsString(wildcard.toText());
+    return wildcard.copyWith(
+      filePath: relativePath,
+      createdAt: wildcard.createdAt,
+      updatedAt: wildcard.updatedAt,
+    );
+  }
+
+  Future<File> _resolveWildcardFile(String relativePath) async {
+    final dir = await _wildcardDirectory;
+    return File('${dir.path}/${relativePath.split('/').last}');
+  }
+
+  String _sanitizeFileName(String name) {
+    return name.replaceAll(RegExp(r'[^a-zA-Z0-9_]'), '_');
   }
 
   /// 이름으로 와일드카드 조회
@@ -187,7 +261,9 @@ class WildcardService {
   /// 없는 와일드카드 이름 목록 반환
   List<String> validatePrompt(String prompt) {
     final usedNames = extractWildcardNames(prompt);
-    return usedNames.where((name) => !_wildcardCache.containsKey(name)).toList();
+    return usedNames
+        .where((name) => !_wildcardCache.containsKey(name))
+        .toList();
   }
 
   // ============================================================
