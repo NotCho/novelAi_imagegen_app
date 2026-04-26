@@ -132,6 +132,23 @@ class _WildcardTextFieldState extends State<WildcardTextField> {
     _highlightController.addListener(_syncToOriginal);
   }
 
+  @override
+  void didUpdateWidget(covariant WildcardTextField oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.controller != oldWidget.controller) {
+      // 이전 컨트롤러에서 리스너 제거
+      oldWidget.controller.removeListener(_syncFromOriginal);
+      
+      // 새 컨트롤러에 리스너 등록
+      widget.controller.addListener(_syncFromOriginal);
+      
+      // 하이라이트 컨트롤러 텍스트 업데이트
+      if (_highlightController.text != widget.controller.text) {
+        _highlightController.text = widget.controller.text;
+      }
+    }
+  }
+
   void _syncFromOriginal() {
     if (_highlightController.text != widget.controller.text) {
       _highlightController.text = widget.controller.text;

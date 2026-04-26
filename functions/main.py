@@ -14,7 +14,7 @@ def get_novelai_key(req: https_fn.Request) -> https_fn.Response:
 
     if req.method == 'OPTIONS':
         return https_fn.Response('', status=200, headers={
-        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Origin': '*', 
         'Access-Control-Allow-Methods': 'POST, OPTIONS', 
         'Access-Control-Allow-Headers': 'Content-Type'
     })
