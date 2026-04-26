@@ -7,6 +7,29 @@ import '../../application/home/home_page_controller.dart';
 import '../core/util/components.dart';
 import '../core/util/design_system.dart';
 
+class _PresetMenuItem extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final Color color;
+
+  const _PresetMenuItem({
+    required this.icon,
+    required this.label,
+    this.color = SkeletonColorScheme.textColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Icon(icon, color: color, size: 18),
+        const SizedBox(width: 8),
+        Text(label, style: TextStyle(color: color)),
+      ],
+    );
+  }
+}
+
 class HomeSetting extends GetView<HomePageController> {
   HomeSetting({super.key});
 
@@ -16,6 +39,408 @@ class HomeSetting extends GetView<HomePageController> {
   @override
   Widget build(BuildContext context) {
     return settings();
+  }
+
+  Widget _buildPresetManager() {
+    final selectedPreset = homeSettingController.selectedPreset.value;
+    final hasSelection = selectedPreset.isNotEmpty &&
+        homeSettingController.presetMap.containsKey(selectedPreset);
+
+    return SettingsCard(
+      title: '프리셋 관리',
+      icon: Icons.save,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 10,
+                  ),
+                  decoration: BoxDecoration(
+                    color: SkeletonColorScheme.cardColor,
+                    borderRadius: BorderRadius.circular(
+                      SkeletonSpacing.borderRadius / 2,
+                    ),
+                    border: Border.all(
+                      color: SkeletonColorScheme.surfaceColor,
+                    ),
+                  ),
+                  child: Text(
+                    hasSelection ? selectedPreset : '선택된 프리셋 없음',
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: hasSelection
+                          ? SkeletonColorScheme.textColor
+                          : SkeletonColorScheme.textSecondaryColor,
+                      fontWeight:
+                          hasSelection ? FontWeight.w700 : FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: SkeletonSpacing.smallSpacing),
+              _presetActionButton(
+                icon: Icons.add,
+                label: '새 저장',
+                onTap: _showCreatePresetDialog,
+              ),
+              const SizedBox(width: SkeletonSpacing.smallSpacing),
+              _presetActionButton(
+                icon: Icons.save_as,
+                label: '덮어쓰기',
+                enabled: hasSelection,
+                onTap: () => _showOverwritePresetDialog(selectedPreset),
+              ),
+            ],
+          ),
+          const SizedBox(height: SkeletonSpacing.spacing),
+          if (homeSettingController.presetMap.isEmpty)
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: SkeletonColorScheme.cardColor.withValues(alpha: 0.5),
+                borderRadius: BorderRadius.circular(
+                  SkeletonSpacing.borderRadius / 2,
+                ),
+              ),
+              child: const Text(
+                '저장된 프리셋이 없습니다.',
+                style: TextStyle(
+                  color: SkeletonColorScheme.textSecondaryColor,
+                  fontSize: 12,
+                ),
+              ),
+            )
+          else
+            Wrap(
+              spacing: SkeletonSpacing.smallSpacing,
+              runSpacing: SkeletonSpacing.smallSpacing,
+              children: [
+                for (final presetName in homeSettingController.presetMap.keys)
+                  _buildPresetChip(presetName),
+              ],
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _presetActionButton({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+    bool enabled = true,
+  }) {
+    final color = enabled
+        ? SkeletonColorScheme.primaryColor
+        : SkeletonColorScheme.textSecondaryColor;
+
+    return InkWell(
+      onTap: enabled ? onTap : null,
+      borderRadius: BorderRadius.circular(SkeletonSpacing.borderRadius / 2),
+      child: Container(
+        height: 40,
+        padding: const EdgeInsets.symmetric(horizontal: 10),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: enabled ? 0.22 : 0.08),
+          borderRadius: BorderRadius.circular(SkeletonSpacing.borderRadius / 2),
+          border: Border.all(color: color.withValues(alpha: 0.35)),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, color: color, size: 16),
+            const SizedBox(width: 4),
+            Text(
+              label,
+              style: TextStyle(
+                color: color,
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPresetChip(String presetName) {
+    final isSelected = homeSettingController.selectedPreset.value == presetName;
+    final Color color = isSelected
+        ? SkeletonColorScheme.primaryColor
+        : SkeletonColorScheme.surfaceColor;
+
+    return Container(
+      constraints: const BoxConstraints(maxWidth: 180),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: isSelected ? 0.36 : 0.8),
+        borderRadius: BorderRadius.circular(SkeletonSpacing.borderRadius / 2),
+        border: Border.all(
+          color: isSelected
+              ? SkeletonColorScheme.primaryColor
+              : SkeletonColorScheme.surfaceColor,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          InkWell(
+            onTap: () => _showLoadPresetDialog(presetName),
+            borderRadius: BorderRadius.circular(
+              SkeletonSpacing.borderRadius / 2,
+            ),
+            child: Padding(
+              padding: const EdgeInsets.only(left: 10, top: 8, bottom: 8, right: 8),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    isSelected ? Icons.radio_button_checked : Icons.tune,
+                    color: isSelected
+                        ? SkeletonColorScheme.primaryColor
+                        : SkeletonColorScheme.textSecondaryColor,
+                    size: 14,
+                  ),
+                  const SizedBox(width: 6),
+                  ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 108),
+                    child: Text(
+                      presetName,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: SkeletonColorScheme.textColor,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          Container(
+            width: 20,
+            height: 36,
+            decoration: BoxDecoration(
+              color: SkeletonColorScheme.cardColor.withValues(alpha: 0.35),
+              border: Border(
+                left: BorderSide(
+                  color:
+                      SkeletonColorScheme.primaryColor.withValues(alpha: 0.45),
+                ),
+              ),
+            ),
+            child: PopupMenuButton<String>(
+              padding: EdgeInsets.zero,
+              icon: const Icon(
+                Icons.more_vert,
+                color: SkeletonColorScheme.textSecondaryColor,
+                size: 18,
+              ),
+              color: SkeletonColorScheme.cardColor,
+              onSelected: (value) {
+                switch (value) {
+                  case 'load':
+                    _showLoadPresetDialog(presetName);
+                    break;
+                  case 'overwrite':
+                    _showOverwritePresetDialog(presetName);
+                    break;
+                  case 'rename':
+                    _showRenamePresetDialog(presetName);
+                    break;
+                  case 'delete':
+                    _showDeletePresetDialog(presetName);
+                    break;
+                }
+              },
+              itemBuilder: (context) => const [
+                PopupMenuItem(
+                  value: 'load',
+                  child: _PresetMenuItem(icon: Icons.download, label: '불러오기'),
+                ),
+                PopupMenuItem(
+                  value: 'overwrite',
+                  child: _PresetMenuItem(icon: Icons.save_as, label: '덮어쓰기'),
+                ),
+                PopupMenuItem(
+                  value: 'rename',
+                  child: _PresetMenuItem(
+                      icon: Icons.drive_file_rename_outline, label: '이름 변경'),
+                ),
+                PopupMenuItem(
+                  value: 'delete',
+                  child: _PresetMenuItem(
+                    icon: Icons.delete_outline,
+                    label: '삭제',
+                    color: SkeletonColorScheme.negativeColor,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showCreatePresetDialog() {
+    Get.closeAllSnackbars();
+    final nameController = TextEditingController();
+
+    Get.dialog(
+      AlertDialog(
+        backgroundColor: SkeletonColorScheme.cardColor,
+        title: const Text(
+          '새 프리셋 저장',
+          style: TextStyle(color: SkeletonColorScheme.textColor),
+        ),
+        content: _presetNameField(nameController, '프리셋 이름'),
+        actions: [
+          TextButton(onPressed: () => Get.back(), child: const Text('취소')),
+          TextButton(
+            onPressed: () {
+              final name = nameController.text.trim();
+              if (name.isNotEmpty) {
+                controller.savePreset(name);
+              }
+            },
+            child: const Text('저장'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showLoadPresetDialog(String presetName) {
+    Get.closeAllSnackbars();
+    Get.dialog(
+      AlertDialog(
+        backgroundColor: SkeletonColorScheme.cardColor,
+        title: const Text(
+          '프리셋 불러오기',
+          style: TextStyle(color: SkeletonColorScheme.textColor),
+        ),
+        content: Text(
+          '$presetName 프리셋을 불러올까요?',
+          style: const TextStyle(color: SkeletonColorScheme.textSecondaryColor),
+        ),
+        actions: [
+          TextButton(onPressed: () => Get.back(), child: const Text('취소')),
+          TextButton(
+            onPressed: () => controller.loadPreset(presetName),
+            child: const Text('불러오기'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showOverwritePresetDialog(String presetName) {
+    Get.closeAllSnackbars();
+    Get.dialog(
+      AlertDialog(
+        backgroundColor: SkeletonColorScheme.cardColor,
+        title: const Text(
+          '프리셋 덮어쓰기',
+          style: TextStyle(color: SkeletonColorScheme.textColor),
+        ),
+        content: Text(
+          '$presetName 프리셋을 현재 설정으로 덮어쓸까요?',
+          style: const TextStyle(color: SkeletonColorScheme.textSecondaryColor),
+        ),
+        actions: [
+          TextButton(onPressed: () => Get.back(), child: const Text('취소')),
+          TextButton(
+            onPressed: () {
+              Get.back();
+              controller.overwritePreset(presetName);
+            },
+            child: const Text('덮어쓰기'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showRenamePresetDialog(String presetName) {
+    Get.closeAllSnackbars();
+    final nameController = TextEditingController(text: presetName);
+
+    Get.dialog(
+      AlertDialog(
+        backgroundColor: SkeletonColorScheme.cardColor,
+        title: const Text(
+          '프리셋 이름 변경',
+          style: TextStyle(color: SkeletonColorScheme.textColor),
+        ),
+        content: _presetNameField(nameController, '새 이름'),
+        actions: [
+          TextButton(onPressed: () => Get.back(), child: const Text('취소')),
+          TextButton(
+            onPressed: () async {
+              final newName = nameController.text.trim();
+              await homeSettingController.renamePreset(presetName, newName);
+              Get.back();
+            },
+            child: const Text('변경'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showDeletePresetDialog(String presetName) {
+    Get.closeAllSnackbars();
+    Get.dialog(
+      AlertDialog(
+        backgroundColor: SkeletonColorScheme.cardColor,
+        title: const Text(
+          '프리셋 삭제',
+          style: TextStyle(color: SkeletonColorScheme.textColor),
+        ),
+        content: Text(
+          '$presetName 프리셋을 삭제할까요?',
+          style: const TextStyle(color: SkeletonColorScheme.textSecondaryColor),
+        ),
+        actions: [
+          TextButton(onPressed: () => Get.back(), child: const Text('취소')),
+          TextButton(
+            onPressed: () => homeSettingController.deletePreset(presetName),
+            child: const Text('삭제'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _presetNameField(
+    TextEditingController nameController,
+    String hintText,
+  ) {
+    return TextField(
+      controller: nameController,
+      autofocus: true,
+      style: const TextStyle(color: SkeletonColorScheme.textColor),
+      decoration: InputDecoration(
+        hintText: hintText,
+        hintStyle: const TextStyle(
+          color: SkeletonColorScheme.textSecondaryColor,
+        ),
+        enabledBorder: const UnderlineInputBorder(
+          borderSide: BorderSide(color: SkeletonColorScheme.surfaceColor),
+        ),
+        focusedBorder: const UnderlineInputBorder(
+          borderSide: BorderSide(color: SkeletonColorScheme.primaryColor),
+        ),
+      ),
+    );
   }
 
   Widget settings() {
@@ -55,211 +480,14 @@ class HomeSetting extends GetView<HomePageController> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 설정 타이틀
-          Obx(
-            () => SettingsCard(
-              title:
-                  '최근 프리셋: ${(controller.homeSettingController.selectedPreset.value.isNotEmpty) ? controller.homeSettingController.selectedPreset.value : "없음"}',
-              icon: Icons.save,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // 프리셋 버튼들 표시
-                  Obx(() => Wrap(
-                        spacing: SkeletonSpacing.smallSpacing,
-                        runSpacing: SkeletonSpacing.smallSpacing,
-                        children: [
-                          // 저장된 프리셋 버튼들
-                          for (final presetName in controller
-                              .homeSettingController.presetMap.keys)
-                            GestureDetector(
-                              onLongPress: () {
-                                // 프리셋 삭제 다이얼로그 표시
-                                Get.closeAllSnackbars();
-
-                                Get.dialog(
-                                  AlertDialog(
-                                    backgroundColor:
-                                        SkeletonColorScheme.cardColor,
-                                    title: const Text('프리셋 삭제',
-                                        style: TextStyle(
-                                            color:
-                                                SkeletonColorScheme.textColor)),
-                                    content: RichText(
-                                      text: TextSpan(
-                                        text: presetName,
-                                        style: const TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 16,
-                                          color: SkeletonColorScheme.textColor,
-                                        ),
-                                        children: const [
-                                          TextSpan(
-                                            text: ' 프리셋을 삭제할까요?',
-                                            style: TextStyle(
-                                              fontWeight: FontWeight.normal,
-                                              fontSize: 14,
-                                              color: SkeletonColorScheme
-                                                  .textSecondaryColor,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    actions: [
-                                      TextButton(
-                                        onPressed: () => Get.back(),
-                                        child: const Text('취소'),
-                                      ),
-                                      TextButton(
-                                        onPressed: () {
-                                          controller.homeSettingController
-                                              .deletePreset(presetName);
-                                        },
-                                        child: const Text('삭제'),
-                                      ),
-                                    ],
-                                  ),
-                                );
-                              },
-                              onTap: () {
-                                Get.closeAllSnackbars();
-                                Get.dialog(
-                                  AlertDialog(
-                                    backgroundColor:
-                                        SkeletonColorScheme.cardColor,
-                                    title: const Text('프리셋 로드',
-                                        style: TextStyle(
-                                            color:
-                                                SkeletonColorScheme.textColor)),
-                                    content: RichText(
-                                      text: TextSpan(
-                                        text: presetName,
-                                        style: const TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 16,
-                                          color: SkeletonColorScheme.textColor,
-                                        ),
-                                        children: const [
-                                          TextSpan(
-                                            text: ' 프리셋을 불러올까요?',
-                                            style: TextStyle(
-                                              fontWeight: FontWeight.normal,
-                                              fontSize: 14,
-                                              color: SkeletonColorScheme
-                                                  .textSecondaryColor,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    actions: [
-                                      TextButton(
-                                        onPressed: () => Get.back(),
-                                        child: const Text('취소'),
-                                      ),
-                                      TextButton(
-                                        onPressed: () {
-                                          controller.loadPreset(presetName);
-                                        },
-                                        child: const Text('불러오기'),
-                                      ),
-                                    ],
-                                  ),
-                                );
-                              },
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 12, vertical: 8),
-                                decoration: BoxDecoration(
-                                  color: (controller.homeSettingController
-                                              .selectedPreset.value ==
-                                          presetName)
-                                      ? SkeletonColorScheme.primaryColor
-                                          .withValues(alpha: 0.5)
-                                      : SkeletonColorScheme.primaryColor
-                                          .withValues(alpha: 0.2),
-                                  borderRadius: BorderRadius.circular(
-                                      SkeletonSpacing.borderRadius / 2),
-                                  border: Border.all(
-                                    color: SkeletonColorScheme.primaryColor
-                                        .withValues(alpha: 0.3),
-                                    width: 1,
-                                  ),
-                                ),
-                                child: Text(presetName,
-                                    style: const TextStyle(
-                                        fontSize: 12,
-                                        color: SkeletonColorScheme.textColor)),
-                              ),
-                            ),
-
-                          // 새 프리셋 추가 버튼
-                          GestureDetector(
-                            onTap: () {
-                              Get.closeAllSnackbars();
-
-                              // 텍스트 컨트롤러 생성
-                              final TextEditingController nameController =
-                                  TextEditingController();
-
-                              // 새 프리셋 이름을 입력받는 다이얼로그 표시
-                              Get.dialog(
-                                AlertDialog(
-                                  title: const Text('새 프리셋 이름'),
-                                  content: TextField(
-                                    controller: nameController,
-                                    // 여기서 직접 컨트롤러 사용
-                                    decoration: const InputDecoration(
-                                      hintText: '프리셋 이름을 입력하세요',
-                                    ),
-                                    autofocus: true,
-                                  ),
-                                  actions: [
-                                    TextButton(
-                                      onPressed: () => Get.back(),
-                                      child: const Text('취소'),
-                                    ),
-                                    TextButton(
-                                      onPressed: () {
-                                        final name = nameController.text.trim();
-                                        if (name.isNotEmpty) {
-                                          controller.savePreset(name);
-                                        }
-                                      },
-                                      child: const Text('저장'),
-                                    ),
-                                  ],
-                                ),
-                              );
-                            },
-                            child: Container(
-                                padding: const EdgeInsets.all(10),
-                                decoration: BoxDecoration(
-                                  color: SkeletonColorScheme.primaryColor
-                                      .withValues(alpha: 0.9),
-                                  borderRadius: BorderRadius.circular(
-                                      SkeletonSpacing.borderRadius / 2),
-                                ),
-                                child: const Icon(
-                                  size: 16,
-                                  Icons.add,
-                                  color: SkeletonColorScheme.textColor,
-                                )),
-                          ),
-                        ],
-                      )),
-                ],
-              ),
-            ),
-          ),
+          Obx(() => _buildPresetManager()),
           InkWell(
             child: Container(
-              padding: EdgeInsets.all(8),
+              padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: SkeletonColorScheme.primaryColor.withValues(alpha: 0.3),
-                borderRadius: BorderRadius.circular(12)
-              ),
+                  color:
+                      SkeletonColorScheme.primaryColor.withValues(alpha: 0.3),
+                  borderRadius: BorderRadius.circular(12)),
               child: Text(
                 "와일드카드 설정",
                 style: SkeletonTextTheme.listTitle,

@@ -304,6 +304,63 @@ class HomeSettingController extends SkeletonController {
     }
   }
 
+  void overwritePreset(String presetName, df.DiffusionModel setting) {
+    if (!presetMap.containsKey(presetName)) {
+      AppSnackBar.show(
+        '프리셋 없음',
+        '$presetName 프리셋이 존재하지 않습니다.',
+        backgroundColor: Colors.orange,
+        textColor: Colors.white,
+      );
+      return;
+    }
+
+    selectedPreset.value = presetName;
+    _savePresetFinal(presetName, setting, jsonEncode(setting.toJson()));
+  }
+
+  Future<void> renamePreset(String oldName, String newName) async {
+    final normalizedName = newName.trim();
+    if (normalizedName.isEmpty || normalizedName == oldName) {
+      return;
+    }
+
+    if (!presetMap.containsKey(oldName)) {
+      AppSnackBar.show(
+        '프리셋 없음',
+        '$oldName 프리셋이 존재하지 않습니다.',
+        backgroundColor: Colors.orange,
+        textColor: Colors.white,
+      );
+      return;
+    }
+
+    if (presetMap.containsKey(normalizedName)) {
+      AppSnackBar.show(
+        '이름 중복',
+        '$normalizedName 프리셋이 이미 존재합니다.',
+        backgroundColor: Colors.orange,
+        textColor: Colors.white,
+      );
+      return;
+    }
+
+    final presetJson = prefs.getString("preset_$oldName");
+    final setting = presetMap[oldName];
+    if (presetJson == null || setting == null) {
+      return;
+    }
+
+    await prefs.setString("preset_$normalizedName", presetJson);
+    await prefs.remove("preset_$oldName");
+    presetMap.remove(oldName);
+    presetMap[normalizedName] = setting;
+
+    if (selectedPreset.value == oldName) {
+      selectedPreset.value = normalizedName;
+    }
+  }
+
   df.DiffusionModel? loadPreset(String presetName) {
     Get.back();
 
@@ -414,8 +471,7 @@ class HomeSettingController extends SkeletonController {
             final setting = df.DiffusionModel.fromJson(data);
             presetMap[presetName] = setting;
           }
-        } catch (e) {
-        }
+        } catch (e) {}
       }
     }
   }

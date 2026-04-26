@@ -45,12 +45,11 @@ class HomePage extends GetView<HomePageController> {
                     isLeftIconDisplayed: false,
                     customAction: Expanded(
                       child: Padding(
-                          padding: EdgeInsets.all(
-                              SkeletonSpacing.smallSpacing),
+                          padding: EdgeInsets.all(SkeletonSpacing.smallSpacing),
                           child: HomeAppBar()),
                     ),
                   ),
-                  resizeToAvoidBottomInset: true,
+                  resizeToAvoidBottomInset: false,
                   bodyPadding: EdgeInsets.zero,
                   withNavBar: true,
                   navBar: SafeArea(
@@ -68,12 +67,6 @@ class HomePage extends GetView<HomePageController> {
                   ),
                 ),
               ),
-            ),
-            SizedBox(
-              height: MediaQuery.of(context).viewInsets.bottom > 0
-                  ? MediaQuery.of(context).viewInsets.bottom
-                  : 0,
-              child: const SizedBox(),
             ),
           ],
         ),
@@ -352,8 +345,8 @@ class HomePage extends GetView<HomePageController> {
               width: 1,
             ),
           ),
-          child: Obx(()=>
-             Row(
+          child: Obx(
+            () => Row(
               children: [
                 Icon(
                   controller.isPanelExpanded.value
@@ -394,7 +387,7 @@ class HomePage extends GetView<HomePageController> {
               ),
               margin: const EdgeInsets.all(SkeletonSpacing.smallSpacing),
               child: TabBar(
-                tabAlignment:  TabAlignment.center,
+                tabAlignment: TabAlignment.center,
                 isScrollable: true,
                 tabs: [
                   _buildTab(
