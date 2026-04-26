@@ -180,6 +180,46 @@
         ]
       }
     ]
+  },
+  "1.4.0": {
+    "version": "1.4.0",
+    "date": "2026-04-26",
+    "changes": [
+      {
+        "type": "feature",
+        "category": "와일드카드",
+        "description": "와일드카드 관리와 저장 안정성을 개선했어요.",
+        "details": [
+          "와일드카드 본문을 앱 내부 txt 파일로 저장해 큰 파일 사용 시 안정성을 높였어요.",
+          "가중치 형식(option: weight)이 편집과 미리보기에서 유지돼요."
+        ]
+      },
+      {
+        "type": "feature",
+        "category": "저장",
+        "description": "이미지 저장 경로를 설정할 수 있어요.",
+        "details": [
+          "설정 화면에서 저장 경로를 선택하거나 기본 갤러리 저장으로 되돌릴 수 있어요.",
+          "Android에서는 MediaStore를 사용해 선택한 폴더명 기준으로 안정적으로 저장해요."
+        ]
+      },
+      {
+        "type": "enhancement",
+        "category": "UI/UX",
+        "description": "프리셋 관리와 프롬프트 입력 화면을 더 편하게 다듬었어요.",
+        "details": [
+          "프리셋 덮어쓰기, 이름 변경, 삭제 흐름을 정리했어요.",
+          "키보드가 열릴 때 입력창이 과하게 재배치되는 문제를 줄였어요."
+        ]
+      },
+      {
+        "type": "bugfix",
+        "category": "모델 호환성",
+        "description": "모델 버전에 맞지 않는 레퍼런스 기능이 요청에 포함되지 않도록 수정했어요.",
+        "details": [
+          "Vibe Transfer는 v4 이상, Character Reference는 v4.5 이상에서만 요청에 포함돼요."
+        ]
+      }
+    ]
   }
 }
-
