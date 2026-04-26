@@ -8,6 +8,7 @@ import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'package:naiapp/application/core/router.dart';
 import 'package:naiapp/application/function/remote_config_service.dart';
+import 'package:naiapp/application/setting/setting_page_controller.dart';
 import 'package:open_filex/open_filex.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
@@ -120,7 +121,8 @@ class GlobalController extends GetxController {
 
     final changelogText = info.changelog.trim();
     if (kDebugMode) {
-      print('업데이트 다이얼로그 - changelog: ${changelogText.isEmpty ? "(비어있음)" : changelogText}');
+      print(
+          '업데이트 다이얼로그 - changelog: ${changelogText.isEmpty ? "(비어있음)" : changelogText}');
     }
 
     Get.dialog(
@@ -188,26 +190,26 @@ class GlobalController extends GetxController {
 
     try {
       _downloadedApkPath = await _downloadApkFile(url);
-      
+
       // 다운로드 완료 후 다이얼로그 닫기
       if (Get.isDialogOpen ?? false) {
         Get.back();
       }
-      
+
       await _installApk(_downloadedApkPath!);
     } catch (e, stackTrace) {
       debugPrint('APK 다운로드/설치 실패: $e\n$stackTrace');
-      
+
       // 에러 발생 시 다이얼로그 닫기
       if (Get.isDialogOpen ?? false) {
         Get.back();
       }
-      
+
       _showSnackBar('업데이트 실패', '다운로드 중 문제가 발생했습니다. 잠시 후 다시 시도해주세요.');
     } finally {
       _isDownloadingUpdate.value = false;
       _downloadProgress.value = 0.0;
-      
+
       // 혹시 남아있는 다이얼로그 닫기
       if (Get.isDialogOpen ?? false) {
         Get.back();
@@ -336,7 +338,7 @@ class _DownloadProgressDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final controller = Get.find<GlobalController>();
-    
+
     return Dialog(
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(SkeletonSpacing.borderRadius),
@@ -368,12 +370,12 @@ class _DownloadProgressDialog extends StatelessWidget {
               ],
             ),
             const SizedBox(height: SkeletonSpacing.spacing),
-            
+
             // 진행도 표시
             Obx(() {
               final progress = controller.downloadProgress;
               final percentage = (progress * 100).toStringAsFixed(1);
-              
+
               return Column(
                 children: [
                   // 진행률 텍스트
@@ -384,21 +386,22 @@ class _DownloadProgressDialog extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: SkeletonSpacing.smallSpacing),
-                  
+
                   // 진행률 바
                   ClipRRect(
                     borderRadius: BorderRadius.circular(8),
                     child: LinearProgressIndicator(
                       value: progress,
                       minHeight: 8,
-                      backgroundColor: SkeletonColorScheme.surfaceColor.withValues(alpha: 0.3),
+                      backgroundColor: SkeletonColorScheme.surfaceColor
+                          .withValues(alpha: 0.3),
                       valueColor: const AlwaysStoppedAnimation<Color>(
                         SkeletonColorScheme.primaryColor,
                       ),
                     ),
                   ),
                   const SizedBox(height: SkeletonSpacing.smallSpacing),
-                  
+
                   // 상태 텍스트
                   Text(
                     progress >= 1.0 ? '다운로드 완료' : '다운로드 중...',
@@ -543,18 +546,17 @@ class _UpdateDialog extends StatelessWidget {
                 color: SkeletonColorScheme.surfaceColor.withValues(alpha: 0.3),
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(
-                  color: SkeletonColorScheme.surfaceColor.withValues(alpha: 0.5),
+                  color:
+                      SkeletonColorScheme.surfaceColor.withValues(alpha: 0.5),
                   width: 1,
                 ),
               ),
               child: SingleChildScrollView(
                 child: Text(
-                  changelog.isNotEmpty 
-                      ? changelog 
-                      : '변경 사항이 없습니다.',
+                  changelog.isNotEmpty ? changelog : '변경 사항이 없습니다.',
                   style: SkeletonTextTheme.newBody14.copyWith(
-                    color: changelog.isNotEmpty 
-                        ? SkeletonColorScheme.textColor 
+                    color: changelog.isNotEmpty
+                        ? SkeletonColorScheme.textColor
                         : SkeletonColorScheme.textSecondaryColor,
                     height: 1.5,
                   ),
@@ -618,15 +620,21 @@ class _UpdateDialog extends StatelessWidget {
 
 extension GlobalControllerExtensions on GlobalController {
   Future<void> saveMultipleImages(List<Uint8List> imageBytesList) async {
+    final prefs = Get.find<SharedPreferences>();
     await ExifPreservingImageSaver().saveMultipleImagesWithExif(imageBytesList,
-        saveInPng: Get.find<SharedPreferences>().getBool('pngMode') ?? true);
+        saveInPng: prefs.getBool('pngMode') ?? true,
+        customDirectoryPath:
+            prefs.getString(SettingPageController.saveDirectoryPathKey));
   }
 
   Future<void> saveImageWithMetadata(Uint8List imageBytes) async {
     final imageName = "novelai_${DateTime.now().millisecondsSinceEpoch}";
+    final prefs = Get.find<SharedPreferences>();
     await ExifPreservingImageSaver().saveImageWithExif(imageBytes,
         customName: imageName,
-        saveInPng: Get.find<SharedPreferences>().getBool('pngMode') ?? true);
+        saveInPng: prefs.getBool('pngMode') ?? true,
+        customDirectoryPath:
+            prefs.getString(SettingPageController.saveDirectoryPathKey));
   }
 
   Map<String, String> extractPngTextChunks(Uint8List bytes) {

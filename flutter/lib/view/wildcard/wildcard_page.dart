@@ -150,9 +150,9 @@ class WildcardPage extends GetView<WildcardController> {
           // 헤더
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
               color: SkeletonColorScheme.surfaceColor,
-              borderRadius: const BorderRadius.only(
+              borderRadius: BorderRadius.only(
                 topLeft: Radius.circular(SkeletonSpacing.borderRadius - 1),
                 topRight: Radius.circular(SkeletonSpacing.borderRadius - 1),
               ),
@@ -176,7 +176,6 @@ class WildcardPage extends GetView<WildcardController> {
                 // 이름 (복사 가능)
                 Expanded(
                   child: GestureDetector(
-
                     onTap: () => _copyWildcardName(wildcard.name),
                     child: Padding(
                       padding: const EdgeInsets.all(8.0),
@@ -290,13 +289,13 @@ class WildcardPage extends GetView<WildcardController> {
               ],
             ),
           ),
-          // 옵션 미리보기 (최대 3개)
+          // 옵션 미리보기 (최대 5개)
           Padding(
             padding: const EdgeInsets.all(16),
             child: Wrap(
               spacing: 8,
               runSpacing: 8,
-              children: wildcard.options.take(5).map((option) {
+              children: wildcard.weightedOptions.take(5).map((option) {
                 return Container(
                   padding:
                       const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
@@ -305,7 +304,7 @@ class WildcardPage extends GetView<WildcardController> {
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: Text(
-                    option,
+                    option.toText(),
                     style: const TextStyle(
                       color: SkeletonColorScheme.textColor,
                       fontSize: 12,
@@ -401,6 +400,11 @@ class WildcardPage extends GetView<WildcardController> {
                 '• 카드를 탭하면 이름이 복사돼요\n• 한 줄 = 하나의 옵션\n• 중첩 와일드카드도 지원해요',
                 style: TextStyle(color: SkeletonColorScheme.textSecondaryColor),
               ),
+              SizedBox(height: 8),
+              Text(
+                '• option: 200 처럼 쓰면 가중치가 적용돼요\n• 이름은 영문, 숫자, _ 만 인식돼요',
+                style: TextStyle(color: SkeletonColorScheme.textSecondaryColor),
+              ),
             ],
           ),
         ),
@@ -470,7 +474,7 @@ class WildcardPage extends GetView<WildcardController> {
                   labelText: '옵션 (한 줄에 하나씩)',
                   labelStyle: const TextStyle(
                       color: SkeletonColorScheme.textSecondaryColor),
-                  hintText: 'black hair\nblonde hair\nsilver hair',
+                  hintText: 'black hair: 150\nblonde hair\nsilver hair: 80',
                   hintStyle: const TextStyle(
                       color: SkeletonColorScheme.textSecondaryColor),
                   enabledBorder: OutlineInputBorder(
@@ -515,8 +519,7 @@ class WildcardPage extends GetView<WildcardController> {
 
   /// 편집 다이얼로그
   void _showEditDialog(WildcardModel wildcard) {
-    final contentController =
-        TextEditingController(text: wildcard.options.join('\n'));
+    final contentController = TextEditingController(text: wildcard.toText());
 
     Get.dialog(
       AlertDialog(
@@ -533,27 +536,52 @@ class WildcardPage extends GetView<WildcardController> {
         ),
         content: SizedBox(
           width: double.maxFinite,
-          child: TextField(
-            controller: contentController,
-            style: const TextStyle(color: SkeletonColorScheme.textColor),
-            maxLines: 10,
-            decoration: InputDecoration(
-              labelText: '옵션 (한 줄에 하나씩)',
-              labelStyle: const TextStyle(
-                  color: SkeletonColorScheme.textSecondaryColor),
-              enabledBorder: OutlineInputBorder(
-                borderRadius:
-                    BorderRadius.circular(SkeletonSpacing.borderRadius),
-                borderSide:
-                    const BorderSide(color: SkeletonColorScheme.surfaceColor),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (wildcard.optionCount > 500)
+                Container(
+                  width: double.infinity,
+                  margin: const EdgeInsets.only(bottom: 12),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  decoration: BoxDecoration(
+                    color:
+                        SkeletonColorScheme.primaryColor.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    '${wildcard.optionCount}개 항목을 편집 중입니다. 저장 시 앱 내부 txt 파일로 보관돼요.',
+                    style: const TextStyle(
+                      color: SkeletonColorScheme.primaryColor,
+                      fontSize: 12,
+                    ),
+                  ),
+                ),
+              TextField(
+                controller: contentController,
+                style: const TextStyle(color: SkeletonColorScheme.textColor),
+                minLines: 8,
+                maxLines: 14,
+                decoration: InputDecoration(
+                  labelText: '옵션 (한 줄에 하나씩, option: 가중치)',
+                  labelStyle: const TextStyle(
+                      color: SkeletonColorScheme.textSecondaryColor),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius:
+                        BorderRadius.circular(SkeletonSpacing.borderRadius),
+                    borderSide: const BorderSide(
+                        color: SkeletonColorScheme.surfaceColor),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius:
+                        BorderRadius.circular(SkeletonSpacing.borderRadius),
+                    borderSide: const BorderSide(
+                        color: SkeletonColorScheme.primaryColor),
+                  ),
+                ),
               ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius:
-                    BorderRadius.circular(SkeletonSpacing.borderRadius),
-                borderSide:
-                    const BorderSide(color: SkeletonColorScheme.primaryColor),
-              ),
-            ),
+            ],
           ),
         ),
         actions: [
@@ -564,13 +592,13 @@ class WildcardPage extends GetView<WildcardController> {
           ElevatedButton(
             onPressed: () {
               Get.back();
-              final newOptions = contentController.text
-                  .split('\n')
-                  .map((e) => e.trim())
-                  .where((e) => e.isNotEmpty)
-                  .toList();
               controller.updateWildcard(
-                wildcard.copyWith(options: newOptions),
+                WildcardModel.fromText(wildcard.name, contentController.text)
+                    .copyWith(
+                  filePath: wildcard.filePath,
+                  createdAt: wildcard.createdAt,
+                  isEnabled: wildcard.isEnabled,
+                ),
               );
             },
             style: ElevatedButton.styleFrom(
@@ -637,10 +665,11 @@ class WildcardPage extends GetView<WildcardController> {
         ),
         content: SizedBox(
           width: double.maxFinite,
-          height: 300,
+          height: 320,
           child: ListView.builder(
-            itemCount: wildcard.options.length,
+            itemCount: wildcard.weightedOptions.length,
             itemBuilder: (context, index) {
+              final option = wildcard.weightedOptions[index];
               return Container(
                 margin: const EdgeInsets.only(bottom: 6),
                 padding:
@@ -661,7 +690,7 @@ class WildcardPage extends GetView<WildcardController> {
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        wildcard.options[index],
+                        option.toText(),
                         style: const TextStyle(
                             color: SkeletonColorScheme.textColor),
                       ),

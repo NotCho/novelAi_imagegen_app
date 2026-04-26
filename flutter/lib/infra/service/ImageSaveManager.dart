@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:naiapp/infra/service/webp_image_parser.dart';
 import 'package:naiapp/view/core/util/app_snackbar.dart';
@@ -11,8 +12,11 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:image_gallery_saver_plus/image_gallery_saver_plus.dart';
 
 class ExifPreservingImageSaver {
+  static const MethodChannel _saveChannel =
+      MethodChannel('com.nai.autogenerator/image_save');
+
   static final ExifPreservingImageSaver _instance =
-  ExifPreservingImageSaver._internal();
+      ExifPreservingImageSaver._internal();
 
   factory ExifPreservingImageSaver() => _instance;
 
@@ -21,14 +25,18 @@ class ExifPreservingImageSaver {
   /// EXIF 메타데이터를 보존하면서 이미지 저장
   /// PNG는 EXIF Comment에, WebP는 알파채널에 저장
   Future<bool> saveImageWithExif(
-      Uint8List imageBytes, {
-        String? customName,
-        required bool saveInPng,
-        Map<String, String>? metadata, // 추가된 매개변수
-      }) async {
+    Uint8List imageBytes, {
+    String? customName,
+    required bool saveInPng,
+    Map<String, String>? metadata, // 추가된 매개변수
+    String? customDirectoryPath,
+  }) async {
     try {
+      final usesCustomDirectory =
+          customDirectoryPath != null && customDirectoryPath.isNotEmpty;
       // 웹인지 확인
-      if (kIsWeb) {} else {
+      if (kIsWeb || usesCustomDirectory) {
+      } else {
         final hasPermission = await _checkPermissions();
         if (!hasPermission) return false;
       }
@@ -41,15 +49,13 @@ class ExifPreservingImageSaver {
           // PNG는 tEXt 청크에 삽입
           final jsonText = jsonEncode(metadata);
           final modifiedBytes = WebPMetadataEmbedder.addPngTextChunk(
-              imageBytes,
-              'Comment',
-              jsonText
-          );
+              imageBytes, 'Comment', jsonText);
 
           if (modifiedBytes != null) {
             finalImageBytes = modifiedBytes;
           } else {
-            final alphaResult = WebPMetadataEmbedder.embedMetadataInWebP(imageBytes, metadata);
+            final alphaResult =
+                WebPMetadataEmbedder.embedMetadataInWebP(imageBytes, metadata);
             if (alphaResult != null) {
               finalImageBytes = alphaResult;
             } else {
@@ -60,13 +66,14 @@ class ExifPreservingImageSaver {
           // WebP는 청크 방식 우선, 실패시 알파채널 방식
 
           // 방법 1: 청크 방식
-          var modifiedBytes = WebPChunkEmbedder.embedMetadataInWebPChunk(imageBytes, metadata);
+          var modifiedBytes =
+              WebPChunkEmbedder.embedMetadataInWebPChunk(imageBytes, metadata);
           if (modifiedBytes != null) {
             finalImageBytes = modifiedBytes;
           } else {
-
             // 방법 2: 알파채널 방식
-            modifiedBytes = WebPMetadataEmbedder.embedMetadataInWebP(imageBytes, metadata);
+            modifiedBytes =
+                WebPMetadataEmbedder.embedMetadataInWebP(imageBytes, metadata);
 
             if (modifiedBytes != null) {
               finalImageBytes = modifiedBytes;
@@ -77,12 +84,27 @@ class ExifPreservingImageSaver {
         }
       }
 
+      if (customDirectoryPath != null && customDirectoryPath.isNotEmpty) {
+        final success = await _saveToCustomDirectory(
+          finalImageBytes,
+          customDirectoryPath,
+          customName,
+          saveInPng ? 'png' : 'webp',
+        );
+
+        if (success) {
+          _showSuccessMessage(saveInPng ? 'PNG' : 'WebP',
+              directoryPath: customDirectoryPath);
+          return true;
+        }
+
+        _showErrorMessage('지정한 저장 경로에 이미지를 저장하지 못했습니다');
+        return false;
+      }
+
       // 2. 임시 파일로 저장
       final tempFile = await _createTempFile(
-          finalImageBytes,
-          customName,
-          saveInPng ? 'png' : 'webp'
-      );
+          finalImageBytes, customName, saveInPng ? 'png' : 'webp');
 
       // 3. MediaStore를 통해 갤러리에 저장
       final success = await _saveToGalleryPreservingMetadata(tempFile);
@@ -104,22 +126,26 @@ class ExifPreservingImageSaver {
   }
 
   Future<bool> saveMultipleImagesWithExif(
-      List<Uint8List> imageBytesList, {
-        String? customName,
-        required bool saveInPng,
-        List<Map<String, String>>? metadataList, // 각 이미지별 메타데이터
-      }) async {
+    List<Uint8List> imageBytesList, {
+    String? customName,
+    required bool saveInPng,
+    List<Map<String, String>>? metadataList, // 각 이미지별 메타데이터
+    String? customDirectoryPath,
+  }) async {
     try {
+      final usesCustomDirectory =
+          customDirectoryPath != null && customDirectoryPath.isNotEmpty;
       // 1. 권한 확인
-      final hasPermission = await _checkPermissions();
-      if (!hasPermission) return false;
+      if (!usesCustomDirectory) {
+        final hasPermission = await _checkPermissions();
+        if (!hasPermission) return false;
+      }
 
       for (int i = 0; i < imageBytesList.length; i++) {
         final imageBytes = imageBytesList[i];
         final metadata = (metadataList != null && i < metadataList.length)
             ? metadataList[i]
             : null;
-
 
         Uint8List finalImageBytes = imageBytes;
 
@@ -129,36 +155,34 @@ class ExifPreservingImageSaver {
             // PNG는 tEXt 청크에 삽입
             final jsonText = jsonEncode(metadata);
             final modifiedBytes = WebPMetadataEmbedder.addPngTextChunk(
-                imageBytes,
-                'Comment',
-                jsonText
-            );
+                imageBytes, 'Comment', jsonText);
 
             if (modifiedBytes != null) {
               finalImageBytes = modifiedBytes;
             } else {
               // PNG 실패시 알파채널 시도
-              final alphaResult = WebPMetadataEmbedder.embedMetadataInWebP(imageBytes, metadata);
+              final alphaResult = WebPMetadataEmbedder.embedMetadataInWebP(
+                  imageBytes, metadata);
               if (alphaResult != null) {
                 finalImageBytes = alphaResult;
-              } else {
-              }
+              } else {}
             }
           } else {
             // WebP는 청크 방식 우선
 
-            var modifiedBytes = WebPMetadataEmbedder.embedMetadataInWebP(imageBytes, metadata);
+            var modifiedBytes =
+                WebPMetadataEmbedder.embedMetadataInWebP(imageBytes, metadata);
 
             if (modifiedBytes != null) {
               finalImageBytes = modifiedBytes;
             } else {
               // 청크 방식 실패시 간단한 방식 시도
-              modifiedBytes = WebPMetadataEmbedder.embedMetadataInWebP(imageBytes, metadata);
+              modifiedBytes = WebPMetadataEmbedder.embedMetadataInWebP(
+                  imageBytes, metadata);
 
               if (modifiedBytes != null) {
                 finalImageBytes = modifiedBytes;
-              } else {
-              }
+              } else {}
             }
           }
         }
@@ -168,11 +192,24 @@ class ExifPreservingImageSaver {
             ? "${customName}_${i + 1}"
             : "image_${DateTime.now().millisecondsSinceEpoch}_${i + 1}";
 
-        final tempFile = await _createTempFile(
+        if (customDirectoryPath != null && customDirectoryPath.isNotEmpty) {
+          final success = await _saveToCustomDirectory(
             finalImageBytes,
+            customDirectoryPath,
             fileName,
-            saveInPng ? 'png' : 'webp'
-        );
+            saveInPng ? 'png' : 'webp',
+          );
+
+          if (!success) {
+            _showErrorMessage('이미지 ${i + 1} 저장에 실패했습니다');
+            return false;
+          }
+
+          continue;
+        }
+
+        final tempFile = await _createTempFile(
+            finalImageBytes, fileName, saveInPng ? 'png' : 'webp');
 
         // 3. 갤러리에 저장
         final success = await _saveToGalleryPreservingMetadata(tempFile);
@@ -186,7 +223,11 @@ class ExifPreservingImageSaver {
         }
       }
 
-      _showSuccessMessage(saveInPng ? 'PNG' : 'WebP', isMultiple: true);
+      _showSuccessMessage(
+        saveInPng ? 'PNG' : 'WebP',
+        isMultiple: true,
+        directoryPath: customDirectoryPath,
+      );
       return true;
     } catch (e) {
       _showErrorMessage('이미지 저장 중 오류: $e');
@@ -229,18 +270,116 @@ class ExifPreservingImageSaver {
 
   /// 임시 파일 생성 (원본 바이트 그대로 저장)
   Future<File> _createTempFile(
-      Uint8List imageBytes,
-      String? customName,
-      String extension,
-      ) async {
+    Uint8List imageBytes,
+    String? customName,
+    String extension,
+  ) async {
     final tempDir = await getTemporaryDirectory();
-    final fileName = customName ?? "image_${DateTime.now().millisecondsSinceEpoch}";
+    final fileName =
+        customName ?? "image_${DateTime.now().millisecondsSinceEpoch}";
     final filePath = '${tempDir.path}/$fileName.$extension';
 
     final file = File(filePath);
     await file.writeAsBytes(imageBytes); // 원본 바이트 그대로 저장
 
     return file;
+  }
+
+  Future<bool> _saveToCustomDirectory(
+    Uint8List imageBytes,
+    String directoryPath,
+    String? customName,
+    String extension,
+  ) async {
+    try {
+      if (GetPlatform.isAndroid) {
+        final result = await _saveToAndroidMediaStore(
+          imageBytes,
+          directoryPath,
+          customName,
+          extension,
+        );
+        if (result) return true;
+      }
+
+      final directory = Directory(directoryPath);
+      if (!await directory.exists()) {
+        await directory.create(recursive: true);
+      }
+
+      final safeName = _sanitizeFileName(
+        customName ?? "image_${DateTime.now().millisecondsSinceEpoch}",
+      );
+      var file = File('${directory.path}/$safeName.$extension');
+      var index = 1;
+      while (await file.exists()) {
+        file = File('${directory.path}/${safeName}_$index.$extension');
+        index++;
+      }
+
+      await file.writeAsBytes(imageBytes);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  Future<bool> _saveToAndroidMediaStore(
+    Uint8List imageBytes,
+    String directoryPath,
+    String? customName,
+    String extension,
+  ) async {
+    try {
+      final safeName = _sanitizeFileName(
+        customName ?? "image_${DateTime.now().millisecondsSinceEpoch}",
+      );
+      final result = await _saveChannel.invokeMethod<Map<dynamic, dynamic>>(
+        'saveImageBytes',
+        {
+          'bytes': imageBytes,
+          'fileName': safeName,
+          'extension': extension,
+          'relativePath': _toAndroidRelativePicturesPath(directoryPath),
+        },
+      );
+
+      return result?['isSuccess'] == true;
+    } catch (e) {
+      debugPrint('Android MediaStore 저장 실패: $e');
+      return false;
+    }
+  }
+
+  String _toAndroidRelativePicturesPath(String directoryPath) {
+    const pictures = 'Pictures';
+    final normalized = directoryPath.replaceAll('\\', '/');
+    final segments = normalized
+        .split('/')
+        .where((segment) => segment.trim().isNotEmpty)
+        .toList();
+    final picturesIndex = segments.indexWhere(
+      (segment) => segment.toLowerCase() == pictures.toLowerCase(),
+    );
+
+    if (picturesIndex >= 0 && picturesIndex < segments.length - 1) {
+      final childPath = segments
+          .sublist(picturesIndex + 1)
+          .map(_sanitizeFileName)
+          .where((segment) => segment.isNotEmpty)
+          .join('/');
+      if (childPath.isNotEmpty) {
+        return '$pictures/$childPath';
+      }
+    }
+
+    final fallbackFolder =
+        segments.isEmpty ? 'NAIApp' : _sanitizeFileName(segments.last);
+    return '$pictures/${fallbackFolder.isEmpty ? 'NAIApp' : fallbackFolder}';
+  }
+
+  String _sanitizeFileName(String fileName) {
+    return fileName.replaceAll(RegExp(r'[\\/:*?"<>|]'), '_');
   }
 
   /// 메타데이터 보존하면서 갤러리에 저장
@@ -250,17 +389,12 @@ class ExifPreservingImageSaver {
       // 이 방법이 메타데이터를 가장 잘 보존함
       final result = await ImageGallerySaverPlus.saveFile(
         imageFile.path,
-        name: imageFile.path
-            .split('/')
-            .last
-            .split('.')
-            .first,
+        name: imageFile.path.split('/').last.split('.').first,
         isReturnPathOfIOS: false,
       );
 
       return result != null && result.toString().isNotEmpty;
     } catch (e) {
-
       // 대체 방법: MediaStore 직접 사용 (Android)
       return await _fallbackSaveMethod(imageFile);
     }
@@ -274,11 +408,7 @@ class ExifPreservingImageSaver {
 
       final result = await ImageGallerySaverPlus.saveImage(
         bytes,
-        name: imageFile.path
-            .split('/')
-            .last
-            .split('.')
-            .first,
+        name: imageFile.path.split('/').last.split('.').first,
       );
 
       return result != null && result.toString().isNotEmpty;
@@ -312,10 +442,14 @@ class ExifPreservingImageSaver {
   }
 
   /// 성공 메시지
-  void _showSuccessMessage(String format, {bool isMultiple = false}) {
+  void _showSuccessMessage(String format,
+      {bool isMultiple = false, String? directoryPath}) {
+    final target = (directoryPath != null && directoryPath.isNotEmpty)
+        ? directoryPath
+        : '갤러리';
     final message = isMultiple
-        ? '모든 이미지가 $format 형식으로 갤러리에 저장되었습니다'
-        : '이미지가 $format 형식으로 갤러리에 저장되었습니다';
+        ? '모든 이미지가 $format 형식으로 $target에 저장되었습니다'
+        : '이미지가 $format 형식으로 $target에 저장되었습니다';
 
     AppSnackBar.show(
       '저장 완료',
@@ -348,22 +482,22 @@ class ExifPreservingImageSaver {
   }
 
   /// WebP 메타데이터 테스트용 메서드
-  Future<void> testWebPMetadata(Uint8List imageBytes, Map<String, String> metadata) async {
+  Future<void> testWebPMetadata(
+      Uint8List imageBytes, Map<String, String> metadata) async {
     try {
-
       // 1. 메타데이터 삽입
-      final modifiedBytes = WebPMetadataEmbedder.embedMetadataInWebP(imageBytes, metadata);
+      final modifiedBytes =
+          WebPMetadataEmbedder.embedMetadataInWebP(imageBytes, metadata);
       if (modifiedBytes == null) {
         return;
       }
 
-
       // 2. 삽입된 메타데이터 추출 테스트
-      final extractedMetadata = WebPMetadataParser.extractMetadata(modifiedBytes);
+      final extractedMetadata =
+          WebPMetadataParser.extractMetadata(modifiedBytes);
       if (extractedMetadata == null) {
         return;
       }
-
 
       // 3. 데이터 일치 확인
       bool isMatch = true;
@@ -374,11 +508,9 @@ class ExifPreservingImageSaver {
       });
 
       if (isMatch) {
-      } else {
-      }
-
-
+      } else {}
     } catch (e) {
+      debugPrint('WebP 메타데이터 테스트 실패: $e');
     }
   }
 }

@@ -32,6 +32,43 @@ class SettingPage extends GetView<SettingPageController> {
                             .copyWith(color: SkeletonColorScheme.newG600)),
                   ))),
           _buildListTile(
+              onTap: controller.selectSaveDirectory,
+              title: '저장 경로',
+              icon: Icons.folder_open,
+              trailing: Obx(() {
+                final path = controller.saveDirectoryPath.value;
+                return Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 180),
+                      child: Text(
+                        path.isEmpty ? '기본 갤러리' : path.split('/').last,
+                        overflow: TextOverflow.ellipsis,
+                        style: SkeletonTextTheme.body2Long
+                            .copyWith(color: SkeletonColorScheme.newG600),
+                      ),
+                    ),
+                    if (path.isNotEmpty) ...[
+                      const SizedBox(width: 4),
+                      IconButton(
+                        visualDensity: VisualDensity.compact,
+                        icon: const Icon(
+                          Icons.close,
+                          size: 18,
+                          color: SkeletonColorScheme.textSecondaryColor,
+                        ),
+                        onPressed: controller.clearSaveDirectory,
+                      ),
+                    ] else
+                      const Icon(
+                        Icons.chevron_right,
+                        color: SkeletonColorScheme.textSecondaryColor,
+                      ),
+                  ],
+                );
+              })),
+          _buildListTile(
               title: "앱 정보",
               icon: Icons.info,
               onTap: () {
