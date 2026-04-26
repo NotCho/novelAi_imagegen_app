@@ -72,7 +72,7 @@ class HomeAppBar extends GetView<HomePageController> {
                 }).toList(),
                 onChanged: (value) {
                   if (value != null) {
-                    controller.usingModel.value = value;
+                    controller.setModel(value);
                   }
                 },
               ),
@@ -269,28 +269,34 @@ class HomeAppBar extends GetView<HomePageController> {
                     ),
                     const SizedBox(width: SkeletonSpacing.spacing),
                     Expanded(
-                      child: buildDialogButton(
-                        'Vibe',
-                        color: SkeletonColorScheme.primaryColor,
-                        onPressed: () {
-                          controller.addVibeImage(
-                            controller
-                                .imageLoadController.loadedImageBytes.value,
-                          );
-                        },
+                      child: Obx(
+                        () => buildDialogButton(
+                          'Vibe',
+                          color: SkeletonColorScheme.primaryColor,
+                          enabled: controller.supportsVibeTransfer,
+                          onPressed: () {
+                            controller.addVibeImage(
+                              controller
+                                  .imageLoadController.loadedImageBytes.value,
+                            );
+                          },
+                        ),
                       ),
                     ),
                     const SizedBox(width: SkeletonSpacing.spacing),
                     Expanded(
-                      child: buildDialogButton(
-                        '레퍼런스',
-                        color: SkeletonColorScheme.primaryColor,
-                        onPressed: () {
-                          controller.addDirectorReferenceImage(
-                            controller
-                                .imageLoadController.loadedImageBytes.value,
-                          );
-                        },
+                      child: Obx(
+                        () => buildDialogButton(
+                          '레퍼런스',
+                          color: SkeletonColorScheme.primaryColor,
+                          enabled: controller.supportsCharacterReference,
+                          onPressed: () {
+                            controller.addDirectorReferenceImage(
+                              controller
+                                  .imageLoadController.loadedImageBytes.value,
+                            );
+                          },
+                        ),
                       ),
                     ),
                   ],
@@ -350,17 +356,18 @@ class HomeAppBar extends GetView<HomePageController> {
   Widget buildDialogButton(String title,
       {required Color color,
       required void Function() onPressed,
+      bool enabled = true,
       EdgeInsets? padding}) {
     return Material(
       color: Colors.transparent,
       child: Ink(
         decoration: BoxDecoration(
-          color: color,
+          color: enabled ? color : SkeletonColorScheme.surfaceColor,
           borderRadius: BorderRadius.circular(SkeletonSpacing.borderRadius),
         ),
         child: InkWell(
           borderRadius: BorderRadius.circular(SkeletonSpacing.borderRadius),
-          onTap: onPressed,
+          onTap: enabled ? onPressed : null,
           child: Padding(
             padding: padding ??
                 const EdgeInsets.symmetric(

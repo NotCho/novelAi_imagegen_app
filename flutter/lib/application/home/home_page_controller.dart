@@ -49,6 +49,29 @@ class HomePageController extends SkeletonController {
     'nai-diffusion-3': 'V3 Full',
   };
 
+  bool modelSupportsVibeTransfer(String model) {
+    return model.startsWith('nai-diffusion-4');
+  }
+
+  bool modelSupportsCharacterReference(String model) {
+    return model.startsWith('nai-diffusion-4-5');
+  }
+
+  bool get supportsVibeTransfer => modelSupportsVibeTransfer(usingModel.value);
+
+  bool get supportsCharacterReference =>
+      modelSupportsCharacterReference(usingModel.value);
+
+  void setModel(String model) {
+    usingModel.value = model;
+    if (!supportsVibeTransfer) {
+      homeImageController.vibeParseImageBytes.clear();
+    }
+    if (!supportsCharacterReference) {
+      directorToolController.reset();
+    }
+  }
+
   List<String> noiseScheduleOptions = [
     'karras',
     'exponential',
@@ -184,8 +207,7 @@ class HomePageController extends SkeletonController {
       try {
         final setting = df.DiffusionModel.fromJson(data);
         loadSetting(setting);
-      } catch (e) {
-      }
+      } catch (e) {}
     }
   }
 
@@ -197,8 +219,7 @@ class HomePageController extends SkeletonController {
       try {
         final setting = df.DiffusionModel.fromJson(data);
         loadSetting(setting);
-      } catch (e) {
-      }
+      } catch (e) {}
     }
     final persistentToken = prefs.getString("NOVEL_AI_PERSISTENT_TOKEN");
     if (persistentToken == null || persistentToken.isEmpty) {
@@ -242,8 +263,7 @@ class HomePageController extends SkeletonController {
             int height = int.parse(parts[1].trim());
             homeSettingController.sizeOptionsWithCustom
                 .add(Size(width.toDouble(), height.toDouble()));
-          } catch (e) {
-          }
+          } catch (e) {}
         }
       }
     }
@@ -414,7 +434,7 @@ class HomePageController extends SkeletonController {
     positivePromptController.text = setting.input;
     negativePromptController.text =
         setting.parameters.v4_negative_prompt.caption.base_caption;
-    usingModel.value = setting.model;
+    setModel(setting.model);
     homeSettingController.randomSeed.value =
         setting.parameters.seed == 999999999;
     selectedNoiseSchedule.value =
@@ -427,7 +447,9 @@ class HomePageController extends SkeletonController {
             : setting.parameters.seed.toString();
     addQualityTags = prefs.getBool("addQualityTags") ?? false;
     homeSettingController.setSettings(setting);
-    homeImageController.loadVibeFromExif(setting);
+    if (modelSupportsVibeTransfer(setting.model)) {
+      homeImageController.loadVibeFromExif(setting);
+    }
     characterPrompts.clear();
     for (var i = 0; i < setting.parameters.characterPrompts.length; i++) {
       characterPrompts.add({
@@ -470,7 +492,8 @@ class HomePageController extends SkeletonController {
       );
       return;
     }
-    final setting = buildSetting();
+    final setting =
+        buildSetting(preserveWildcards: true, saveLastSettings: false);
     homeSettingController.savePreset(presetName, setting);
     AppSnackBar.show(
       '성공',
@@ -480,7 +503,10 @@ class HomePageController extends SkeletonController {
     );
   }
 
-  df.DiffusionModel buildSetting() {
+  df.DiffusionModel buildSetting({
+    bool preserveWildcards = false,
+    bool saveLastSettings = true,
+  }) {
     int storageSeed = (homeSettingController.randomSeed.value ||
             homeSettingController.seedController.text == "")
         ? 999999999
@@ -505,15 +531,17 @@ class HomePageController extends SkeletonController {
     print('========== [WILDCARD DEBUG] ==========');
     print('[원본 긍정 프롬프트] $pos');
     print('[원본 부정 프롬프트] $neg');
-    
+
     // 와일드카드 파싱 적용 (API 전송용)
     final wildcardController = Get.find<WildcardController>();
-    pos = wildcardController.parsePrompt(pos);
-    neg = wildcardController.parsePrompt(neg);
-    
+    if (!preserveWildcards) {
+      pos = wildcardController.parsePrompt(pos);
+      neg = wildcardController.parsePrompt(neg);
+    }
+
     print('[파싱 후 긍정 프롬프트] $pos');
     print('[파싱 후 부정 프롬프트] $neg');
-    
+
     print('======================================');
 
     // SettingController에서 값 가져오기
@@ -530,7 +558,7 @@ class HomePageController extends SkeletonController {
         homeSettingController.promptGuidance.value.toDouble();
 
     String sampler = homeSettingController.selectedSamplerValue;
-    
+
     // 원본 캐릭터 프롬프트 (저장용 - 와일드카드 포함)
     List<df.CharacterPrompt> charPromOriginal = characterPrompts.map((e) {
       return df.CharacterPrompt(
@@ -544,37 +572,50 @@ class HomePageController extends SkeletonController {
     // 캐릭터 프롬프트에 와일드카드 파싱 적용 (API 전송용)
     List<df.CharacterPrompt> charProm = characterPrompts.map((e) {
       return df.CharacterPrompt(
-        prompt: wildcardController.parsePrompt(e['positive'].text),
-        uc: wildcardController.parsePrompt(e['negative'].text),
+        prompt: preserveWildcards
+            ? e['positive'].text
+            : wildcardController.parsePrompt(e['positive'].text),
+        uc: preserveWildcards
+            ? e['negative'].text
+            : wildcardController.parsePrompt(e['negative'].text),
         center: e['prompt'].center,
         enabled: true,
       );
     }).toList();
     List<df.CharCaption> charCapPos = characterPrompts.map((e) {
       return df.CharCaption(
-        char_caption: wildcardController.parsePrompt(e['positive'].text),
+        char_caption: preserveWildcards
+            ? e['positive'].text
+            : wildcardController.parsePrompt(e['positive'].text),
         centers: [e['prompt'].center],
       );
     }).toList();
 
     List<df.CharCaption> charCapNeg = characterPrompts.map((e) {
       return df.CharCaption(
-        char_caption: wildcardController.parsePrompt(e['negative'].text),
+        char_caption: preserveWildcards
+            ? e['negative'].text
+            : wildcardController.parsePrompt(e['negative'].text),
         centers: [e['prompt'].center],
       );
     }).toList();
     List<String> vibeBytes;
     List<double> vibeStrengths;
-    try {
-      vibeBytes = homeImageController.vibeParseImageBytes
-          .map((e) => base64Encode(e.bytes!))
-          .toList();
-      vibeStrengths = homeImageController.vibeParseImageBytes
-          .map((e) => e.weight.value)
-          .toList();
-    } catch (e) {
+    if (!supportsVibeTransfer) {
       vibeBytes = [];
       vibeStrengths = [];
+    } else {
+      try {
+        vibeBytes = homeImageController.vibeParseImageBytes
+            .map((e) => base64Encode(e.bytes!))
+            .toList();
+        vibeStrengths = homeImageController.vibeParseImageBytes
+            .map((e) => e.weight.value)
+            .toList();
+      } catch (e) {
+        vibeBytes = [];
+        vibeStrengths = [];
+      }
     }
 
     final settingOriginal = df.DiffusionModel(
@@ -624,8 +665,14 @@ class HomePageController extends SkeletonController {
       action: 'generate',
     );
 
-    prefs.setString("lastSettings", jsonEncode(settingOriginal.toJson()));
-    prefs.setBool("addQualityTags", addQualityTags);
+    if (saveLastSettings) {
+      prefs.setString("lastSettings", jsonEncode(settingOriginal.toJson()));
+      prefs.setBool("addQualityTags", addQualityTags);
+    }
+
+    if (preserveWildcards) {
+      return settingOriginal;
+    }
 
     if (addQualityTags) {
       pos += positiveDef;
@@ -639,8 +686,7 @@ class HomePageController extends SkeletonController {
     List<double> directorSecondaryStrengths = [];
     List<double> directorStrengths = [];
 
-    if (directorToolController.isEnabled) {
-
+    if (supportsCharacterReference && directorToolController.isEnabled) {
       directorDescriptions.add(
         df.DirectorReferenceDescription(
           caption: df.DirectorCaption(
@@ -656,11 +702,10 @@ class HomePageController extends SkeletonController {
       final double clampedStrength =
           directorToolController.fidelity.value.clamp(0.0, 1.0);
       directorStrengths.add(clampedStrength);
+    } else {}
 
-    } else {
-    }
-
-    final bool isDirectorEnabled = directorToolController.isEnabled;
+    final bool isDirectorEnabled =
+        supportsCharacterReference && directorToolController.isEnabled;
     final bool hasCharCaptions = charCapPos.isNotEmpty;
 
     final int paramsVersion = isDirectorEnabled ? 3 : 1;
@@ -670,8 +715,7 @@ class HomePageController extends SkeletonController {
         isDirectorEnabled ? true : false;
     final bool legacyV3Extend = isDirectorEnabled ? false : true;
     final bool qualityToggle = isDirectorEnabled ? true : false;
-    final bool v4PromptUseCoords =
-        isDirectorEnabled ? hasCharCaptions : true;
+    final bool v4PromptUseCoords = isDirectorEnabled ? hasCharCaptions : true;
 
     final setting = df.DiffusionModel(
       input: pos,
@@ -744,6 +788,15 @@ class HomePageController extends SkeletonController {
   }
 
   Future<void> addVibeImage(Uint8List image) async {
+    if (!supportsVibeTransfer) {
+      AppSnackBar.show(
+        '지원하지 않는 모델',
+        'Vibe Transfer는 V4 이상 모델에서 사용할 수 있습니다.',
+        backgroundColor: Colors.orange,
+        textColor: Colors.white,
+      );
+      return;
+    }
     if (image.isEmpty) {
       AppSnackBar.show(
         '오류',
@@ -763,6 +816,15 @@ class HomePageController extends SkeletonController {
   }
 
   Future<void> addDirectorReferenceImage(Uint8List image) async {
+    if (!supportsCharacterReference) {
+      AppSnackBar.show(
+        '지원하지 않는 모델',
+        'Character Reference는 V4.5 모델에서 사용할 수 있습니다.',
+        backgroundColor: Colors.orange,
+        textColor: Colors.white,
+      );
+      return;
+    }
     if (image.isEmpty) {
       AppSnackBar.show(
         '오류',
@@ -786,6 +848,10 @@ class HomePageController extends SkeletonController {
   }
 
   Future<void> getVibeBytes() async {
+    if (!supportsVibeTransfer ||
+        homeImageController.vibeParseImageBytes.isEmpty) {
+      return;
+    }
     Either<String, List<VibeImage>> result = await _novelAIRepository.vibeParse(
         homeImageController.vibeParseImageBytes, usingModel.value);
     result.fold(
