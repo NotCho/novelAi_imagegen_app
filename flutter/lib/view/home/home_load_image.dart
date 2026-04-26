@@ -35,6 +35,19 @@ class HomeLoadImage extends StatelessWidget {
         child: Column(
           children: [
             Obx(() {
+              if (!homePageController.supportsVibeTransfer) {
+                return const Row(
+                  children: [
+                    Icon(Icons.block, size: 40, color: Colors.grey),
+                    SizedBox(width: SkeletonSpacing.smallSpacing),
+                    Text(
+                      "Vibe Transfer는 V4 이상 모델에서 사용할 수 있습니다.",
+                      style: TextStyle(fontSize: 12, color: Colors.grey),
+                    ),
+                  ],
+                );
+              }
+
               if (homeImageController.vibeParseImageBytes.isEmpty) {
                 return const Row(
                   children: [

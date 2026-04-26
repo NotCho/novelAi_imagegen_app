@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:naiapp/application/home/director_tool_controller.dart';
+import 'package:naiapp/application/home/home_page_controller.dart';
 import 'package:naiapp/view/core/util/design_system.dart';
 
 class HomeDirectorTool extends GetView<DirectorToolController> {
@@ -8,6 +9,7 @@ class HomeDirectorTool extends GetView<DirectorToolController> {
 
   @override
   Widget build(BuildContext context) {
+    final homePageController = Get.find<HomePageController>();
     return Container(
       padding: const EdgeInsets.all(SkeletonSpacing.spacing),
       child: SingleChildScrollView(
@@ -52,64 +54,70 @@ class HomeDirectorTool extends GetView<DirectorToolController> {
             const SizedBox(height: SkeletonSpacing.spacing),
 
             // 이미지 영역
-            Obx(() => controller.referenceImage.value != null
-                ? _buildImagePreview()
-                : _buildImagePlaceholder()),
+            Obx(() {
+              if (!homePageController.supportsCharacterReference) {
+                return _buildUnsupportedPlaceholder();
+              }
+              return controller.referenceImage.value != null
+                  ? _buildImagePreview()
+                  : _buildImagePlaceholder();
+            }),
 
-            const SizedBox(height: SkeletonSpacing.spacing),
-
-            // Style Aware 체크박스
-            Obx(() => Row(
-                  children: [
-                    Checkbox(
-                      value: controller.styleAware.value,
-                      onChanged: (_) => controller.toggleStyleAware(),
-                      activeColor: SkeletonColorScheme.primaryColor,
-                    ),
-                    const Text(
-                      'Style Aware',
-                      style: TextStyle(
-                        color: SkeletonColorScheme.textColor,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
+            Obx(() {
+              if (!homePageController.supportsCharacterReference) {
+                return const SizedBox.shrink();
+              }
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: SkeletonSpacing.spacing),
+                  Row(
+                    children: [
+                      Checkbox(
+                        value: controller.styleAware.value,
+                        onChanged: (_) => controller.toggleStyleAware(),
+                        activeColor: SkeletonColorScheme.primaryColor,
                       ),
-                    ),
-                  ],
-                )),
-
-            const SizedBox(height: SkeletonSpacing.spacing),
-
-            // Fidelity 슬라이더
-            const Text(
-              'Fidelity',
-              style: TextStyle(
-                color: SkeletonColorScheme.textColor,
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Obx(() => Column(
-                  children: [
-                    Slider(
-                      value: controller.fidelity.value,
-                      min: 0.0,
-                      max: 1.0,
-                      divisions: 100,
-                      label: controller.fidelity.value.toStringAsFixed(2),
-                      activeColor: SkeletonColorScheme.primaryColor,
-                      inactiveColor: SkeletonColorScheme.surfaceColor,
-                      onChanged: controller.setFidelity,
-                    ),
-                    Text(
-                      controller.fidelity.value.toStringAsFixed(2),
-                      style: const TextStyle(
-                        color: SkeletonColorScheme.textSecondaryColor,
-                        fontSize: 12,
+                      const Text(
+                        'Style Aware',
+                        style: TextStyle(
+                          color: SkeletonColorScheme.textColor,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
+                    ],
+                  ),
+                  const SizedBox(height: SkeletonSpacing.spacing),
+                  const Text(
+                    'Fidelity',
+                    style: TextStyle(
+                      color: SkeletonColorScheme.textColor,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
                     ),
-                  ],
-                )),
+                  ),
+                  const SizedBox(height: 8),
+                  Slider(
+                    value: controller.fidelity.value,
+                    min: 0.0,
+                    max: 1.0,
+                    divisions: 100,
+                    label: controller.fidelity.value.toStringAsFixed(2),
+                    activeColor: SkeletonColorScheme.primaryColor,
+                    inactiveColor: SkeletonColorScheme.surfaceColor,
+                    onChanged: controller.setFidelity,
+                  ),
+                  Text(
+                    controller.fidelity.value.toStringAsFixed(2),
+                    style: const TextStyle(
+                      color: SkeletonColorScheme.textSecondaryColor,
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+              );
+            }),
           ],
         ),
       ),
@@ -175,6 +183,31 @@ class HomeDirectorTool extends GetView<DirectorToolController> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildUnsupportedPlaceholder() {
+    return Container(
+      width: double.infinity,
+      height: 160,
+      decoration: BoxDecoration(
+        color: SkeletonColorScheme.surfaceColor.withValues(alpha: 0.3),
+        borderRadius: BorderRadius.circular(SkeletonSpacing.borderRadius),
+        border: Border.all(
+          color: SkeletonColorScheme.textSecondaryColor.withValues(alpha: 0.3),
+          width: 2,
+        ),
+      ),
+      child: const Center(
+        child: Text(
+          'Character Reference는 V4.5 모델에서 사용할 수 있습니다.',
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            color: SkeletonColorScheme.textSecondaryColor,
+            fontSize: 14,
+          ),
+        ),
       ),
     );
   }

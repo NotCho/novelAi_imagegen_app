@@ -58,7 +58,6 @@ class ImageLoadController extends GetxController {
       );
 
       if (result != null) {
-
         // 1. File API로 접근 시도
         try {
           final file = File(result.path);
@@ -69,8 +68,7 @@ class ImageLoadController extends GetxController {
             loadedImageBytes.value = bytes;
             return;
           }
-        } catch (e) {
-        }
+        } catch (e) {}
 
         // 2. readAsBytes 방식 시도
         try {
@@ -79,8 +77,7 @@ class ImageLoadController extends GetxController {
           imageCache[base64Encode(bytes)] = bytes;
           loadedImageBytes.value = bytes;
           return;
-        } catch (e) {
-        }
+        } catch (e) {}
 
         // 3. 복사 후 접근 시도
         try {
@@ -99,8 +96,7 @@ class ImageLoadController extends GetxController {
             await tempFile.delete();
             return;
           }
-        } catch (e) {
-        }
+        } catch (e) {}
 
         // 4. 이미지 디코딩 후 다시 인코딩
         try {
@@ -116,8 +112,7 @@ class ImageLoadController extends GetxController {
             loadedImageBytes.value = bytes;
             return;
           }
-        } catch (e) {
-        }
+        } catch (e) {}
 
         // 모든 방법 실패
         AppSnackBar.show(
@@ -217,7 +212,7 @@ class ImageLoadController extends GetxController {
 
     if (loadImageOptions['세팅']!) {
       // 세팅 관련 값 적용
-      homePageController.usingModel.value = loadedImageModel!.model;
+      homePageController.setModel(loadedImageModel!.model);
       homeSettingController.samplingSteps.value =
           loadedImageModel!.parameters.steps;
 
@@ -247,7 +242,8 @@ class ImageLoadController extends GetxController {
       }
     }
 
-    if (loadImageOptions['Vibe']!) {
+    if (loadImageOptions['Vibe']! &&
+        homePageController.modelSupportsVibeTransfer(loadedImageModel!.model)) {
       homeImageController.loadVibeFromExif(loadedImageModel!);
     }
 
@@ -283,4 +279,3 @@ class ImageLoadController extends GetxController {
     clearImageDialog();
   }
 }
-

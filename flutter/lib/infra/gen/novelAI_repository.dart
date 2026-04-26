@@ -125,6 +125,25 @@ class NovelAIRepository implements INovelAIRepository {
         Map<String, dynamic>.from(setting.parameters.toJson());
     payload['parameters'] = parameters;
 
+    final model = setting.model;
+    final supportsVibeTransfer = model.startsWith('nai-diffusion-4');
+    final supportsCharacterReference = model.startsWith('nai-diffusion-4-5');
+
+    if (!supportsVibeTransfer) {
+      parameters.remove('reference_image_multiple');
+      parameters.remove('reference_strength_multiple');
+    }
+
+    if (!supportsCharacterReference) {
+      parameters.remove('director_reference_descriptions');
+      parameters.remove('director_reference_images');
+      parameters.remove('director_reference_information_extracted');
+      parameters.remove('director_reference_secondary_strength_values');
+      parameters.remove('director_reference_strength_values');
+      parameters.remove('inpaintImg2ImgStrength');
+      payload.remove('use_new_shared_trial');
+    }
+
     final List<dynamic> directorImages =
         (parameters['director_reference_images'] as List<dynamic>?) ?? [];
     final List<dynamic> directorDescriptions =
