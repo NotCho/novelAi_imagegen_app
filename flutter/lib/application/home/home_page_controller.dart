@@ -121,6 +121,21 @@ class HomePageController extends SkeletonController {
     update();
   }
 
+  bool isCharacterEnabled(int index) {
+    if (index < 0 || index >= characterPrompts.length) return false;
+    return characterPrompts[index]['prompt'].enabled == true;
+  }
+
+  void toggleSelectedCharacterEnabled() {
+    final index = selectedCharacterIndex.value;
+    if (index < 0 || index >= characterPrompts.length) return;
+
+    final df.CharacterPrompt prompt = characterPrompts[index]['prompt'];
+    characterPrompts[index]['prompt'] =
+        prompt.copyWith(enabled: !prompt.enabled);
+    characterPrompts.refresh();
+  }
+
   void onCharaAddButtonTap() {
     characterPrompts.add({
       'prompt': const df.CharacterPrompt(
@@ -577,12 +592,15 @@ class HomePageController extends SkeletonController {
         prompt: e['positive'].text,
         uc: e['negative'].text,
         center: e['prompt'].center,
-        enabled: true,
+        enabled: e['prompt'].enabled,
       );
     }).toList();
 
+    final enabledCharacterPrompts =
+        characterPrompts.where((e) => e['prompt'].enabled == true).toList();
+
     // 캐릭터 프롬프트에 와일드카드 파싱 적용 (API 전송용)
-    List<df.CharacterPrompt> charProm = characterPrompts.map((e) {
+    List<df.CharacterPrompt> charProm = enabledCharacterPrompts.map((e) {
       return df.CharacterPrompt(
         prompt: preserveWildcards
             ? e['positive'].text
@@ -591,10 +609,10 @@ class HomePageController extends SkeletonController {
             ? e['negative'].text
             : wildcardController.parsePrompt(e['negative'].text),
         center: e['prompt'].center,
-        enabled: true,
+        enabled: e['prompt'].enabled,
       );
     }).toList();
-    List<df.CharCaption> charCapPos = characterPrompts.map((e) {
+    List<df.CharCaption> charCapPos = enabledCharacterPrompts.map((e) {
       return df.CharCaption(
         char_caption: preserveWildcards
             ? e['positive'].text
@@ -603,7 +621,7 @@ class HomePageController extends SkeletonController {
       );
     }).toList();
 
-    List<df.CharCaption> charCapNeg = characterPrompts.map((e) {
+    List<df.CharCaption> charCapNeg = enabledCharacterPrompts.map((e) {
       return df.CharCaption(
         char_caption: preserveWildcards
             ? e['negative'].text

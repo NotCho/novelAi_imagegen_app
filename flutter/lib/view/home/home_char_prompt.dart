@@ -121,8 +121,14 @@ class HomeCharPrompt extends GetView<HomePageController> {
                                                   index
                                               ? SkeletonColorScheme.primaryColor
                                                   .withValues(alpha: 0.3)
-                                              : SkeletonColorScheme.surfaceColor
-                                                  .withValues(alpha: 0.3),
+                                              : !controller
+                                                      .isCharacterEnabled(index)
+                                                  ? SkeletonColorScheme
+                                                      .negativeColor
+                                                      .withValues(alpha: 0.16)
+                                                  : SkeletonColorScheme
+                                                      .surfaceColor
+                                                      .withValues(alpha: 0.3),
                                           shape: BoxShape.circle,
                                           border: Border.all(
                                             color: controller
@@ -135,30 +141,40 @@ class HomeCharPrompt extends GetView<HomePageController> {
                                             width: 1,
                                           ),
                                         ),
-                                        child: Text(
-                                          "${index + 1}",
-                                          textAlign: TextAlign.center,
-                                          style: TextStyle(
-                                            color: (controller
-                                                        .selectedCharacterIndex
-                                                        .value ==
-                                                    index)
-                                                ? SkeletonColorScheme
-                                                    .primaryColor
-                                                : SkeletonColorScheme
-                                                    .textSecondaryColor,
-                                            fontWeight: (controller
-                                                        .selectedCharacterIndex
-                                                        .value ==
-                                                    index)
-                                                ? FontWeight.bold
-                                                : FontWeight.normal,
-                                          ),
-                                        ),
+                                        child:
+                                            controller.isCharacterEnabled(index)
+                                                ? Text(
+                                                    "${index + 1}",
+                                                    textAlign: TextAlign.center,
+                                                    style: TextStyle(
+                                                      color: (controller
+                                                                  .selectedCharacterIndex
+                                                                  .value ==
+                                                              index)
+                                                          ? SkeletonColorScheme
+                                                              .primaryColor
+                                                          : SkeletonColorScheme
+                                                              .textSecondaryColor,
+                                                      fontWeight: (controller
+                                                                  .selectedCharacterIndex
+                                                                  .value ==
+                                                              index)
+                                                          ? FontWeight.bold
+                                                          : FontWeight.normal,
+                                                    ),
+                                                  )
+                                                : const Icon(
+                                                    Icons.visibility_off,
+                                                    color: SkeletonColorScheme
+                                                        .negativeColor,
+                                                    size: 16,
+                                                  ),
                                       ),
                                       const SizedBox(height: 4),
                                       Text(
-                                        "캐릭터",
+                                        controller.isCharacterEnabled(index)
+                                            ? "캐릭터"
+                                            : "OFF",
                                         style: TextStyle(
                                           color: (controller
                                                       .selectedCharacterIndex
@@ -507,86 +523,144 @@ class HomeCharPrompt extends GetView<HomePageController> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            decoration: BoxDecoration(
-              color: SkeletonColorScheme.primaryColor.withValues(alpha: 0.2),
-              borderRadius: BorderRadius.circular(SkeletonSpacing.borderRadius),
-              border: Border.all(
-                color: SkeletonColorScheme.primaryColor.withValues(alpha: 0.3),
-                width: 1,
+          Flexible(
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: SkeletonColorScheme.primaryColor.withValues(alpha: 0.2),
+                borderRadius:
+                    BorderRadius.circular(SkeletonSpacing.borderRadius),
+                border: Border.all(
+                  color:
+                      SkeletonColorScheme.primaryColor.withValues(alpha: 0.3),
+                  width: 1,
+                ),
               ),
-            ),
-            child: Row(
-              children: [
-                const Icon(Icons.person,
-                    color: SkeletonColorScheme.primaryColor, size: 16),
-                const SizedBox(width: 8),
-                Text(
-                  "캐릭터 #${controller.selectedCharacterIndex.value + 1}",
-                  style: const TextStyle(
-                    color: SkeletonColorScheme.primaryColor,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Obx(() => AnimatedContainer(
-                duration: SkeletonSpacing.animationDuration,
-                width: controller.confirmRemoveIndex.value ? 120 : 50,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: controller.confirmRemoveIndex.value
-                      ? SkeletonColorScheme.negativeColor
-                      : SkeletonColorScheme.negativeColor
-                          .withValues(alpha: 0.2),
-                  borderRadius:
-                      BorderRadius.circular(SkeletonSpacing.borderRadius),
-                  boxShadow: controller.confirmRemoveIndex.value
-                      ? [
-                          BoxShadow(
-                            color: SkeletonColorScheme.negativeColor
-                                .withValues(alpha: 0.3),
-                            blurRadius: 8,
-                            spreadRadius: 1,
-                          ),
-                        ]
-                      : [],
-                ),
-                child: Material(
-                  color: Colors.transparent,
-                  child: InkWell(
-                    onTap: controller.onCharaRemoveButtonTap,
-                    borderRadius:
-                        BorderRadius.circular(SkeletonSpacing.borderRadius),
-                    child: Center(
-                      child: controller.confirmRemoveIndex.value
-                          ? const SingleChildScrollView(
-                              scrollDirection: Axis.horizontal,
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(Icons.delete_forever,
-                                      color: SkeletonColorScheme.textColor,
-                                      size: 16),
-                                  SizedBox(width: 4),
-                                  Text(
-                                    "삭제확인",
-                                    style: TextStyle(
-                                      color: SkeletonColorScheme.textColor,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            )
-                          : const Icon(Icons.delete,
-                              color: SkeletonColorScheme.negativeColor),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.person,
+                      color: SkeletonColorScheme.primaryColor, size: 16),
+                  const SizedBox(width: 8),
+                  Flexible(
+                    child: Text(
+                      "캐릭터 #${controller.selectedCharacterIndex.value + 1}",
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: SkeletonColorScheme.primaryColor,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
-                ),
-              )),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Row(
+            children: [
+              Obx(() {
+                final enabled = controller.isCharacterEnabled(
+                    controller.selectedCharacterIndex.value);
+                return AnimatedContainer(
+                  duration: SkeletonSpacing.animationDuration,
+                  width: 58,
+                  height: 40,
+                  margin: const EdgeInsets.only(right: 8),
+                  decoration: BoxDecoration(
+                    color: enabled
+                        ? SkeletonColorScheme.primaryColor
+                            .withValues(alpha: 0.22)
+                        : SkeletonColorScheme.surfaceColor
+                            .withValues(alpha: 0.35),
+                    borderRadius:
+                        BorderRadius.circular(SkeletonSpacing.borderRadius),
+                    border: Border.all(
+                      color: enabled
+                          ? SkeletonColorScheme.primaryColor
+                              .withValues(alpha: 0.4)
+                          : SkeletonColorScheme.textSecondaryColor
+                              .withValues(alpha: 0.4),
+                    ),
+                  ),
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: controller.toggleSelectedCharacterEnabled,
+                      borderRadius:
+                          BorderRadius.circular(SkeletonSpacing.borderRadius),
+                      child: Center(
+                        child: Text(
+                          enabled ? "ON" : "OFF",
+                          style: TextStyle(
+                            color: enabled
+                                ? SkeletonColorScheme.primaryColor
+                                : SkeletonColorScheme.textSecondaryColor,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              }),
+              Obx(() => AnimatedContainer(
+                    duration: SkeletonSpacing.animationDuration,
+                    width: controller.confirmRemoveIndex.value ? 120 : 50,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: controller.confirmRemoveIndex.value
+                          ? SkeletonColorScheme.negativeColor
+                          : SkeletonColorScheme.negativeColor
+                              .withValues(alpha: 0.2),
+                      borderRadius:
+                          BorderRadius.circular(SkeletonSpacing.borderRadius),
+                      boxShadow: controller.confirmRemoveIndex.value
+                          ? [
+                              BoxShadow(
+                                color: SkeletonColorScheme.negativeColor
+                                    .withValues(alpha: 0.3),
+                                blurRadius: 8,
+                                spreadRadius: 1,
+                              ),
+                            ]
+                          : [],
+                    ),
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        onTap: controller.onCharaRemoveButtonTap,
+                        borderRadius:
+                            BorderRadius.circular(SkeletonSpacing.borderRadius),
+                        child: Center(
+                          child: controller.confirmRemoveIndex.value
+                              ? const SingleChildScrollView(
+                                  scrollDirection: Axis.horizontal,
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(Icons.delete_forever,
+                                          color: SkeletonColorScheme.textColor,
+                                          size: 16),
+                                      SizedBox(width: 4),
+                                      Text(
+                                        "삭제확인",
+                                        style: TextStyle(
+                                          color: SkeletonColorScheme.textColor,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                )
+                              : const Icon(Icons.delete,
+                                  color: SkeletonColorScheme.negativeColor),
+                        ),
+                      ),
+                    ),
+                  )),
+            ],
+          ),
         ],
       ),
     );
