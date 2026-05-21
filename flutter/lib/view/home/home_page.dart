@@ -594,7 +594,7 @@ class AutoGenerateWarningWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Obx(
       () => AnimatedContainer(
-          width: controller.floatingButtonExpanded.value ? Get.width * 0.8 : 50,
+          width: controller.floatingButtonExpanded.value ? Get.width * 0.85 : 50,
           duration: SkeletonSpacing.animationDuration,
           child: SizedBox(
               height: 50,
@@ -749,6 +749,69 @@ class AutoGenerateWarningWidget extends StatelessWidget {
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
+                          const SizedBox(width: SkeletonSpacing.smallSpacing),
+                          Container(
+                            width: 1,
+                            height: 24,
+                            color: SkeletonColorScheme.textSecondaryColor.withValues(alpha: 0.3),
+                          ),
+                          const SizedBox(width: SkeletonSpacing.smallSpacing),
+                          Obx(() => Material(
+                            color: Colors.transparent,
+                            child: InkWell(
+                              onTap: () {
+                                controller.setHideSeed(!controller.hideSeed.value);
+                              },
+                              borderRadius: BorderRadius.circular(
+                                  SkeletonSpacing.borderRadius / 2),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 8, vertical: 6),
+                                decoration: BoxDecoration(
+                                  color: controller.hideSeed.value
+                                      ? SkeletonColorScheme.negativeColor
+                                          .withValues(alpha: 0.2)
+                                      : SkeletonColorScheme.primaryColor
+                                          .withValues(alpha: 0.2),
+                                  borderRadius: BorderRadius.circular(
+                                      SkeletonSpacing.borderRadius / 2),
+                                  border: Border.all(
+                                    color: controller.hideSeed.value
+                                        ? SkeletonColorScheme.negativeColor
+                                            .withValues(alpha: 0.3)
+                                        : SkeletonColorScheme.primaryColor
+                                            .withValues(alpha: 0.3),
+                                    width: 1,
+                                  ),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      controller.hideSeed.value
+                                          ? Icons.visibility_off
+                                          : Icons.visibility,
+                                      color: controller.hideSeed.value
+                                          ? SkeletonColorScheme.negativeColor
+                                          : SkeletonColorScheme.primaryColor,
+                                      size: 16,
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      controller.hideSeed.value ? '시드 숨김' : '시드 표시',
+                                      style: TextStyle(
+                                        color: controller.hideSeed.value
+                                            ? SkeletonColorScheme.negativeColor
+                                            : SkeletonColorScheme.primaryColor,
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          )),
                         ],
                       ),
                     ],

@@ -6,6 +6,7 @@ import 'package:get/get.dart';
 import 'dart:math' as math;
 
 import '../../application/home/home_image_controller.dart';
+import '../../application/home/home_page_controller.dart';
 import '../../infra/service/webp_image_parser.dart';
 import '../core/util/app_snackbar.dart';
 import '../core/util/design_system.dart';
@@ -16,6 +17,7 @@ class HomeImageView extends GetView<HomeImageController> {
   const HomeImageView({super.key}); // 최대 히스토리 개수
   @override
   Widget build(BuildContext context) {
+    final HomePageController homePageController = Get.find<HomePageController>();
     return Container(
       width: double.infinity,
       height: double.infinity,
@@ -86,73 +88,75 @@ class HomeImageView extends GetView<HomeImageController> {
                             ),
                           ),
                         ),
-                        Positioned(
-                          bottom: 16,
-                          left: 16,
-                          right: 16,
-                          child: Row(
-                            children: [
-                              GestureDetector(
-                                onTap: () {
-                                  AppSnackBar.show(
-                                    'Seed 복사됨',
-                                    'Seed: ${historyItem.seed}',
-                                    backgroundColor: SkeletonColorScheme
-                                        .primaryColor
-                                        .withValues(alpha: 0.9),
-                                    textColor: Colors.white,
-                                    margin: const EdgeInsets.all(16),
-                                    borderRadius: SkeletonSpacing.borderRadius,
-                                    duration: const Duration(seconds: 2),
-                                  );
-                                  // 클립보드에 복사
-                                  Clipboard.setData(ClipboardData(
-                                      text: historyItem.seed.toString()));
-                                },
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 12, vertical: 8),
-                                  decoration: BoxDecoration(
-                                    color: Colors.black.withValues(alpha: 0.7),
-                                    borderRadius: BorderRadius.circular(
-                                        SkeletonSpacing.borderRadius),
-                                    border: Border.all(
-                                      color: SkeletonColorScheme.primaryColor
-                                          .withValues(alpha: 0.5),
-                                      width: 1,
-                                    ),
-                                  ),
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      const Icon(
-                                        Icons.tag,
-                                        color: Colors.white,
-                                        size: 16,
-                                      ),
-                                      const SizedBox(width: 6),
-                                      Text(
-                                        'Seed: ${historyItem.seed}',
-                                        style: const TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.w600,
+                        Obx(() => homePageController.hideSeed.value
+                            ? const SizedBox.shrink()
+                            : Positioned(
+                                bottom: 16,
+                                left: 16,
+                                right: 16,
+                                child: Row(
+                                  children: [
+                                    GestureDetector(
+                                      onTap: () {
+                                        AppSnackBar.show(
+                                          'Seed 복사됨',
+                                          'Seed: ${historyItem.seed}',
+                                          backgroundColor: SkeletonColorScheme
+                                              .primaryColor
+                                              .withValues(alpha: 0.9),
+                                          textColor: Colors.white,
+                                          margin: const EdgeInsets.all(16),
+                                          borderRadius: SkeletonSpacing.borderRadius,
+                                          duration: const Duration(seconds: 2),
+                                        );
+                                        // 클립보드에 복사
+                                        Clipboard.setData(ClipboardData(
+                                            text: historyItem.seed.toString()));
+                                      },
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 12, vertical: 8),
+                                        decoration: BoxDecoration(
+                                          color: Colors.black.withValues(alpha: 0.7),
+                                          borderRadius: BorderRadius.circular(
+                                              SkeletonSpacing.borderRadius),
+                                          border: Border.all(
+                                            color: SkeletonColorScheme.primaryColor
+                                                .withValues(alpha: 0.5),
+                                            width: 1,
+                                          ),
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          children: [
+                                            const Icon(
+                                              Icons.tag,
+                                              color: Colors.white,
+                                              size: 16,
+                                            ),
+                                            const SizedBox(width: 6),
+                                            Text(
+                                              'Seed: ${historyItem.seed}',
+                                              style: const TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 14,
+                                                fontWeight: FontWeight.w600,
+                                              ),
+                                            ),
+                                            const SizedBox(width: 6),
+                                            const Icon(
+                                              Icons.copy,
+                                              color: Colors.white,
+                                              size: 14,
+                                            ),
+                                          ],
                                         ),
                                       ),
-                                      const SizedBox(width: 6),
-                                      const Icon(
-                                        Icons.copy,
-                                        color: Colors.white,
-                                        size: 14,
-                                      ),
-                                    ],
-                                  ),
+                                    ),
+                                  ],
                                 ),
-                              ),
-                            ],
-                          ),
-                        ),
+                              )),
                       ],
                     );
                   }

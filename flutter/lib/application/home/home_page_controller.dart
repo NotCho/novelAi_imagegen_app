@@ -228,6 +228,7 @@ class HomePageController extends SkeletonController {
 
   @override
   Future<bool> initLoading() async {
+    hideSeed.value = prefs.getBool("hideSeed") ?? false;
     final raw = prefs.getString("lastSettings");
     if (raw != null) {
       Map<String, dynamic> data = jsonDecode(raw);
@@ -328,6 +329,12 @@ class HomePageController extends SkeletonController {
       "nsfw, blurry, lowres, error, worst quality, bad quality, jpeg artifacts, very displeasing, white blank page, blank page, ";
 
   RxBool floatingButtonExpanded = false.obs;
+  final hideSeed = false.obs;
+
+  Future<void> setHideSeed(bool value) async {
+    hideSeed.value = value;
+    await prefs.setBool("hideSeed", value);
+  }
 
   void generateImage() async {
     positiveDef = posMap[usingModel.value] ?? '';
