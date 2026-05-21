@@ -4,7 +4,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:get/get.dart';
-import 'package:naiapp/application/home/home_page_controller.dart';
+import 'package:naiapp/application/home/image_generation_controller.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../main.dart';
@@ -60,8 +60,8 @@ class AutoGenerationController extends GetxController {
       FlutterForegroundTask.stopService();
     }
 
-    final homePageController = Get.find<HomePageController>();
-    if (autoGenerateEnabled.value && !homePageController.isGenerating.value) {
+    final imageGenController = Get.find<ImageGenerationController>();
+    if (autoGenerateEnabled.value && !imageGenController.isGenerating.value) {
       _startAutoGenerateTimer();
     } else {
       _cancelAutoGenerateTimer();
@@ -126,10 +126,10 @@ class AutoGenerationController extends GetxController {
       remainingSeconds.value--;
       if (remainingSeconds.value <= 0) {
         _cancelAutoGenerateTimer();
-        final homePageController = Get.find<HomePageController>();
-        if (!homePageController.isGenerating.value &&
+        final imageGenController = Get.find<ImageGenerationController>();
+        if (!imageGenController.isGenerating.value &&
             autoGenerateEnabled.value) {
-          homePageController.generateImage();
+          imageGenController.generateImage();
         }
       }
     });

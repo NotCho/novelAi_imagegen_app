@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:naiapp/application/core/skeleton_controller.dart';
 
 import 'package:get/get.dart';
-import 'package:naiapp/application/home/home_page_controller.dart';
+import 'package:naiapp/application/home/model_config_controller.dart';
 import 'package:naiapp/domain/gen/i_novelAI_repository.dart';
 import 'package:naiapp/domain/gen/tag_suggestion_model.dart';
 import 'package:naiapp/view/core/util/app_snackbar.dart';
@@ -48,7 +48,7 @@ class ParserPageController extends SkeletonController {
     suggestedTags.clear();
     INovelAIRepository repository = Get.find<INovelAIRepository>();
     Either<String, TagSuggestionModel> data = await repository.suggestTags(
-        addTagController.text, Get.find<HomePageController>().usingModel.value);
+        addTagController.text, Get.find<ModelConfigController>().usingModel.value);
     data.fold((l) {
       AppSnackBar.show('Error', l);
     }, (r) {

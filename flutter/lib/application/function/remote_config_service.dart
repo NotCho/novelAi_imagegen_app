@@ -44,11 +44,8 @@ class RemoteConfigService {
       _changelogKey: '',
     });
 
-    try {
-      await remoteConfig.fetchAndActivate();
-    } catch (e, stackTrace) {
-      debugPrint('Remote Config 초기 로드 실패: $e\n$stackTrace');
-    }
+    // runApp 전에 동기식 네트워크 fetchAndActivate()를 생략하여 데드락 방지
+    print('[RemoteConfig] Defaults set. Skipping early fetch to avoid startup deadlocks.');
 
     return RemoteConfigService._(remoteConfig);
   }

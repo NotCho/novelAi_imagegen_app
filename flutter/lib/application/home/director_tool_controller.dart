@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:get/get.dart';
 import 'dart:convert';
 import 'package:image/image.dart' as img;
+import 'package:image_picker/image_picker.dart';
 import 'package:naiapp/view/core/util/app_snackbar.dart';
 
 class DirectorToolController extends GetxController {
@@ -15,6 +16,24 @@ class DirectorToolController extends GetxController {
 
   // Fidelity 슬라이더 (0.0 ~ 1.0)
   RxDouble fidelity = 1.0.obs;
+
+  /// 갤러리에서 이미지를 직접 불러와서 레퍼런스로 설정
+  Future<void> pickReferenceImage() async {
+    try {
+      final ImagePicker picker = ImagePicker();
+      final XFile? image = await picker.pickImage(
+        source: ImageSource.gallery,
+        imageQuality: 100,
+      );
+
+      if (image != null) {
+        final Uint8List bytes = await image.readAsBytes();
+        setReferenceImage(bytes);
+      }
+    } catch (e) {
+      AppSnackBar.show('오류', '이미지를 불러올 수 없습니다: $e');
+    }
+  }
 
   /// 상단 이미지 불러오기 다이얼로그에서 전달받은 이미지를 설정
   bool setReferenceImage(Uint8List bytes) {

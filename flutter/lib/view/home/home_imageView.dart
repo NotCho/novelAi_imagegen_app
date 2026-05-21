@@ -7,6 +7,7 @@ import 'dart:math' as math;
 
 import '../../application/home/home_image_controller.dart';
 import '../../application/home/home_page_controller.dart';
+import '../../application/home/image_cache_manager.dart';
 import '../../infra/service/webp_image_parser.dart';
 import '../core/util/app_snackbar.dart';
 import '../core/util/design_system.dart';
@@ -83,7 +84,7 @@ class HomeImageView extends GetView<HomeImageController> {
                                   .withValues(alpha: 0.3),
                             ),
                             child: Image.memory(
-                              base64Decode(historyItem.imagePath),
+                              ImageCacheManager.instance.getImageBytes(historyItem.imagePath),
                               fit: BoxFit.contain,
                             ),
                           ),
@@ -181,28 +182,60 @@ class HomeImageView extends GetView<HomeImageController> {
             ),
             Obx(
               () => Positioned(
-                  child: Row(
-                children: [
-                  IconButton(
-                      onPressed: () {
-                        controller.imageViewPageController.animateToPage(0,
-                            duration: SkeletonSpacing.animationDuration,
-                            curve: Curves.easeIn);
-                      },
-                      icon: Icon(
-                        Icons.keyboard_double_arrow_left,
-                        color: Colors.white.withValues(alpha: 0.8),
-                        size: 32,
-                      )),
-                  Text(
-                    '${(controller.currentImageViewIndex.value < historyMax) ? controller.currentImageViewIndex.value + 1 : "$historyMax+"} / ${(controller.generationHistory.length > historyMax) ? "$historyMax+" : controller.generationHistory.length}',
-                    style: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.8),
-                      fontSize: 16,
+                top: 16,
+                left: 16,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.65),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.15),
+                      width: 1,
                     ),
-                  )
-                ],
-              )),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.25),
+                        blurRadius: 6,
+                        offset: const Offset(0, 3),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      GestureDetector(
+                        onTap: () {
+                          controller.imageViewPageController.animateToPage(0,
+                              duration: SkeletonSpacing.animationDuration,
+                              curve: Curves.easeIn);
+                        },
+                        child: Icon(
+                          Icons.keyboard_double_arrow_left_rounded,
+                          color: Colors.white.withValues(alpha: 0.9),
+                          size: 18,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Container(
+                        width: 1,
+                        height: 12,
+                        color: Colors.white.withValues(alpha: 0.25),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        '${(controller.currentImageViewIndex.value < historyMax) ? controller.currentImageViewIndex.value + 1 : "$historyMax+"} / ${(controller.generationHistory.length > historyMax) ? "$historyMax+" : controller.generationHistory.length}',
+                        style: TextStyle(
+                          color: Colors.white.withValues(alpha: 0.9),
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             ),
           ],
         );

@@ -59,26 +59,41 @@ class GlobalController extends GetxController {
 
   @override
   void onInit() {
+    print('[GlobalController] onInit starting...');
     super.onInit();
+    print('[GlobalController] onInit finished.');
+  }
+
+  @override
+  void onReady() {
+    print('[GlobalController] onReady triggered. Starting _initialize...');
+    super.onReady();
     _initialize();
   }
 
   Future<void> _initialize() async {
+    print('[GlobalController] _initialize starting...');
     await getCurrentClientVersion();
     await checkForUpdate();
+    print('[GlobalController] _initialize finished.');
   }
 
   Future<void> checkForUpdate({bool forceRemoteFetch = false}) async {
-    if (_isCheckingUpdate.value) return;
+    print('[GlobalController] checkForUpdate starting (forceRemoteFetch: $forceRemoteFetch)...');
+    if (_isCheckingUpdate.value) {
+      print('[GlobalController] checkForUpdate already in progress, aborting.');
+      return;
+    }
 
     _isCheckingUpdate.value = true;
     try {
+      print('[GlobalController] Calling remoteConfigService.refreshUpdateInfo...');
       final info = await _remoteConfigService.refreshUpdateInfo(
         forceRemoteFetch: forceRemoteFetch,
       );
       _updateInfo.value = info;
       if (kDebugMode) {
-        print('원격 구성에서 업데이트 정보 가져옴: ${info.latestVersion}');
+        print('[GlobalController] 원격 구성에서 업데이트 정보 가져옴: ${info.latestVersion}');
       }
 
       final clientVersion = currentClientVersion.value;
@@ -88,27 +103,33 @@ class GlobalController extends GetxController {
           ? _remoteConfigService.isRemoteVersionNewer(clientVersion)
           : false;
 
+      print('[GlobalController] isUpdateAvailable: ${_isUpdateAvailable.value}');
       if (_isUpdateAvailable.value) {
         if (kDebugMode) {
-          print('업데이트가 필요합니다. $clientVersion');
+          print('[GlobalController] 업데이트가 필요합니다. $clientVersion');
         }
         _promptUpdateIfNeeded(forcePrompt: forceRemoteFetch);
       } else if (forceRemoteFetch) {
         if (kDebugMode) {
-          print('업데이트가 필요하지 않습니다.$clientVersion');
+          print('[GlobalController] 업데이트가 필요하지 않습니다.$clientVersion');
         }
         _hasPromptedUpdate = false;
       }
+    } catch (e) {
+      print('[GlobalController] Error during checkForUpdate: $e');
     } finally {
       _isCheckingUpdate.value = false;
+      print('[GlobalController] checkForUpdate finished.');
     }
   }
 
   void _promptUpdateIfNeeded({bool forcePrompt = false}) {
+    print('[GlobalController] _promptUpdateIfNeeded (forcePrompt: $forcePrompt)...');
     if (!_isUpdateAvailable.value) return;
 
     final shouldPrompt =
         forcePrompt || !_hasPromptedUpdate || isForceUpdateRequired;
+    print('[GlobalController] shouldPrompt: $shouldPrompt');
     if (!shouldPrompt) return;
 
     _hasPromptedUpdate = true;
@@ -317,9 +338,11 @@ class GlobalController extends GetxController {
   }
 
   Future<void> getCurrentClientVersion() async {
+    print('[GlobalController] getCurrentClientVersion starting...');
     try {
       final packageInfo = await PackageInfo.fromPlatform();
       currentClientVersion.value = packageInfo.version;
+      print('[GlobalController] getCurrentClientVersion success: ${packageInfo.version}');
     } catch (e, stackTrace) {
       debugPrint('클라이언트 버전 조회 실패: $e\n$stackTrace');
       currentClientVersion.value = '버전 로드 실패';

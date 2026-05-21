@@ -18,30 +18,48 @@ import 'connection.dart';
 import 'package:http/http.dart' as http;
 
 Future<void> injectDependencies() async {
+  print('[Dependency Inject] Starting injectDependencies...');
   // 웹이 아닐 때만 권한 요청 및 포그라운드 서비스 초기화
   if (!kIsWeb) {
-    await _requestPermissions();
+    print('[Dependency Inject] Requesting permissions (non-blocking)...');
+    _requestPermissions();
+    print('[Dependency Inject] Initializing foreground service...');
     _initForegroundService();
   } else {
   }
 
+  print('[Dependency Inject] Initializing Firebase...');
   await _initializeFirebase();
 
-  /// Repo
+  print('[Dependency Inject] Putting SharedPreferences...');
   Get.put<SharedPreferences>(await SharedPreferences.getInstance());
+  
+  print('[Dependency Inject] Putting IConnection...');
   Get.put<IConnection>(JSEO.instance);
+  
+  print('[Dependency Inject] Putting INovelAIRepository...');
   Get.put<INovelAIRepository>(NovelAIRepository(
       httpClient: http.Client(), prefs: await SharedPreferences.getInstance()));
 
-  /// Service
+  print('[Dependency Inject] Putting ISkeletonRouter...');
   Get.put<ISkeletonRouter>(SkeletonRouter());
+  
+  print('[Dependency Inject] Initializing RemoteConfigService...');
   Get.put<RemoteConfigService>(
     await RemoteConfigService.initialize(),
     permanent: true,
   );
+  
+  print('[Dependency Inject] Putting GlobalController...');
   Get.put<GlobalController>(GlobalController());
+  
+  print('[Dependency Inject] Putting ImageCacheManager...');
   Get.put(ImageCacheManager(), permanent: true);
+  
+  print('[Dependency Inject] Putting WildcardController...');
   Get.put<WildcardController>(WildcardController(), permanent: true);
+  
+  print('[Dependency Inject] Finished injectDependencies successfully.');
 }
 
 Future<void> _initializeFirebase() async {

@@ -5,6 +5,8 @@ import 'package:naiapp/application/core/global_controller.dart';
 import 'package:naiapp/application/core/skeleton_controller.dart';
 import '../../domain/gen/diffusion_model.dart' as df;
 import 'package:naiapp/view/core/util/app_snackbar.dart';
+import 'package:naiapp/application/home/prompt_controller.dart' as import_prompt;
+import 'image_cache_manager.dart';
 
 import 'package:get/get.dart';
 import 'dart:typed_data';
@@ -24,6 +26,26 @@ class HomeImageController extends SkeletonController {
       PageController(initialPage: 0, keepPage: false);
   RxInt currentImageViewIndex = 0.obs;
 
+  void cacheImage(String path, Uint8List bytes) {
+    ImageCacheManager.instance.cacheImage(path, bytes);
+  }
+
+  void loadFromHistory(int index) {
+    if (index < 0 || index >= generationHistory.length) {
+      return;
+    }
+    final item = generationHistory[index];
+    generatedImagePath.value = item.imagePath;
+
+    // 전역 캐시 매니저를 통해 안전하고 빠른 룩업/디코딩 수행
+    generatedImageBytes.value = ImageCacheManager.instance.getImageBytes(item.imagePath);
+
+    try {
+      final promptController = Get.find<import_prompt.PromptController>();
+      promptController.positivePromptController.text = item.prompt;
+    } catch (e) {}
+  }
+
   @override
   Future<bool> initLoading() async {
     return true; // Return true to indicate loading is complete
@@ -35,7 +57,7 @@ class HomeImageController extends SkeletonController {
         int reversedIndex =
             generationHistory.length - imageViewPageController.page!.toInt();
         currentImageBytes.value =
-            base64Decode(generationHistory[reversedIndex].imagePath);
+            ImageCacheManager.instance.getImageBytes(generationHistory[reversedIndex].imagePath);
       }
     } catch (e) {
       currentImageBytes.value = generatedImageBytes.value;
@@ -72,7 +94,7 @@ class HomeImageController extends SkeletonController {
     currentImageViewIndex.value = index;
     int reversedIndex = generationHistory.length - index - 1; // 역순으로 인덱스 계산
     currentImageBytes.value =
-        base64Decode(generationHistory[reversedIndex].imagePath);
+        ImageCacheManager.instance.getImageBytes(generationHistory[reversedIndex].imagePath);
   }
 
   df.DiffusionModel diffusionModelFromExifMap({
@@ -249,6 +271,10 @@ class HomeImageController extends SkeletonController {
     }
   }
 
+  void addVibeImage(Uint8List bytes) {
+    vibeParseImageBytes.add(VibeImage(bytes: bytes, weight: 0.6.obs, extractionStrength: 1.0.obs));
+  }
+
   void vibeWeightSliderChanged(int index, double value) {
     // List<Map<String, dynamic>> vibeParseImageBytes = this.vibeParseImageBytes;
     //
@@ -323,7 +349,7 @@ class HomeImageController extends SkeletonController {
       // 마지막 이미지로 이동
       int lastIndex = generationHistory.length - 1;
       currentImageBytes.value =
-          base64Decode(generationHistory[lastIndex].imagePath);
+          ImageCacheManager.instance.getImageBytes(generationHistory[lastIndex].imagePath);
       imageViewPageController.jumpToPage(lastIndex);
     }
   }

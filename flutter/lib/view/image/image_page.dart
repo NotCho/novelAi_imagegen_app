@@ -1,8 +1,8 @@
-import 'dart:convert';
 import 'dart:typed_data';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:naiapp/application/core/global_controller.dart';
 import 'package:naiapp/application/home/home_image_controller.dart';
@@ -452,84 +452,115 @@ class ImagePage extends GetView<ImagePageController> {
                   ? homeImageController.filteredGenerationHistory
                   : homeImageController.generationHistory;
 
+          if (currentItems.isEmpty) {
+            return const SizedBox.shrink();
+          }
+
+          final currentItem = currentItems[controller.currentIndex.value];
+
           return Stack(
             children: [
-              PhotoView(
-                imageProvider: MemoryImage(
-                  base64Decode(
-                      currentItems[controller.currentIndex.value].imagePath),
+              // 1. 메인 뷰어 (PhotoView)
+              Positioned.fill(
+                child: Container(
+                  color: const Color(0xFF0C0C0E), // 아크릴 질감을 뒷받침하는 깊이있는 다크 메탈 톤 배경
+                  child: Hero(
+                    tag: 'thumbnail_${controller.currentIndex.value}',
+                    child: PhotoView(
+                      imageProvider: MemoryImage(
+                        ImageCacheManager.instance.getImageBytes(currentItem.imagePath),
+                      ),
+                      minScale: PhotoViewComputedScale.contained,
+                      maxScale: PhotoViewComputedScale.covered * 2.5,
+                      backgroundDecoration: const BoxDecoration(
+                        color: Colors.transparent,
+                      ),
+                    ),
+                  ),
                 ),
-                minScale: PhotoViewComputedScale.contained,
-                maxScale: PhotoViewComputedScale.covered * 2,
               ),
-              // 상단 컨트롤 바
+
+              // 2. 상단 글래스모피즘 아크릴 스마트 플로팅 바
               Positioned(
-                top: 40,
+                top: 44,
                 left: 16,
                 right: 16,
                 child: ClipRRect(
-                  borderRadius:
-                      BorderRadius.circular(SkeletonSpacing.borderRadius),
+                  borderRadius: BorderRadius.circular(24),
                   child: BackdropFilter(
-                    filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                    filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
                     child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 12),
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                       decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: 0.7),
-                        borderRadius:
-                            BorderRadius.circular(SkeletonSpacing.borderRadius),
+                        color: Colors.black.withValues(alpha: 0.35),
+                        borderRadius: BorderRadius.circular(24),
+                        border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.12),
+                          width: 0.6,
+                        ),
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(
-                            '${controller.currentIndex.value + 1} / ${currentItems.length}',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.08),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Text(
+                              '${controller.currentIndex.value + 1}  /  ${currentItems.length}',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                letterSpacing: 0.5,
+                              ),
                             ),
                           ),
                           Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
+                              // 다운로드 캡슐 버튼
                               Material(
                                 color: Colors.transparent,
                                 child: InkWell(
                                   onTap: () {
                                     controller.global.saveImageWithMetadata(
-                                        base64Decode(currentItems[
-                                                controller.currentIndex.value]
-                                            .imagePath));
+                                        ImageCacheManager.instance.getImageBytes(currentItem.imagePath));
                                   },
-                                  borderRadius: BorderRadius.circular(
-                                      SkeletonSpacing.borderRadius / 2),
+                                  borderRadius: BorderRadius.circular(20),
                                   child: Container(
                                     padding: const EdgeInsets.all(8),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white.withValues(alpha: 0.06),
+                                      shape: BoxShape.circle,
+                                    ),
                                     child: const Icon(
-                                      Icons.download,
+                                      Icons.download_rounded,
                                       color: Colors.white,
-                                      size: 20,
+                                      size: 18,
                                     ),
                                   ),
                                 ),
                               ),
                               const SizedBox(width: 8),
+                              // 닫기 캡슐 버튼
                               Material(
                                 color: Colors.transparent,
                                 child: InkWell(
-                                  onTap: () {
-                                    Get.back();
-                                  },
-                                  borderRadius: BorderRadius.circular(
-                                      SkeletonSpacing.borderRadius / 2),
+                                  onTap: () => Get.back(),
+                                  borderRadius: BorderRadius.circular(20),
                                   child: Container(
                                     padding: const EdgeInsets.all(8),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white.withValues(alpha: 0.06),
+                                      shape: BoxShape.circle,
+                                    ),
                                     child: const Icon(
-                                      Icons.close,
+                                      Icons.close_rounded,
                                       color: Colors.white,
-                                      size: 20,
+                                      size: 18,
                                     ),
                                   ),
                                 ),
@@ -542,76 +573,263 @@ class ImagePage extends GetView<ImagePageController> {
                   ),
                 ),
               ),
-              // 왼쪽 네비게이션 버튼 (전체 높이)
+
+              // 3. 왼쪽 아크릴 유리 플로팅 원형 버튼
+              if (controller.currentIndex.value > 0)
+                Positioned(
+                  left: 16,
+                  top: 0,
+                  bottom: 0,
+                  child: Center(
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(20),
+                      child: BackdropFilter(
+                        filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+                        child: Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            onTap: () {
+                              if (controller.currentIndex.value > 0) {
+                                controller.currentIndex.value--;
+                              }
+                            },
+                            borderRadius: BorderRadius.circular(20),
+                            child: Container(
+                              width: 40,
+                              height: 40,
+                              decoration: BoxDecoration(
+                                color: Colors.white.withValues(alpha: 0.06),
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: Colors.white.withValues(alpha: 0.1),
+                                  width: 0.6,
+                                ),
+                              ),
+                              child: const Icon(
+                                Icons.chevron_left_rounded,
+                                color: Colors.white,
+                                size: 24,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+
+              // 4. 오른쪽 아크릴 유리 플로팅 원형 버튼
+              if (controller.currentIndex.value < currentItems.length - 1)
+                Positioned(
+                  right: 16,
+                  top: 0,
+                  bottom: 0,
+                  child: Center(
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(20),
+                      child: BackdropFilter(
+                        filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+                        child: Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            onTap: () {
+                              if (controller.currentIndex.value < currentItems.length - 1) {
+                                controller.currentIndex.value++;
+                              }
+                            },
+                            borderRadius: BorderRadius.circular(20),
+                            child: Container(
+                              width: 40,
+                              height: 40,
+                              decoration: BoxDecoration(
+                                color: Colors.white.withValues(alpha: 0.06),
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: Colors.white.withValues(alpha: 0.1),
+                                  width: 0.6,
+                                ),
+                              ),
+                              child: const Icon(
+                                Icons.chevron_right_rounded,
+                                color: Colors.white,
+                                size: 24,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+
+              // 5. 하단 스마트 정보 / 퀵 액션 아크릴 플로팅 스마트 바
               Positioned(
-                left: 0,
-                top: 0,
-                bottom: 0,
-                child: GestureDetector(
-                  onTap: () {
-                    if (controller.currentIndex.value > 0) {
-                      controller.currentIndex.value--;
-                    }
-                  },
-                  child: Container(
-                    width: 80,
-                    color: Colors.transparent,
-                    child: Center(
-                      child: Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: Colors.black.withValues(alpha: 0.5),
-                          borderRadius: BorderRadius.circular(
-                              SkeletonSpacing.borderRadius / 2),
+                bottom: 28,
+                left: 16,
+                right: 16,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(20),
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+                    child: Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.35),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.12),
+                          width: 0.6,
                         ),
-                        child: Icon(
-                          Icons.arrow_back_ios_new,
-                          color: controller.currentIndex.value > 0
-                              ? Colors.white
-                              : Colors.white.withValues(alpha: 0.3),
-                          size: 24,
-                        ),
+                      ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // 상단 프롬프트 슬림 요약
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  currentItem.prompt.isEmpty 
+                                      ? '프롬프트 정보 없음' 
+                                      : currentItem.prompt,
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    color: Colors.white.withValues(alpha: 0.85),
+                                    fontSize: 12,
+                                    height: 1.35,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 10),
+                          Container(
+                            height: 1,
+                            color: Colors.white.withValues(alpha: 0.08),
+                          ),
+                          const SizedBox(height: 8),
+                          // 하단 시드 칩 & 복사 퀵 액션 행
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              // 1) Seed 정보 캡슐 (원터치 복사 연동)
+                              Material(
+                                color: Colors.transparent,
+                                child: InkWell(
+                                  onTap: () {
+                                    Clipboard.setData(ClipboardData(
+                                        text: currentItem.seed.toString()));
+                                    AppSnackBar.show(
+                                      'Seed 복사 완료',
+                                      'Seed: ${currentItem.seed}',
+                                      backgroundColor: SkeletonColorScheme.primaryColor.withValues(alpha: 0.95),
+                                      textColor: Colors.white,
+                                      margin: const EdgeInsets.all(16),
+                                      borderRadius: SkeletonSpacing.borderRadius,
+                                      duration: const Duration(seconds: 2),
+                                    );
+                                  },
+                                  borderRadius: BorderRadius.circular(10),
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white.withValues(alpha: 0.08),
+                                      borderRadius: BorderRadius.circular(10),
+                                      border: Border.all(
+                                        color: Colors.white.withValues(alpha: 0.1),
+                                        width: 0.5,
+                                      ),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(
+                                          Icons.tag_rounded,
+                                          color: Colors.white.withValues(alpha: 0.7),
+                                          size: 12,
+                                        ),
+                                        const SizedBox(width: 4),
+                                        Text(
+                                          'Seed: ${currentItem.seed}',
+                                          style: TextStyle(
+                                            color: Colors.white.withValues(alpha: 0.8),
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 4),
+                                        Icon(
+                                          Icons.copy_rounded,
+                                          color: Colors.white.withValues(alpha: 0.5),
+                                          size: 10,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              // 2) 프롬프트 복사 버튼
+                              Material(
+                                color: Colors.transparent,
+                                child: InkWell(
+                                  onTap: () {
+                                    Clipboard.setData(ClipboardData(text: currentItem.prompt));
+                                    AppSnackBar.show(
+                                      '프롬프트 복사 완료',
+                                      '프롬프트가 클립보드에 복사되었습니다.',
+                                      backgroundColor: SkeletonColorScheme.primaryColor.withValues(alpha: 0.95),
+                                      textColor: Colors.white,
+                                      margin: const EdgeInsets.all(16),
+                                      borderRadius: SkeletonSpacing.borderRadius,
+                                      duration: const Duration(seconds: 2),
+                                    );
+                                  },
+                                  borderRadius: BorderRadius.circular(10),
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                                    decoration: BoxDecoration(
+                                      color: SkeletonColorScheme.primaryColor.withValues(alpha: 0.8),
+                                      borderRadius: BorderRadius.circular(10),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: SkeletonColorScheme.primaryColor.withValues(alpha: 0.25),
+                                          blurRadius: 4,
+                                          offset: const Offset(0, 1),
+                                        ),
+                                      ],
+                                    ),
+                                    child: const Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(
+                                          Icons.text_fields_rounded,
+                                          color: Colors.white,
+                                          size: 12,
+                                        ),
+                                        SizedBox(width: 4),
+                                        Text(
+                                          '프롬프트 복사',
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
                       ),
                     ),
                   ),
                 ),
               ),
-              // 오른쪽 네비게이션 버튼 (전체 높이)
-              Positioned(
-                right: 0,
-                top: 0,
-                bottom: 0,
-                child: GestureDetector(
-                  onTap: () {
-                    if (controller.currentIndex.value <
-                        currentItems.length - 1) {
-                      controller.currentIndex.value++;
-                    }
-                  },
-                  child: Container(
-                    width: 80,
-                    color: Colors.transparent,
-                    child: Center(
-                      child: Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: Colors.black.withValues(alpha: 0.5),
-                          borderRadius: BorderRadius.circular(
-                              SkeletonSpacing.borderRadius / 2),
-                        ),
-                        child: Icon(
-                          Icons.arrow_forward_ios,
-                          color: controller.currentIndex.value <
-                                  currentItems.length - 1
-                              ? Colors.white
-                              : Colors.white.withValues(alpha: 0.3),
-                          size: 24,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              )
             ],
           );
         },
@@ -651,6 +869,8 @@ class _ImageGridItemState extends State<ImageGridItem>
   bool _isDecoded = false;
   late AnimationController _animationController;
   late Animation<double> _scaleAnimation;
+  int? _imageWidth;
+  int? _imageHeight;
 
   @override
   bool get wantKeepAlive => true;
@@ -663,6 +883,8 @@ class _ImageGridItemState extends State<ImageGridItem>
     if (oldWidget.imageData != widget.imageData) {
       _isDecoded = false;
       _decodedImage = null;
+      _imageWidth = null;
+      _imageHeight = null;
       _loadImage();
     }
   }
@@ -690,15 +912,34 @@ class _ImageGridItemState extends State<ImageGridItem>
     super.dispose();
   }
 
-  void _loadImage() {
+  void _loadImage() async {
     try {
-      _decodedImage =
-          ImageCacheManager.instance.getImageBytes(widget.imageData);
-
-      // _decodedImage = base64Decode(widget.imageData);
+      final bytes = ImageCacheManager.instance.getImageBytes(widget.imageData);
+      _decodedImage = bytes;
       _isDecoded = true;
       if (mounted) setState(() {});
+
+      // 비동기 이미지 디코딩으로 이미지 해상도 정보 획득
+      final image = await decodeImageFromList(bytes);
+      if (mounted) {
+        setState(() {
+          _imageWidth = image.width;
+          _imageHeight = image.height;
+        });
+      }
     } catch (e) {}
+  }
+
+  String _getAspectString(int width, int height) {
+    if (width == height) return '1:1';
+    final double ratio = width / height;
+    if ((ratio - 1.5).abs() < 0.15) return '3:2';
+    if ((ratio - 0.66).abs() < 0.1) return '2:3';
+    if ((ratio - 1.77).abs() < 0.15) return '16:9';
+    if ((ratio - 0.56).abs() < 0.1) return '9:16';
+    if ((ratio - 1.33).abs() < 0.1) return '4:3';
+    if ((ratio - 0.75).abs() < 0.1) return '3:4';
+    return '$width:$height';
   }
 
   @override
@@ -747,25 +988,18 @@ class _ImageGridItemState extends State<ImageGridItem>
                       color: SkeletonColorScheme.cardColor,
                       borderRadius:
                           BorderRadius.circular(SkeletonSpacing.borderRadius),
-                      border: Border.all(
-                        color: isSelected
-                            ? SkeletonColorScheme.primaryColor
-                            : SkeletonColorScheme.textSecondaryColor
-                                .withValues(alpha: 0.1),
-                        width: isSelected ? 2 : 1,
-                      ),
                       boxShadow: [
                         if (isSelected)
                           BoxShadow(
                             color: SkeletonColorScheme.primaryColor
-                                .withValues(alpha: 0.3),
+                                .withValues(alpha: 0.35),
                             blurRadius: 8,
                             spreadRadius: 0,
                             offset: const Offset(0, 2),
                           )
                         else
                           BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.05),
+                            color: Colors.black.withValues(alpha: 0.12),
                             blurRadius: 4,
                             spreadRadius: 0,
                             offset: const Offset(0, 2),
@@ -777,7 +1011,27 @@ class _ImageGridItemState extends State<ImageGridItem>
                           BorderRadius.circular(SkeletonSpacing.borderRadius),
                       child: Stack(
                         children: [
-                          // 메인 이미지와 GestureDetector
+                          // 1. 아크릴 블러 배경 (가로세로 비율이 다를 때 여백을 채우는 몽환적 블러)
+                          Positioned.fill(
+                            child: Image.memory(
+                              _decodedImage!,
+                              fit: BoxFit.cover,
+                              cacheWidth: 80, // 배경용이므로 최소 해상도로 설정해 메모리 절약
+                              cacheHeight: 80,
+                              gaplessPlayback: true,
+                              filterQuality: FilterQuality.low,
+                            ),
+                          ),
+                          Positioned.fill(
+                            child: BackdropFilter(
+                              filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+                              child: Container(
+                                color: Colors.black.withValues(alpha: 0.4), // 차분한 다크 오버레이
+                              ),
+                            ),
+                          ),
+                          
+                          // 2. 가로세로 컷 원본 이미지 (찌그러짐 없이 contain 배치)
                           Positioned.fill(
                             child: GestureDetector(
                               onTapDown: (_) => _animationController.forward(),
@@ -792,45 +1046,118 @@ class _ImageGridItemState extends State<ImageGridItem>
                                   widget.onTap();
                                 }
                               },
-                              child: Image.memory(
-                                _decodedImage!,
-                                fit: BoxFit.cover,
-                                // 이미지 늘어남 방지, 더 짧은 쪽에 맞춤
-                                width: double.infinity,
-                                height: double.infinity,
-                                cacheWidth: 200,
-                                cacheHeight: 200,
-                                gaplessPlayback: true,
-                                filterQuality: FilterQuality.low,
+                              child: Hero(
+                                tag: 'thumbnail_${widget.index}', // 크게보기 화면과의 연동을 위한 Hero 태그 추가
+                                child: Image.memory(
+                                  _decodedImage!,
+                                  fit: BoxFit.contain, // 찌그러짐 없이 원본 비율 고수!
+                                  width: double.infinity,
+                                  height: double.infinity,
+                                  cacheWidth: 200,
+                                  cacheHeight: 200,
+                                  gaplessPlayback: true,
+                                  filterQuality: FilterQuality.medium,
+                                ),
                               ),
                             ),
                           ),
-                          // 선택된 상태일 때 오버레이 (터치 이벤트 무시)
+
+                          // 3. 은은한 하단 비네팅 (캡슐 칩의 가독성을 위한 점진적 그라디언트)
+                          if (_imageWidth != null && _imageHeight != null)
+                            Positioned(
+                              left: 0,
+                              right: 0,
+                              bottom: 0,
+                              height: 32,
+                              child: IgnorePointer(
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    gradient: LinearGradient(
+                                      begin: Alignment.topCenter,
+                                      end: Alignment.bottomCenter,
+                                      colors: [
+                                        Colors.transparent,
+                                        Colors.black.withValues(alpha: 0.45),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+
+                          // 4. 가로세로 컷 비율 정보 캡슐 칩 (우하단에 초슬림 캡슐로 표시)
+                          if (_imageWidth != null && _imageHeight != null)
+                            Positioned(
+                              bottom: 6,
+                              right: 6,
+                              child: IgnorePointer(
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 6, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: Colors.black.withValues(alpha: 0.7),
+                                    borderRadius: BorderRadius.circular(4),
+                                    border: Border.all(
+                                      color: Colors.white.withValues(alpha: 0.12),
+                                      width: 0.6,
+                                    ),
+                                  ),
+                                  child: Text(
+                                    _getAspectString(_imageWidth!, _imageHeight!),
+                                    style: TextStyle(
+                                      color: Colors.white.withValues(alpha: 0.8),
+                                      fontSize: 9,
+                                      fontWeight: FontWeight.w600,
+                                      letterSpacing: 0.2,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+
+                          // 5. 선택된 상태일 때 전체 투명 보라/블루 틴트 오버레이
                           if (isSelected)
                             Positioned.fill(
                               child: IgnorePointer(
                                 child: Container(
                                   decoration: BoxDecoration(
                                     color: SkeletonColorScheme.primaryColor
-                                        .withValues(alpha: 0.1),
-                                    borderRadius: BorderRadius.circular(
-                                        SkeletonSpacing.borderRadius),
+                                        .withValues(alpha: 0.12),
                                   ),
                                 ),
                               ),
                             ),
-                          // 선택모드일 때 체크박스 표시 (터치 이벤트 무시)
+
+                          // 6. 안티앨리어싱 Border 피침 왜곡을 없애기 위한 스택 최상단 보더 오버레이
+                          Positioned.fill(
+                            child: IgnorePointer(
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(
+                                      SkeletonSpacing.borderRadius),
+                                  border: Border.all(
+                                    color: isSelected
+                                        ? SkeletonColorScheme.primaryColor
+                                        : SkeletonColorScheme.textSecondaryColor
+                                            .withValues(alpha: 0.08),
+                                    width: isSelected ? 2.2 : 1.0,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+
+                          // 7. 선택모드일 때 체크박스 표시 (터치 이벤트 무시)
                           if (isSelectMode)
                             Positioned(
-                              top: 8,
-                              right: 8,
+                              top: 6,
+                              right: 6,
                               child: IgnorePointer(
                                 child: Container(
-                                  padding: const EdgeInsets.all(4),
+                                  padding: const EdgeInsets.all(3),
                                   decoration: BoxDecoration(
                                     color: Colors.black.withValues(alpha: 0.6),
-                                    borderRadius: BorderRadius.circular(
-                                        SkeletonSpacing.borderRadius / 2),
+                                    shape: BoxShape.circle,
                                   ),
                                   child: Icon(
                                     isSelected
@@ -839,7 +1166,7 @@ class _ImageGridItemState extends State<ImageGridItem>
                                     color: isSelected
                                         ? SkeletonColorScheme.primaryColor
                                         : Colors.white.withValues(alpha: 0.8),
-                                    size: 20,
+                                    size: 16,
                                   ),
                                 ),
                               ),
