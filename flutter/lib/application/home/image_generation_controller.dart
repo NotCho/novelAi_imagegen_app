@@ -1,12 +1,13 @@
 import 'dart:convert';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:dartz/dartz.dart';
 import 'package:naiapp/application/core/skeleton_controller.dart';
-import 'package:naiapp/infra/gen/novelAI_repository.dart';
 import 'package:naiapp/domain/gen/diffusion_model.dart' as df;
 import 'package:naiapp/domain/gen/i_novelAI_repository.dart';
+import 'package:naiapp/domain/gen/v5_usage.dart';
 import 'package:naiapp/view/core/util/app_snackbar.dart';
 import 'package:naiapp/application/home/home_image_controller.dart';
 import 'package:naiapp/application/home/home_setting_controller.dart';
@@ -17,26 +18,38 @@ import 'package:naiapp/application/image/image_page_controller.dart';
 import 'package:naiapp/main.dart'; // startCallback
 
 class ImageGenerationController extends SkeletonController {
-  late final INovelAIRepository _novelAIRepository = Get.find<INovelAIRepository>();
-  late final HomeImageController homeImageController = Get.find<HomeImageController>();
-  late final HomeSettingController homeSettingController = Get.find<HomeSettingController>();
-  late final AutoGenerationController autoGenerationController = Get.find<AutoGenerationController>();
-  late final ModelConfigController modelConfigController = Get.find<ModelConfigController>();
-  late final DiffusionModelBuilder diffusionModelBuilder = Get.find<DiffusionModelBuilder>();
+  late final INovelAIRepository _novelAIRepository =
+      Get.find<INovelAIRepository>();
+  late final HomeImageController homeImageController =
+      Get.find<HomeImageController>();
+  late final HomeSettingController homeSettingController =
+      Get.find<HomeSettingController>();
+  late final AutoGenerationController autoGenerationController =
+      Get.find<AutoGenerationController>();
+  late final ModelConfigController modelConfigController =
+      Get.find<ModelConfigController>();
+  late final DiffusionModelBuilder diffusionModelBuilder =
+      Get.find<DiffusionModelBuilder>();
 
   final isGenerating = false.obs;
   final RxBool autoSave = false.obs;
   final RxInt anlasLeft = (-1).obs;
+  final Rxn<V5Usage> v5Usage = Rxn<V5Usage>();
 
   @override
   Future<bool> initLoading() async {
     await getAnlasRemaining();
+    await getV5Usage();
     return true;
   }
 
   static const Map<String, String> posMap = {
-    "nai-diffusion-4-full": ", no text, best quality, very aesthetic, absurdres",
-    "nai-diffusion-4-5-curated": "location, masterpiece, no text, -0.8::feet::, rating:general"
+    "nai-diffusion-4-full":
+        ", no text, best quality, very aesthetic, absurdres",
+    "nai-diffusion-4-5-curated":
+        "location, masterpiece, no text, -0.8::feet::, rating:general",
+    "nai-diffusion-5-curated":
+        "location, masterpiece, no text, -0.8::feet::, rating:general",
   };
 
   Future<void> setAutoSave(bool value) async {
@@ -57,14 +70,30 @@ class ImageGenerationController extends SkeletonController {
     );
   }
 
-  Future<void> getVibeBytes() async {
+  Future<bool> getV5Usage() async {
+    final result = await _novelAIRepository.getV5Usage();
+    return result.fold(
+      (error) {
+        debugPrint('V5 사용량 조회 중 오류 발생: $error');
+        return false;
+      },
+      (usage) {
+        v5Usage.value = usage;
+        return true;
+      },
+    );
+  }
+
+  Future<bool> getVibeBytes() async {
     if (!modelConfigController.supportsVibeTransfer ||
-        homeImageController.vibeParseImageBytes.isEmpty) {
-      return;
+        homeImageController.vibeParseImageBytes.isEmpty ||
+        !modelConfigController.requiresVibeEncoding) {
+      return true;
     }
     Either<String, List<VibeImage>> result = await _novelAIRepository.vibeParse(
-        homeImageController.vibeParseImageBytes, modelConfigController.usingModel.value);
-    result.fold(
+        homeImageController.vibeParseImageBytes,
+        modelConfigController.usingModel.value);
+    return result.fold(
       (l) {
         AppSnackBar.show(
           '오류',
@@ -72,14 +101,16 @@ class ImageGenerationController extends SkeletonController {
           backgroundColor: Colors.red,
           textColor: Colors.white,
         );
+        return false;
       },
-      (r) {},
+      (r) => true,
     );
   }
 
   void generateImage() async {
     String positiveDef = posMap[modelConfigController.usingModel.value] ?? '';
-    diffusionModelBuilder.updateQualityTags(positiveDef, diffusionModelBuilder.negativeDef);
+    diffusionModelBuilder.updateQualityTags(
+        positiveDef, diffusionModelBuilder.negativeDef);
 
     if (isGenerating.value) return;
 
@@ -94,13 +125,36 @@ class ImageGenerationController extends SkeletonController {
     }
 
     autoGenerationController.cancelAutoGenerateTimer();
-    await getVibeBytes();
+    final vibeReady = await getVibeBytes();
+    if (!vibeReady) {
+      isGenerating.value = false;
+      return;
+    }
 
     df.DiffusionModel setting = diffusionModelBuilder.buildSetting();
 
-    final result = await _novelAIRepository.generateImage(setting: setting);
+    homeImageController.streamingPreviewBytes.value = Uint8List(0);
+    DateTime lastPreviewUpdate = DateTime.fromMillisecondsSinceEpoch(0);
+    final result = await _novelAIRepository.generateImage(
+      setting: setting,
+      onIntermediateImage: (base64Image) {
+        final now = DateTime.now();
+        if (now.difference(lastPreviewUpdate) <
+            const Duration(milliseconds: 250)) {
+          return;
+        }
+        try {
+          homeImageController.streamingPreviewBytes.value =
+              base64Decode(base64Image);
+          lastPreviewUpdate = now;
+        } on FormatException {
+          // Ignore a malformed intermediate frame; the final event can succeed.
+        }
+      },
+    );
     result.fold(
       (l) {
+        homeImageController.streamingPreviewBytes.value = Uint8List(0);
         AppSnackBar.show(
           '오류',
           '이미지 생성 중 오류가 발생했습니다: $l',
@@ -110,10 +164,12 @@ class ImageGenerationController extends SkeletonController {
       },
       (base64Str) {
         getAnlasRemaining(); // Anlas 잔여량 갱신
+        getV5Usage(); // V5 동적 쿼터 갱신
         final imageBytes = base64Decode(base64Str);
         homeImageController.generatedImagePath.value = base64Str;
         homeImageController.generatedImageBytes.value = imageBytes;
-        
+        homeImageController.streamingPreviewBytes.value = Uint8List(0);
+
         homeImageController.cacheImage(base64Str, imageBytes);
 
         homeImageController.generationHistory.add(

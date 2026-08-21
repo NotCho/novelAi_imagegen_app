@@ -41,7 +41,7 @@ class HomeLoadImage extends StatelessWidget {
                     Icon(Icons.block, size: 40, color: Colors.grey),
                     SizedBox(width: SkeletonSpacing.smallSpacing),
                     Text(
-                      "Vibe Transfer는 V4 이상 모델에서 사용할 수 있습니다.",
+                      "Vibe Transfer는 V3 이상 모델에서 사용할 수 있습니다.",
                       style: TextStyle(fontSize: 12, color: Colors.grey),
                     ),
                   ],
@@ -66,7 +66,7 @@ class HomeLoadImage extends StatelessWidget {
                   children: List.generate(
                       homeImageController.vibeParseImageBytes.length, (index) {
                 double? prevExtractionStrength = homeImageController
-                    .vibeParseImageBytes[index].prevExtractionStrength?.value;
+                    .vibeParseImageBytes[index].prevExtractionStrength.value;
                 double? extractionStrength = homeImageController
                     .vibeParseImageBytes[index].extractionStrength?.value;
                 return Container(
@@ -77,8 +77,7 @@ class HomeLoadImage extends StatelessWidget {
                       Row(
                         children: [
                           const SizedBox(width: SkeletonSpacing.smallSpacing),
-                          (prevExtractionStrength == null ||
-                                  extractionStrength == null)
+                          extractionStrength == null
                               ? Container(
                                   padding: const EdgeInsets.all(
                                       SkeletonSpacing.smallSpacing),
@@ -216,20 +215,21 @@ class VibeSliders extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
+          Wrap(
+            spacing: 8,
+            runSpacing: 4,
+            crossAxisAlignment: WrapCrossAlignment.center,
             children: [
-              Expanded(
-                child: Text(
-                  label,
-                  style: const TextStyle(
-                    color: SkeletonColorScheme.textColor,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 13,
-                    letterSpacing: -0.3,
-                  ),
+              Text(
+                label,
+                softWrap: false,
+                style: const TextStyle(
+                  color: SkeletonColorScheme.textColor,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 13,
+                  letterSpacing: -0.3,
                 ),
               ),
-              const SizedBox(width: 8),
               // 수치 값 뱃지
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
@@ -250,7 +250,6 @@ class VibeSliders extends StatelessWidget {
                   ),
                 ),
               ),
-              const SizedBox(width: 8),
               // 조작 버튼 (-, +)
               Container(
                 height: 26,

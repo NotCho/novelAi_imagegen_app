@@ -94,7 +94,7 @@ class PresetController extends GetxController {
     diffusionModelBuilder.addQualityTags = prefs.getBool("addQualityTags") ?? false;
     homeSettingController.setSettings(setting);
     
-    if (modelConfigController.modelSupportsVibeTransfer(setting.model)) {
+    if (modelConfigController.modelRequiresVibeEncoding(setting.model)) {
       homeImageController.loadVibeFromExif(setting);
     }
     

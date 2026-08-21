@@ -58,6 +58,11 @@ _Parameters _$ParametersFromJson(Map<String, dynamic> json) => _Parameters(
                   ?.map((e) => e as String)
                   .toList() ??
               const [],
+      reference_information_extracted_multiple:
+          (json['reference_information_extracted_multiple'] as List<dynamic>?)
+                  ?.map((e) => (e as num).toDouble())
+                  .toList() ??
+              const [],
       reference_strength_multiple:
           (json['reference_strength_multiple'] as List<dynamic>?)
                   ?.map((e) => (e as num).toDouble())
@@ -125,6 +130,8 @@ Map<String, dynamic> _$ParametersToJson(_Parameters instance) =>
       'seed': instance.seed,
       'characterPrompts': instance.characterPrompts,
       'reference_image_multiple': instance.reference_image_multiple,
+      'reference_information_extracted_multiple':
+          instance.reference_information_extracted_multiple,
       'reference_strength_multiple': instance.reference_strength_multiple,
       'negative_prompt': instance.negative_prompt,
       'deliberate_euler_ancestral_bug': instance.deliberate_euler_ancestral_bug,

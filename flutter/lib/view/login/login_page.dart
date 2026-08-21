@@ -101,189 +101,134 @@ class LoginPage extends GetView<LoginPageController> {
   }
 
   Widget loginField() {
-    return AutofillGroup(
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
-        decoration: BoxDecoration(
-          color: cardColor,
-          borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(16),
-            topRight: Radius.circular(16),
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.5),
-              blurRadius: 10,
-              offset: const Offset(0, -3),
-            ),
-          ],
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+      decoration: BoxDecoration(
+        color: cardColor,
+        borderRadius: const BorderRadius.only(
+          topLeft: Radius.circular(16),
+          topRight: Radius.circular(16),
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // 헤더 디자인
-            Container(
-              padding: const EdgeInsets.symmetric(
-                  horizontal: smallSpacing, vertical: smallSpacing),
-              decoration: BoxDecoration(
-                color: primaryColor.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(borderRadius / 2),
-                border: Border.all(
-                  color: primaryColor.withValues(alpha: 0.3),
-                  width: 1,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.5),
+            blurRadius: 10,
+            offset: const Offset(0, -3),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // 헤더 디자인
+          Container(
+            padding: const EdgeInsets.symmetric(
+                horizontal: smallSpacing, vertical: smallSpacing),
+            decoration: BoxDecoration(
+              color: primaryColor.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(borderRadius / 2),
+              border: Border.all(
+                color: primaryColor.withValues(alpha: 0.3),
+                width: 1,
+              ),
+            ),
+            child: const Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.login, color: primaryColor, size: 16),
+                SizedBox(width: 8),
+                Text(
+                  "로그인",
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: textColor,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: spacing),
+          const Text(
+            "Persistent API Token으로 로그인",
+            style: TextStyle(
+              color: textColor,
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: smallSpacing),
+          const Text(
+            "NovelAI 웹에서 발급한 토큰을 입력해 주세요.",
+            style: TextStyle(color: textSecondaryColor, fontSize: 14),
+          ),
+          InkWell(
+            onTap: controller.showTokenDialog,
+            child: const Padding(
+              padding: EdgeInsets.symmetric(vertical: 12.0),
+              child: Row(
+                children: [
+                  Icon(Icons.info_outline, color: textSecondaryColor),
+                  SizedBox(width: smallSpacing),
+                  Text(
+                    "Persistent Token 발급 방법 보기",
+                    style: TextStyle(
+                      color: textSecondaryColor,
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          _buildTextField(
+            controller: controller.persistentTokenController,
+            hintText: "pst-*****....",
+            prefixIcon: Icons.vpn_key_outlined,
+            keyboardType: TextInputType.visiblePassword,
+            onSubmitted: (_) => controller.onLogin(),
+          ),
+          const SizedBox(height: spacing),
+          // 비밀번호 찾기 링크
+          SizedBox(
+            width: double.infinity,
+            height: 54,
+            child: ElevatedButton(
+              onPressed: () {
+                controller.onLogin();
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor:
+                    (controller.inProgress.value) ? Colors.grey : primaryColor,
+                foregroundColor: textColor,
+                elevation: 4,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(borderRadius),
                 ),
               ),
-              child: const Row(
+              child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.login, color: primaryColor, size: 16),
-                  SizedBox(width: 8),
+                  const Icon(Icons.login, size: 18),
+                  const SizedBox(width: smallSpacing),
                   Text(
-                    "로그인",
-                    style: TextStyle(
+                    (controller.inProgress.value) ? "로그인 중.." : "로그인",
+                    style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
-                      color: textColor,
                     ),
+                  ),
+                  const SizedBox(width: 16),
+                  const Icon(
+                    Icons.arrow_forward,
+                    color: textColor,
+                    size: 16,
                   ),
                 ],
               ),
             ),
-            const SizedBox(height: spacing),
-            // 로그인 방식 선택
-            Obx(
-              () => Row(
-                children: [
-                  Container(
-                      child: Text("이메일로 로그인",
-                          style: TextStyle(color: textSecondaryColor))),
-                  const SizedBox(width: smallSpacing),
-                  Switch(
-                      value: controller.loginMode.value == 1,
-                      onChanged: (v) {
-                        if (v) {
-                          controller.loginMode.value = 1;
-                        } else {
-                          controller.loginMode.value = 0;
-                        }
-                      }),
-                  const SizedBox(width: smallSpacing),
-                  Container(
-                      child: Text("토큰으로 로그인",
-                          style: TextStyle(color: textSecondaryColor))),
-                ],
-              ),
-            ),
-            const SizedBox(height: spacing),
-
-            // 입력 폼
-            Obx(() {
-              if (controller.loginMode.value == 1) {
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    InkWell(
-                      onTap: () {
-                        controller.showTokenDialog();
-                      },
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 8.0),
-                        child: const Row(
-                          children: [
-                            Icon(Icons.info_outline, color: textSecondaryColor),
-                            SizedBox(width: smallSpacing),
-                            Text(
-                              "토큰 발급 방법",
-                              style: TextStyle(
-                                color: textSecondaryColor,
-                                fontSize: 14,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: spacing),
-                    _buildTextField(
-                      controller: controller.persistentTokenController,
-                      hintText: "pst-*****....",
-                      prefixIcon: Icons.vpn_key_outlined,
-                      keyboardType: TextInputType.visiblePassword,
-                      onSubmitted: (_) => controller.onLogin(),
-                    ),
-                  ],
-                );
-              }
-
-              return Column(
-                children: [
-                  // 이메일 입력 필드
-                  _buildTextField(
-                    controller: controller.emailController,
-                    hintText: "이메일을 입력하세요",
-                    prefixIcon: Icons.email_outlined,
-                    autofillHints: const [
-                      AutofillHints.email,
-                      AutofillHints.username
-                    ],
-                    keyboardType: TextInputType.emailAddress,
-                  ),
-                  const SizedBox(height: spacing),
-                  // 비밀번호 입력 필드
-                  _buildTextField(
-                    controller: controller.passwordController,
-                    hintText: "비밀번호를 입력하세요",
-                    isPassword: true,
-                    prefixIcon: Icons.lock_outline,
-                    autofillHints: const [AutofillHints.password],
-                    onSubmitted: (_) => controller.onLogin(),
-                  ),
-                ],
-              );
-            }),
-            const SizedBox(height: spacing),
-            // 비밀번호 찾기 링크
-            SizedBox(
-              width: double.infinity,
-              height: 54,
-              child: ElevatedButton(
-                onPressed: () {
-                  controller.onLogin();
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: (controller.inProgress.value)
-                      ? Colors.grey
-                      : primaryColor,
-                  foregroundColor: textColor,
-                  elevation: 4,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(borderRadius),
-                  ),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(Icons.login, size: 18),
-                    const SizedBox(width: smallSpacing),
-                    Text(
-                      (controller.inProgress.value) ? "로그인 중.." : "로그인",
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    const Icon(
-                      Icons.arrow_forward,
-                      color: textColor,
-                      size: 16,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -291,9 +236,7 @@ class LoginPage extends GetView<LoginPageController> {
   Widget _buildTextField({
     required TextEditingController controller,
     required String hintText,
-    bool isPassword = false,
     IconData? prefixIcon,
-    List<String>? autofillHints,
     TextInputType? keyboardType,
     void Function(String)? onSubmitted,
   }) {
@@ -311,12 +254,10 @@ class LoginPage extends GetView<LoginPageController> {
       ),
       child: TextField(
         controller: controller,
-        obscureText: isPassword,
+        obscureText: true,
         style: const TextStyle(color: textColor),
         keyboardType: keyboardType,
-        autofillHints: autofillHints,
-        textInputAction:
-            isPassword ? TextInputAction.done : TextInputAction.next,
+        textInputAction: TextInputAction.done,
         onSubmitted: onSubmitted,
         decoration: InputDecoration(
           enabledBorder: InputBorder.none,
@@ -329,17 +270,6 @@ class LoginPage extends GetView<LoginPageController> {
               ? Icon(
                   prefixIcon,
                   color: primaryColor,
-                )
-              : null,
-          suffixIcon: isPassword
-              ? IconButton(
-                  icon: const Icon(
-                    Icons.visibility_outlined,
-                    color: textSecondaryColor,
-                  ),
-                  onPressed: () {
-                    // 비밀번호 표시/숨김 기능 구현
-                  },
                 )
               : null,
         ),

@@ -31,20 +31,20 @@ class HomeCharPrompt extends GetView<PromptController> {
   Widget characterSelect() {
     return Container(
       decoration: BoxDecoration(
-        color: SkeletonColorScheme.surfaceColor.withValues(alpha: 0.3),
-        borderRadius: BorderRadius.circular(12), // 16 -> 12로 더 정교하고 슬림하게
+        color: Colors.black.withOpacity(0.65), // 투명 글래스 위에서 텍스트가 묻히지 않도록 어두운 아크릴 백그라운드 적용
+        borderRadius: BorderRadius.circular(12),
         border: Border.all(
-            color: SkeletonColorScheme.primaryColor.withValues(alpha: 0.15),
-            width: 0.8), // border 두께를 얇게 조절
+            color: SkeletonColorScheme.primaryColor.withOpacity(0.25),
+            width: 0.8),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.15),
-            blurRadius: 6,
-            offset: const Offset(0, 3),
+            color: Colors.black.withOpacity(0.3),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
-      width: 64, // 70 -> 64로 슬림화
+      width: 64,
       child: Column(
         children: [
           // 타이틀 헤더
@@ -52,14 +52,14 @@ class HomeCharPrompt extends GetView<PromptController> {
             width: double.infinity,
             padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 5),
             decoration: BoxDecoration(
-              color: SkeletonColorScheme.primaryColor.withValues(alpha: 0.1),
+              color: SkeletonColorScheme.primaryColor.withOpacity(0.3), // 대비 강화
               borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(11),
                 topRight: Radius.circular(11),
               ),
               border: Border(
                 bottom: BorderSide(
-                  color: SkeletonColorScheme.primaryColor.withValues(alpha: 0.15),
+                  color: SkeletonColorScheme.primaryColor.withOpacity(0.3),
                   width: 0.8,
                 ),
               ),
@@ -68,7 +68,7 @@ class HomeCharPrompt extends GetView<PromptController> {
               '목록',
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: SkeletonColorScheme.primaryColor,
+                color: Colors.white, // 흰색으로 100% 가독성 확보
                 fontWeight: FontWeight.bold,
                 fontSize: 10,
                 letterSpacing: 0.5,
@@ -89,19 +89,18 @@ class HomeCharPrompt extends GetView<PromptController> {
                       decoration: BoxDecoration(
                         color: controller.selectedCharacterIndex.value == index
                             ? SkeletonColorScheme.primaryColor
-                                .withValues(alpha: 0.1) // 0.2 -> 0.1로 소프트하게
+                                .withOpacity(0.18)
                             : Colors.transparent,
                         border: Border(
                           bottom: BorderSide(
-                            color: SkeletonColorScheme.surfaceColor.withValues(alpha: 0.3),
+                            color: Colors.white.withOpacity(0.08),
                             width: 0.5,
                           ),
-                          // 선택되었을 때 왼쪽에 얇고 우아한 세로 인디케이터 선 추가
                           left: BorderSide(
                             color: controller.selectedCharacterIndex.value == index
-                                ? SkeletonColorScheme.primaryColor
+                                ? Colors.cyanAccent
                                 : Colors.transparent,
-                            width: 2,
+                            width: 2.5,
                           ),
                         ),
                       ),
@@ -111,18 +110,18 @@ class HomeCharPrompt extends GetView<PromptController> {
                               child: InkWell(
                                 onTap: controller.onCharaAddButtonTap,
                                 child: Container(
-                                  height: 44, // 50 -> 44로 단축
+                                  height: 44,
                                   alignment: Alignment.center,
                                   child: Container(
-                                    padding: const EdgeInsets.all(5), // 6 -> 5
+                                    padding: const EdgeInsets.all(5),
                                     decoration: BoxDecoration(
                                       color: SkeletonColorScheme.primaryColor
-                                          .withValues(alpha: 0.12),
+                                          .withOpacity(0.2),
                                       shape: BoxShape.circle,
                                     ),
                                     child: const Icon(Icons.add,
-                                        color: SkeletonColorScheme.primaryColor,
-                                        size: 14), // 16 -> 14
+                                        color: Colors.cyanAccent,
+                                        size: 14),
                                   ),
                                 ),
                               ),
@@ -132,13 +131,13 @@ class HomeCharPrompt extends GetView<PromptController> {
                               child: InkWell(
                                 onTap: () => controller.onCharaTap(index),
                                 child: SizedBox(
-                                  height: 50, // 60 -> 50으로 컴팩트하게
+                                  height: 50,
                                   child: Column(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
                                       Container(
-                                        width: 24, // 30 -> 24
-                                        height: 24, // 30 -> 24
+                                        width: 24,
+                                        height: 24,
                                         alignment: Alignment.center,
                                         decoration: BoxDecoration(
                                           color: controller
@@ -146,25 +145,22 @@ class HomeCharPrompt extends GetView<PromptController> {
                                                       .value ==
                                                   index
                                               ? SkeletonColorScheme.primaryColor
-                                                  .withValues(alpha: 0.2) // 0.3 -> 0.2
+                                                  .withOpacity(0.25)
                                               : !controller
                                                       .isCharacterEnabled(index)
                                                   ? SkeletonColorScheme
                                                       .negativeColor
-                                                      .withValues(alpha: 0.12)
-                                                  : SkeletonColorScheme
-                                                      .surfaceColor
-                                                      .withValues(alpha: 0.25),
+                                                      .withOpacity(0.15)
+                                                  : Colors.white.withOpacity(0.1),
                                           shape: BoxShape.circle,
                                           border: Border.all(
                                             color: controller
                                                         .selectedCharacterIndex
                                                         .value ==
                                                     index
-                                                ? SkeletonColorScheme
-                                                    .primaryColor
+                                                ? Colors.cyanAccent
                                                 : Colors.transparent,
-                                            width: 0.8, // 1 -> 0.8
+                                            width: 0.8,
                                           ),
                                         ),
                                         child:
@@ -177,10 +173,8 @@ class HomeCharPrompt extends GetView<PromptController> {
                                                                   .selectedCharacterIndex
                                                                   .value ==
                                                               index)
-                                                          ? SkeletonColorScheme
-                                                              .primaryColor
-                                                          : SkeletonColorScheme
-                                                              .textSecondaryColor,
+                                                          ? Colors.cyanAccent
+                                                          : Colors.white.withOpacity(0.7),
                                                       fontWeight: (controller
                                                                   .selectedCharacterIndex
                                                                   .value ==
@@ -192,12 +186,11 @@ class HomeCharPrompt extends GetView<PromptController> {
                                                   )
                                                 : const Icon(
                                                     Icons.visibility_off,
-                                                    color: SkeletonColorScheme
-                                                        .negativeColor,
-                                                    size: 12, // 16 -> 12
+                                                    color: Colors.redAccent,
+                                                    size: 12,
                                                   ),
                                       ),
-                                      const SizedBox(height: 2), // 4 -> 2
+                                      const SizedBox(height: 2),
                                       Text(
                                         controller.isCharacterEnabled(index)
                                             ? "캐릭터"
@@ -207,10 +200,9 @@ class HomeCharPrompt extends GetView<PromptController> {
                                                       .selectedCharacterIndex
                                                       .value ==
                                                   index)
-                                              ? SkeletonColorScheme.primaryColor
-                                              : SkeletonColorScheme
-                                                  .textSecondaryColor,
-                                          fontSize: 9, // 10 -> 9
+                                              ? Colors.cyanAccent
+                                              : Colors.white.withOpacity(0.5),
+                                          fontSize: 9,
                                           letterSpacing: 0.2,
                                         ),
                                       ),
@@ -540,28 +532,28 @@ class HomeCharPrompt extends GetView<PromptController> {
   // 캐릭터 헤더 위젯
   Widget _buildCharacterHeader() {
     return Container(
-      height: 44, // 46 -> 44로 더 얇게 조율하여 목록 헤더 감각과 완벽 매칭
+      height: 44,
       decoration: BoxDecoration(
-        color: SkeletonColorScheme.surfaceColor.withValues(alpha: 0.35),
-        borderRadius: BorderRadius.circular(8), // 10 -> 8로 모서리를 샤프하게 조율
+        color: Colors.black.withOpacity(0.65), // 가독성을 위한 단단한 블랙 아크릴 배경
+        borderRadius: BorderRadius.circular(8),
         border: Border.all(
-            color: SkeletonColorScheme.primaryColor.withValues(alpha: 0.15),
+            color: SkeletonColorScheme.primaryColor.withOpacity(0.25),
             width: 0.8),
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 8), // 10 -> 8
+      padding: const EdgeInsets.symmetric(horizontal: 8),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Flexible(
             child: Container(
-              height: 28, // 높이 28로 극상의 슬림함 연출
+              height: 28,
               padding: const EdgeInsets.symmetric(horizontal: 8),
               alignment: Alignment.center,
               decoration: BoxDecoration(
-                color: SkeletonColorScheme.primaryColor.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(5), // 6 -> 5
+                color: SkeletonColorScheme.primaryColor.withOpacity(0.3), // 뱃지 대비 강화
+                borderRadius: BorderRadius.circular(5),
                 border: Border.all(
-                  color: SkeletonColorScheme.primaryColor.withValues(alpha: 0.2),
+                  color: SkeletonColorScheme.primaryColor.withOpacity(0.4),
                   width: 0.8,
                 ),
               ),
@@ -569,14 +561,14 @@ class HomeCharPrompt extends GetView<PromptController> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   const Icon(Icons.person,
-                      color: SkeletonColorScheme.primaryColor, size: 12), // 13 -> 12
+                      color: Colors.white, size: 12), // 아이콘을 흰색으로 고대비화
                   const SizedBox(width: 4),
                   Flexible(
                     child: Text(
                       "캐릭터 #${controller.selectedCharacterIndex.value + 1}",
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
-                        color: SkeletonColorScheme.primaryColor,
+                        color: Colors.white, // 흰색으로 가독성 극대화
                         fontWeight: FontWeight.bold,
                         fontSize: 10,
                       ),
@@ -594,18 +586,18 @@ class HomeCharPrompt extends GetView<PromptController> {
                     controller.selectedCharacterIndex.value);
                 return AnimatedContainer(
                   duration: SkeletonSpacing.animationDuration,
-                  width: 44, // width 44로 슬림화
-                  height: 28, // height 28로 복원 및 고정
+                  width: 44,
+                  height: 28,
                   margin: const EdgeInsets.only(right: 6),
                   decoration: BoxDecoration(
                     color: enabled
-                        ? SkeletonColorScheme.primaryColor.withValues(alpha: 0.15)
-                        : SkeletonColorScheme.surfaceColor.withValues(alpha: 0.25),
+                        ? SkeletonColorScheme.primaryColor.withOpacity(0.25)
+                        : Colors.black.withOpacity(0.45),
                     borderRadius: BorderRadius.circular(5),
                     border: Border.all(
                       color: enabled
-                          ? SkeletonColorScheme.primaryColor.withValues(alpha: 0.3)
-                          : SkeletonColorScheme.textSecondaryColor.withValues(alpha: 0.3),
+                          ? Colors.cyanAccent
+                          : Colors.white.withOpacity(0.15),
                       width: 0.8,
                     ),
                   ),
@@ -614,13 +606,13 @@ class HomeCharPrompt extends GetView<PromptController> {
                     child: InkWell(
                       onTap: controller.toggleSelectedCharacterEnabled,
                       borderRadius: BorderRadius.circular(5),
-                      child: Center( // padding 대신 Center 정렬로 높이 유지
+                      child: Center(
                         child: Text(
                           enabled ? "ON" : "OFF",
                           style: TextStyle(
                             color: enabled
-                                ? SkeletonColorScheme.primaryColor
-                                : SkeletonColorScheme.textSecondaryColor,
+                                ? Colors.cyanAccent
+                                : Colors.white.withOpacity(0.5),
                             fontWeight: FontWeight.bold,
                             fontSize: 10,
                           ),
@@ -691,10 +683,11 @@ class HomeCharPrompt extends GetView<PromptController> {
   }
 
   Widget characterInputField(bool isPositive) {
-    final Color promptColor = isPositive
+    final Color color = isPositive
         ? SkeletonColorScheme.accentColor
         : SkeletonColorScheme.negativeColor;
     final String title = isPositive ? "캐릭터 긍정 프롬프트" : "캐릭터 부정 프롬프트";
+    final IconData icon = isPositive ? Icons.add_circle_outline : Icons.remove_circle_outline;
 
     return GestureDetector(
       onTap: () {
@@ -703,74 +696,105 @@ class HomeCharPrompt extends GetView<PromptController> {
                     .characterPrompts[controller.selectedCharacterIndex.value]
                 [isPositive ? 'positive' : 'negative'],
             title: title,
-            color: promptColor));
+            color: color));
       },
       child: Container(
-        margin:
-            const EdgeInsets.symmetric(vertical: SkeletonSpacing.smallSpacing),
+        margin: const EdgeInsets.symmetric(vertical: SkeletonSpacing.smallSpacing),
         decoration: BoxDecoration(
-          color: promptColor.withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(SkeletonSpacing.borderRadius),
-          border: Border.all(color: promptColor.withValues(alpha: 0.3)),
+          color: SkeletonColorScheme.cardColor.withValues(alpha: 0.45),
+          borderRadius: BorderRadius.circular(16.0),
+          border: Border.all(
+            color: color.withValues(alpha: 0.25),
+            width: 1.2,
+          ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.1),
-              blurRadius: 4,
-              offset: const Offset(0, 2),
+              color: Colors.black.withValues(alpha: 0.2),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+            BoxShadow(
+              color: color.withValues(alpha: 0.06),
+              blurRadius: 8,
+              spreadRadius: 1,
             ),
           ],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 타이틀 헤더
+            // 타이틀 헤더 (전역 프롬프트와 동일한 스타일 적용)
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
               decoration: BoxDecoration(
-                color: promptColor.withValues(alpha: 0.2),
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(SkeletonSpacing.borderRadius - 1),
-                  topRight: Radius.circular(SkeletonSpacing.borderRadius - 1),
+                border: Border(
+                  bottom: BorderSide(
+                    color: Colors.white.withValues(alpha: 0.08),
+                    width: 1.0,
+                  ),
                 ),
               ),
               child: Row(
                 children: [
-                  Icon(
-                      isPositive
-                          ? Icons.add_circle_outline
-                          : Icons.remove_circle_outline,
-                      color: promptColor,
-                      size: 16),
+                  // 미니멀한 네온 도트 인디케이터
+                  Container(
+                    width: 6,
+                    height: 6,
+                    decoration: BoxDecoration(
+                      color: color,
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: color.withValues(alpha: 0.6),
+                          blurRadius: 4,
+                          spreadRadius: 1,
+                        ),
+                      ],
+                    ),
+                  ),
                   const SizedBox(width: 8),
+                  Icon(icon, color: color.withValues(alpha: 0.85), size: 15),
+                  const SizedBox(width: 6),
                   Text(
                     title,
                     style: TextStyle(
-                      color: promptColor,
-                      fontWeight: FontWeight.bold,
+                      color: SkeletonColorScheme.textColor,
+                      fontWeight: FontWeight.w700,
                       fontSize: 12,
+                      letterSpacing: 0.2,
                     ),
                   ),
                   const Spacer(),
-                  Icon(Icons.edit, color: promptColor, size: 16),
+                  const Icon(
+                    Icons.edit,
+                    color: SkeletonColorScheme.textSecondaryColor,
+                    size: 14,
+                  ),
                 ],
               ),
             ),
 
             // 입력 필드
-            Container(
-              padding: const EdgeInsets.all(12.0),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
               child: WildcardTextField(
                 enabled: false,
                 controller: controller.characterPrompts[controller
                     .selectedCharacterIndex
                     .value][isPositive ? 'positive' : 'negative'],
-                highlightColor: promptColor,
-                style: const TextStyle(color: SkeletonColorScheme.textColor),
+                highlightColor: color,
+                style: const TextStyle(
+                  color: SkeletonColorScheme.textColor,
+                  fontSize: 13,
+                  height: 1.4,
+                ),
                 maxLines: 3,
                 decoration: InputDecoration(
                   hintText: isPositive ? '캐릭터 긍정 프롬프트' : '캐릭터 부정 프롬프트',
                   hintStyle: const TextStyle(
-                      color: SkeletonColorScheme.textSecondaryColor),
+                    color: SkeletonColorScheme.textSecondaryColor,
+                    fontSize: 13,
+                  ),
                   border: InputBorder.none,
                   contentPadding: EdgeInsets.zero,
                 ),

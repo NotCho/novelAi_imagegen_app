@@ -246,7 +246,8 @@ class ImageLoadController extends GetxController {
     }
 
     if (loadImageOptions['Vibe']! &&
-        modelConfigController.modelSupportsVibeTransfer(loadedImageModel!.model)) {
+        modelConfigController
+            .modelRequiresVibeEncoding(loadedImageModel!.model)) {
       homeImageController.loadVibeFromExif(loadedImageModel!);
     }
 

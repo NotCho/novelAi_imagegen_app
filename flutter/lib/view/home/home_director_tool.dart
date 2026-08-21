@@ -131,7 +131,7 @@ class HomeDirectorTool extends GetView<DirectorToolController> {
         width: double.infinity,
         height: 150,
         decoration: BoxDecoration(
-          color: SkeletonColorScheme.cardColor,
+          color: SkeletonColorScheme.cardColor.withValues(alpha: 0.6),
           borderRadius: BorderRadius.circular(SkeletonSpacing.borderRadius),
           border: Border.all(
             color: SkeletonColorScheme.primaryColor.withValues(alpha: 0.3),

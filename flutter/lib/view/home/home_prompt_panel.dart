@@ -1,6 +1,7 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:naiapp/application/core/skeleton_controller.dart';
+import 'package:liquid_glass_renderer/liquid_glass_renderer.dart';
 import 'package:naiapp/view/core/util/design_system.dart';
 import 'package:naiapp/application/home/home_page_controller.dart';
 import 'package:naiapp/application/home/home_setting_controller.dart';
@@ -24,55 +25,178 @@ class HomePromptPanel extends StatelessWidget {
           controller.promptController.confirmRemoveIndex.value = false;
         }
       },
-      child: Container(
-        decoration: BoxDecoration(
-          color: SkeletonColorScheme.backgroundColor,
-          borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(16),
-            topRight: Radius.circular(16),
+      child: Obx(() {
+        final isLiquid = controller.liquidGlassMode.value;
+        return Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(24),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.25),
+                blurRadius: 30,
+                offset: const Offset(0, -10),
+              ),
+            ],
           ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.5),
-              blurRadius: 10,
-              offset: const Offset(0, -3),
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(
+                color: Colors.white.withValues(alpha: 0.24),
+                width: 0.8,
+              ),
             ),
-          ],
-        ),
-        child: Column(
-          children: [
-            _buildPanelControlBar(),
-            _expandedContent(context),
-          ],
-        ),
-      ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(24),
+              child: isLiquid
+                  ? LiquidGlassLayer(
+                      settings: LiquidGlassSettings(
+                        thickness: controller.liquidGlassThickness.value,
+                        blur: controller.liquidGlassBlur.value,
+                        glassColor: const Color(0x22FFFFFF),
+                        chromaticAberration:
+                            controller.liquidGlassAberration.value,
+                        refractiveIndex: controller.liquidGlassRefraction.value,
+                        lightIntensity:
+                            controller.liquidGlassLightIntensity.value,
+                        saturation: controller.liquidGlassSaturation.value,
+                      ),
+                      child: LiquidGlass(
+                        shape: const LiquidRoundedRectangle(borderRadius: 22.5),
+                        child: CustomPaint(
+                          foregroundPainter: GradientBorderPainter(
+                            gradient: LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: [
+                                Colors.white.withValues(alpha: 0.45),
+                                Colors.white.withValues(alpha: 0.18),
+                                Colors.white.withValues(alpha: 0.35),
+                                Colors.white.withValues(alpha: 0.18),
+                                Colors.white.withValues(alpha: 0.45),
+                              ],
+                              stops: const [0.0, 0.3, 0.5, 0.7, 1.0],
+                            ),
+                            strokeWidth: 1.0,
+                            borderRadius: BorderRadius.circular(22.5),
+                          ),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.07),
+                              gradient: LinearGradient(
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                                colors: [
+                                  Colors.white.withValues(alpha: 0.11),
+                                  Colors.white.withValues(alpha: 0.03),
+                                  Colors.white.withValues(alpha: 0.07),
+                                  Colors.white.withValues(alpha: 0.02),
+                                ],
+                                stops: const [0.0, 0.35, 0.65, 1.0],
+                              ),
+                            ),
+                            child: Stack(
+                              children: [
+                                Positioned.fill(
+                                  child: IgnorePointer(
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                        gradient: LinearGradient(
+                                          begin: const Alignment(-1.5, -1.0),
+                                          end: const Alignment(1.5, 1.0),
+                                          colors: [
+                                            Colors.white
+                                                .withValues(alpha: 0.08),
+                                            Colors.white.withValues(alpha: 0.0),
+                                            Colors.white.withValues(alpha: 0.1),
+                                            Colors.white.withValues(alpha: 0.0),
+                                            Colors.white
+                                                .withValues(alpha: 0.08),
+                                          ],
+                                          stops: const [
+                                            0.0,
+                                            0.22,
+                                            0.25,
+                                            0.72,
+                                            0.75
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    _buildPanelControlBar(),
+                                    if (controller.isPanelExpanded.value)
+                                      _expandedContent(context),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    )
+                  : BackdropFilter(
+                      filter: ImageFilter.blur(
+                        sigmaX: 30,
+                        sigmaY: 30,
+                      ),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.08),
+                          gradient: LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [
+                              Colors.white.withValues(alpha: 0.08),
+                              Colors.white.withValues(alpha: 0.02),
+                            ],
+                          ),
+                        ),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            _buildPanelControlBar(),
+                            if (controller.isPanelExpanded.value)
+                              _expandedContent(context),
+                          ],
+                        ),
+                      ),
+                    ),
+            ),
+          ),
+        );
+      }),
     );
   }
 
   Widget _buildPanelControlBar() {
     return Container(
-      padding: const EdgeInsets.symmetric(
-          horizontal: SkeletonSpacing.spacing,
-          vertical: SkeletonSpacing.smallSpacing),
-      decoration: BoxDecoration(
-        color: SkeletonColorScheme.backgroundColor,
-        border: const Border(
+      padding: const EdgeInsets.only(
+        left: SkeletonSpacing.spacing,
+        right: SkeletonSpacing.spacing,
+        top: 4.0,
+        bottom: 6.0,
+      ),
+      decoration: const BoxDecoration(
+        color: Colors.transparent,
+        border: Border(
           bottom: BorderSide(
-            color: SkeletonColorScheme.surfaceColor,
-            width: 1,
+            color: Color(0x1EFFFFFF),
+            width: 0.5,
           ),
         ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
-            blurRadius: 4,
-            offset: const Offset(0, 1),
-          ),
-        ],
       ),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          _buildAnlasPanel(),
+          AnlasWarningWidget(
+            homeSettingController: controller.homeSettingController,
+            directorToolController: controller.directorToolController,
+          ),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -80,21 +204,6 @@ class HomePromptPanel extends StatelessWidget {
               _anlasRemaining(),
               GenerateButtonWidget(controller: controller),
             ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildAnlasPanel() {
-    return SizedBox(
-      height: 40,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          AnlasWarningWidget(
-            homeSettingController: controller.homeSettingController,
-            directorToolController: controller.directorToolController,
           ),
         ],
       ),
@@ -121,22 +230,60 @@ class HomePromptPanel extends StatelessWidget {
             size: 14,
           ),
           const SizedBox(width: 6),
-          Obx(
-            () => Text(
-              (controller.imageGenerationController.anlasLeft.value > 0)
-                  ? "${controller.imageGenerationController.anlasLeft.value} Anlas"
-                  : "Anlas..",
-              style: const TextStyle(
-                color: SkeletonColorScheme.textColor,
-                fontWeight: FontWeight.w700,
-                fontSize: 12,
-                letterSpacing: 0.2,
-              ),
-            ),
-          ),
+          Obx(() {
+            final imageGenerationController =
+                controller.imageGenerationController;
+            final usage = imageGenerationController.v5Usage.value;
+            final refillRate = usage?.refillGenerationsPerMinute ?? 0;
+
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  (imageGenerationController.anlasLeft.value > 0)
+                      ? '${imageGenerationController.anlasLeft.value} Anlas'
+                      : 'Anlas..',
+                  style: const TextStyle(
+                    color: SkeletonColorScheme.textColor,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 12,
+                    letterSpacing: 0.2,
+                  ),
+                ),
+                if (usage != null && refillRate > 0)
+                  Text(
+                    '${_formatRefillRate(refillRate)}장/분 '
+                    '(${usage.minutesUntilFull}분 후 100%)',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: SkeletonColorScheme.textSecondaryColor,
+                      fontWeight: FontWeight.w500,
+                      fontSize: 9,
+                      height: 1.15,
+                    ),
+                  ),
+              ],
+            );
+          }),
         ],
       ),
     );
+  }
+
+  String _formatRefillRate(double rate) {
+    final digits = rate >= 10
+        ? 0
+        : rate >= 1
+            ? 1
+            : rate >= 0.1
+                ? 2
+                : 3;
+    return rate
+        .toStringAsFixed(digits)
+        .replaceFirst(RegExp(r'\.0+$'), '')
+        .replaceFirst(RegExp(r'(\.\d*?)0+$'), r'$1');
   }
 
   Widget _buildExpandButton() {
@@ -311,6 +458,7 @@ class AnlasWarningWidget extends StatelessWidget {
         return const SizedBox.shrink();
       }
       return Container(
+          margin: const EdgeInsets.only(top: 4, bottom: 4),
           padding: const EdgeInsets.symmetric(
             horizontal: SkeletonSpacing.smallSpacing,
             vertical: 4,
@@ -404,13 +552,15 @@ class GenerateButtonWidget extends StatelessWidget {
               borderRadius: BorderRadius.circular(20),
             ),
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-            backgroundColor: controller.imageGenerationController.isGenerating.value
-                ? Colors.grey[850]
-                : SkeletonColorScheme.primaryColor,
+            backgroundColor:
+                controller.imageGenerationController.isGenerating.value
+                    ? Colors.grey[850]
+                    : SkeletonColorScheme.primaryColor,
             disabledBackgroundColor: Colors.grey[900],
             disabledForegroundColor: Colors.grey[600],
             elevation: 3,
-            shadowColor: SkeletonColorScheme.primaryColor.withValues(alpha: 0.35),
+            shadowColor:
+                SkeletonColorScheme.primaryColor.withValues(alpha: 0.35),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,

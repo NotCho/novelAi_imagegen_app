@@ -11,36 +11,90 @@ import 'package:naiapp/application/home/model_config_controller.dart';
 import 'package:naiapp/application/home/prompt_controller.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../domain/gen/diffusion_model.dart' as df;
-import '../../domain/gen/i_novelAI_repository.dart';
 import '../core/skeleton_controller.dart';
 import '../../view/core/util/app_snackbar.dart';
 
 class HomePageController extends SkeletonController {
-  late final HomeImageController homeImageController = Get.find<HomeImageController>();
-  late final HomeSettingController homeSettingController = Get.find<HomeSettingController>();
-  late final AutoGenerationController autoGenerationController = Get.find<AutoGenerationController>();
-  late final DirectorToolController directorToolController = Get.find<DirectorToolController>();
+  late final HomeImageController homeImageController =
+      Get.find<HomeImageController>();
+  late final HomeSettingController homeSettingController =
+      Get.find<HomeSettingController>();
+  late final AutoGenerationController autoGenerationController =
+      Get.find<AutoGenerationController>();
+  late final DirectorToolController directorToolController =
+      Get.find<DirectorToolController>();
   late final PromptController promptController = Get.find<PromptController>();
-  late final ModelConfigController modelConfigController = Get.find<ModelConfigController>();
-  late final ImageGenerationController imageGenerationController = Get.find<ImageGenerationController>();
-  late final ImageLoadController imageLoadController = Get.find<ImageLoadController>();
+  late final ModelConfigController modelConfigController =
+      Get.find<ModelConfigController>();
+  late final ImageGenerationController imageGenerationController =
+      Get.find<ImageGenerationController>();
+  late final ImageLoadController imageLoadController =
+      Get.find<ImageLoadController>();
 
-  final INovelAIRepository _novelAIRepository = Get.find<INovelAIRepository>();
   final SharedPreferences prefs = Get.find<SharedPreferences>();
 
   RxBool expandHistory = false.obs;
-  final isPanelExpanded = true.obs; 
+  final isPanelExpanded = true.obs;
   RxBool floatingButtonExpanded = false.obs;
   final hideSeed = false.obs;
+  final liquidGlassMode = false.obs;
+  final liquidGlassBlur = 1.0.obs;
+  final liquidGlassRefraction = 1.5.obs;
+  final liquidGlassAberration = 0.0.obs;
+  final liquidGlassThickness = 27.0.obs;
+  final liquidGlassLightIntensity = 1.0.obs;
+  final liquidGlassSaturation = 1.6.obs;
 
   Future<void> setHideSeed(bool value) async {
     hideSeed.value = value;
     await prefs.setBool("hideSeed", value);
   }
 
+  Future<void> setLiquidGlassBlur(double value) async {
+    liquidGlassBlur.value = value;
+    await prefs.setDouble("liquidGlassBlur", value);
+  }
+
+  Future<void> setLiquidGlassRefraction(double value) async {
+    liquidGlassRefraction.value = value;
+    await prefs.setDouble("liquidGlassRefraction", value);
+  }
+
+  Future<void> setLiquidGlassAberration(double value) async {
+    liquidGlassAberration.value = value;
+    await prefs.setDouble("liquidGlassAberration", value);
+  }
+
+  Future<void> setLiquidGlassThickness(double value) async {
+    liquidGlassThickness.value = value;
+    await prefs.setDouble("liquidGlassThickness", value);
+  }
+
+  Future<void> setLiquidGlassLightIntensity(double value) async {
+    liquidGlassLightIntensity.value = value;
+    await prefs.setDouble("liquidGlassLightIntensity", value);
+  }
+
+  Future<void> setLiquidGlassSaturation(double value) async {
+    liquidGlassSaturation.value = value;
+    await prefs.setDouble("liquidGlassSaturation", value);
+  }
+
   @override
   Future<bool> initLoading() async {
     hideSeed.value = prefs.getBool("hideSeed") ?? false;
+    liquidGlassMode.value = prefs.getBool("liquidGlassMode") ?? false;
+    liquidGlassBlur.value = prefs.getDouble("liquidGlassBlur") ?? 1.0;
+    liquidGlassRefraction.value =
+        prefs.getDouble("liquidGlassRefraction") ?? 1.5;
+    liquidGlassAberration.value =
+        prefs.getDouble("liquidGlassAberration") ?? 0.0;
+    liquidGlassThickness.value =
+        prefs.getDouble("liquidGlassThickness") ?? 27.0;
+    liquidGlassLightIntensity.value =
+        prefs.getDouble("liquidGlassLightIntensity") ?? 1.0;
+    liquidGlassSaturation.value =
+        prefs.getDouble("liquidGlassSaturation") ?? 1.6;
     final raw = prefs.getString("lastSettings");
     if (raw != null) {
       Map<String, dynamic> data = jsonDecode(raw);
@@ -52,21 +106,23 @@ class HomePageController extends SkeletonController {
         modelConfigController.setModel(setting.model);
         homeSettingController.randomSeed.value =
             setting.parameters.seed == 999999999;
-        
+
         modelConfigController.selectedNoiseSchedule.value =
-            modelConfigController.noiseScheduleOptions.contains(setting.parameters.noise_schedule)
+            modelConfigController.noiseScheduleOptions
+                    .contains(setting.parameters.noise_schedule)
                 ? setting.parameters.noise_schedule
                 : modelConfigController.noiseScheduleOptions.first;
-                
+
         homeSettingController.seedController.text =
             homeSettingController.randomSeed.value
                 ? ""
                 : setting.parameters.seed.toString();
-                
-        imageGenerationController.setAutoSave(prefs.getBool("addQualityTags") ?? false);
+
+        imageGenerationController
+            .setAutoSave(prefs.getBool("addQualityTags") ?? false);
         homeSettingController.setSettings(setting);
 
-        if (modelConfigController.modelSupportsVibeTransfer(setting.model)) {
+        if (modelConfigController.modelRequiresVibeEncoding(setting.model)) {
           homeImageController.loadVibeFromExif(setting);
         }
 
@@ -82,34 +138,13 @@ class HomePageController extends SkeletonController {
         }
       } catch (e) {}
     }
-    
+
     final persistentToken = prefs.getString("NOVEL_AI_PERSISTENT_TOKEN");
     if (persistentToken == null || persistentToken.isEmpty) {
-      final accessKey = prefs.getString("NOVEL_AI_ACCESS_KEY");
-      if (accessKey != null && accessKey.isNotEmpty) {
-        final tokenResult = await _novelAIRepository.createPersistentToken();
-        final shouldGoLogin = tokenResult.fold(
-          (l) {
-            print('토큰 생성 중 오류가 발생했습니다: $l');
-            return true;
-          },
-          (r) {
-            print('토큰 생성 성공: $r');
-            return false;
-          },
-        );
-        if (shouldGoLogin) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            router.toLogin();
-          });
-          return true;
-        }
-      } else {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          router.toLogin();
-        });
-        return true;
-      }
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        router.toLogin();
+      });
+      return true;
     }
 
     homeSettingController.loadPresets();

@@ -283,6 +283,7 @@ mixin _$Parameters implements DiagnosticableTreeMixin {
   int get seed;
   List<CharacterPrompt> get characterPrompts;
   List<String> get reference_image_multiple;
+  List<double> get reference_information_extracted_multiple;
   List<double> get reference_strength_multiple;
   String get negative_prompt;
   bool get deliberate_euler_ancestral_bug;
@@ -335,6 +336,8 @@ mixin _$Parameters implements DiagnosticableTreeMixin {
       ..add(DiagnosticsProperty('characterPrompts', characterPrompts))
       ..add(DiagnosticsProperty(
           'reference_image_multiple', reference_image_multiple))
+      ..add(DiagnosticsProperty('reference_information_extracted_multiple',
+          reference_information_extracted_multiple))
       ..add(DiagnosticsProperty(
           'reference_strength_multiple', reference_strength_multiple))
       ..add(DiagnosticsProperty('negative_prompt', negative_prompt))
@@ -405,6 +408,9 @@ mixin _$Parameters implements DiagnosticableTreeMixin {
             const DeepCollectionEquality().equals(
                 other.reference_image_multiple, reference_image_multiple) &&
             const DeepCollectionEquality().equals(
+                other.reference_information_extracted_multiple,
+                reference_information_extracted_multiple) &&
+            const DeepCollectionEquality().equals(
                 other.reference_strength_multiple,
                 reference_strength_multiple) &&
             (identical(other.negative_prompt, negative_prompt) ||
@@ -425,8 +431,7 @@ mixin _$Parameters implements DiagnosticableTreeMixin {
             const DeepCollectionEquality().equals(
                 other.director_reference_secondary_strength_values,
                 director_reference_secondary_strength_values) &&
-            const DeepCollectionEquality().equals(
-                other.director_reference_strength_values, director_reference_strength_values));
+            const DeepCollectionEquality().equals(other.director_reference_strength_values, director_reference_strength_values));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -459,6 +464,8 @@ mixin _$Parameters implements DiagnosticableTreeMixin {
         seed,
         const DeepCollectionEquality().hash(characterPrompts),
         const DeepCollectionEquality().hash(reference_image_multiple),
+        const DeepCollectionEquality()
+            .hash(reference_information_extracted_multiple),
         const DeepCollectionEquality().hash(reference_strength_multiple),
         negative_prompt,
         deliberate_euler_ancestral_bug,
@@ -474,7 +481,7 @@ mixin _$Parameters implements DiagnosticableTreeMixin {
 
   @override
   String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
-    return 'Parameters(params_version: $params_version, width: $width, height: $height, scale: $scale, sampler: $sampler, steps: $steps, n_samples: $n_samples, ucPreset: $ucPreset, qualityToggle: $qualityToggle, autoSmea: $autoSmea, dynamic_thresholding: $dynamic_thresholding, controlnet_strength: $controlnet_strength, legacy: $legacy, add_original_image: $add_original_image, cfg_rescale: $cfg_rescale, noise_schedule: $noise_schedule, legacy_v3_extend: $legacy_v3_extend, skip_cfg_above_sigma: $skip_cfg_above_sigma, use_coords: $use_coords, legacy_uc: $legacy_uc, normalize_reference_strength_multiple: $normalize_reference_strength_multiple, v4_prompt: $v4_prompt, v4_negative_prompt: $v4_negative_prompt, seed: $seed, characterPrompts: $characterPrompts, reference_image_multiple: $reference_image_multiple, reference_strength_multiple: $reference_strength_multiple, negative_prompt: $negative_prompt, deliberate_euler_ancestral_bug: $deliberate_euler_ancestral_bug, prefer_brownian: $prefer_brownian, director_reference_descriptions: $director_reference_descriptions, director_reference_images: $director_reference_images, director_reference_information_extracted: $director_reference_information_extracted, director_reference_secondary_strength_values: $director_reference_secondary_strength_values, director_reference_strength_values: $director_reference_strength_values)';
+    return 'Parameters(params_version: $params_version, width: $width, height: $height, scale: $scale, sampler: $sampler, steps: $steps, n_samples: $n_samples, ucPreset: $ucPreset, qualityToggle: $qualityToggle, autoSmea: $autoSmea, dynamic_thresholding: $dynamic_thresholding, controlnet_strength: $controlnet_strength, legacy: $legacy, add_original_image: $add_original_image, cfg_rescale: $cfg_rescale, noise_schedule: $noise_schedule, legacy_v3_extend: $legacy_v3_extend, skip_cfg_above_sigma: $skip_cfg_above_sigma, use_coords: $use_coords, legacy_uc: $legacy_uc, normalize_reference_strength_multiple: $normalize_reference_strength_multiple, v4_prompt: $v4_prompt, v4_negative_prompt: $v4_negative_prompt, seed: $seed, characterPrompts: $characterPrompts, reference_image_multiple: $reference_image_multiple, reference_information_extracted_multiple: $reference_information_extracted_multiple, reference_strength_multiple: $reference_strength_multiple, negative_prompt: $negative_prompt, deliberate_euler_ancestral_bug: $deliberate_euler_ancestral_bug, prefer_brownian: $prefer_brownian, director_reference_descriptions: $director_reference_descriptions, director_reference_images: $director_reference_images, director_reference_information_extracted: $director_reference_information_extracted, director_reference_secondary_strength_values: $director_reference_secondary_strength_values, director_reference_strength_values: $director_reference_strength_values)';
   }
 }
 
@@ -511,6 +518,7 @@ abstract mixin class $ParametersCopyWith<$Res> {
       int seed,
       List<CharacterPrompt> characterPrompts,
       List<String> reference_image_multiple,
+      List<double> reference_information_extracted_multiple,
       List<double> reference_strength_multiple,
       String negative_prompt,
       bool deliberate_euler_ancestral_bug,
@@ -563,6 +571,7 @@ class _$ParametersCopyWithImpl<$Res> implements $ParametersCopyWith<$Res> {
     Object? seed = null,
     Object? characterPrompts = null,
     Object? reference_image_multiple = null,
+    Object? reference_information_extracted_multiple = null,
     Object? reference_strength_multiple = null,
     Object? negative_prompt = null,
     Object? deliberate_euler_ancestral_bug = null,
@@ -679,6 +688,11 @@ class _$ParametersCopyWithImpl<$Res> implements $ParametersCopyWith<$Res> {
           ? _self.reference_image_multiple
           : reference_image_multiple // ignore: cast_nullable_to_non_nullable
               as List<String>,
+      reference_information_extracted_multiple: null ==
+              reference_information_extracted_multiple
+          ? _self.reference_information_extracted_multiple
+          : reference_information_extracted_multiple // ignore: cast_nullable_to_non_nullable
+              as List<double>,
       reference_strength_multiple: null == reference_strength_multiple
           ? _self.reference_strength_multiple
           : reference_strength_multiple // ignore: cast_nullable_to_non_nullable
@@ -772,6 +786,7 @@ class _Parameters with DiagnosticableTreeMixin implements Parameters {
       required this.seed,
       required final List<CharacterPrompt> characterPrompts,
       final List<String> reference_image_multiple = const [],
+      final List<double> reference_information_extracted_multiple = const [],
       final List<double> reference_strength_multiple = const [],
       required this.negative_prompt,
       required this.deliberate_euler_ancestral_bug,
@@ -785,6 +800,8 @@ class _Parameters with DiagnosticableTreeMixin implements Parameters {
       final List<double> director_reference_strength_values = const []})
       : _characterPrompts = characterPrompts,
         _reference_image_multiple = reference_image_multiple,
+        _reference_information_extracted_multiple =
+            reference_information_extracted_multiple,
         _reference_strength_multiple = reference_strength_multiple,
         _director_reference_descriptions = director_reference_descriptions,
         _director_reference_images = director_reference_images,
@@ -862,6 +879,16 @@ class _Parameters with DiagnosticableTreeMixin implements Parameters {
       return _reference_image_multiple;
     // ignore: implicit_dynamic_type
     return EqualUnmodifiableListView(_reference_image_multiple);
+  }
+
+  final List<double> _reference_information_extracted_multiple;
+  @override
+  @JsonKey()
+  List<double> get reference_information_extracted_multiple {
+    if (_reference_information_extracted_multiple is EqualUnmodifiableListView)
+      return _reference_information_extracted_multiple;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_reference_information_extracted_multiple);
   }
 
   final List<double> _reference_strength_multiple;
@@ -979,6 +1006,8 @@ class _Parameters with DiagnosticableTreeMixin implements Parameters {
       ..add(DiagnosticsProperty('characterPrompts', characterPrompts))
       ..add(DiagnosticsProperty(
           'reference_image_multiple', reference_image_multiple))
+      ..add(DiagnosticsProperty('reference_information_extracted_multiple',
+          reference_information_extracted_multiple))
       ..add(DiagnosticsProperty(
           'reference_strength_multiple', reference_strength_multiple))
       ..add(DiagnosticsProperty('negative_prompt', negative_prompt))
@@ -1049,6 +1078,9 @@ class _Parameters with DiagnosticableTreeMixin implements Parameters {
             const DeepCollectionEquality().equals(
                 other._reference_image_multiple, _reference_image_multiple) &&
             const DeepCollectionEquality().equals(
+                other._reference_information_extracted_multiple,
+                _reference_information_extracted_multiple) &&
+            const DeepCollectionEquality().equals(
                 other._reference_strength_multiple,
                 _reference_strength_multiple) &&
             (identical(other.negative_prompt, negative_prompt) ||
@@ -1069,8 +1101,7 @@ class _Parameters with DiagnosticableTreeMixin implements Parameters {
             const DeepCollectionEquality().equals(
                 other._director_reference_secondary_strength_values,
                 _director_reference_secondary_strength_values) &&
-            const DeepCollectionEquality().equals(
-                other._director_reference_strength_values, _director_reference_strength_values));
+            const DeepCollectionEquality().equals(other._director_reference_strength_values, _director_reference_strength_values));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -1103,6 +1134,8 @@ class _Parameters with DiagnosticableTreeMixin implements Parameters {
         seed,
         const DeepCollectionEquality().hash(_characterPrompts),
         const DeepCollectionEquality().hash(_reference_image_multiple),
+        const DeepCollectionEquality()
+            .hash(_reference_information_extracted_multiple),
         const DeepCollectionEquality().hash(_reference_strength_multiple),
         negative_prompt,
         deliberate_euler_ancestral_bug,
@@ -1118,7 +1151,7 @@ class _Parameters with DiagnosticableTreeMixin implements Parameters {
 
   @override
   String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
-    return 'Parameters(params_version: $params_version, width: $width, height: $height, scale: $scale, sampler: $sampler, steps: $steps, n_samples: $n_samples, ucPreset: $ucPreset, qualityToggle: $qualityToggle, autoSmea: $autoSmea, dynamic_thresholding: $dynamic_thresholding, controlnet_strength: $controlnet_strength, legacy: $legacy, add_original_image: $add_original_image, cfg_rescale: $cfg_rescale, noise_schedule: $noise_schedule, legacy_v3_extend: $legacy_v3_extend, skip_cfg_above_sigma: $skip_cfg_above_sigma, use_coords: $use_coords, legacy_uc: $legacy_uc, normalize_reference_strength_multiple: $normalize_reference_strength_multiple, v4_prompt: $v4_prompt, v4_negative_prompt: $v4_negative_prompt, seed: $seed, characterPrompts: $characterPrompts, reference_image_multiple: $reference_image_multiple, reference_strength_multiple: $reference_strength_multiple, negative_prompt: $negative_prompt, deliberate_euler_ancestral_bug: $deliberate_euler_ancestral_bug, prefer_brownian: $prefer_brownian, director_reference_descriptions: $director_reference_descriptions, director_reference_images: $director_reference_images, director_reference_information_extracted: $director_reference_information_extracted, director_reference_secondary_strength_values: $director_reference_secondary_strength_values, director_reference_strength_values: $director_reference_strength_values)';
+    return 'Parameters(params_version: $params_version, width: $width, height: $height, scale: $scale, sampler: $sampler, steps: $steps, n_samples: $n_samples, ucPreset: $ucPreset, qualityToggle: $qualityToggle, autoSmea: $autoSmea, dynamic_thresholding: $dynamic_thresholding, controlnet_strength: $controlnet_strength, legacy: $legacy, add_original_image: $add_original_image, cfg_rescale: $cfg_rescale, noise_schedule: $noise_schedule, legacy_v3_extend: $legacy_v3_extend, skip_cfg_above_sigma: $skip_cfg_above_sigma, use_coords: $use_coords, legacy_uc: $legacy_uc, normalize_reference_strength_multiple: $normalize_reference_strength_multiple, v4_prompt: $v4_prompt, v4_negative_prompt: $v4_negative_prompt, seed: $seed, characterPrompts: $characterPrompts, reference_image_multiple: $reference_image_multiple, reference_information_extracted_multiple: $reference_information_extracted_multiple, reference_strength_multiple: $reference_strength_multiple, negative_prompt: $negative_prompt, deliberate_euler_ancestral_bug: $deliberate_euler_ancestral_bug, prefer_brownian: $prefer_brownian, director_reference_descriptions: $director_reference_descriptions, director_reference_images: $director_reference_images, director_reference_information_extracted: $director_reference_information_extracted, director_reference_secondary_strength_values: $director_reference_secondary_strength_values, director_reference_strength_values: $director_reference_strength_values)';
   }
 }
 
@@ -1157,6 +1190,7 @@ abstract mixin class _$ParametersCopyWith<$Res>
       int seed,
       List<CharacterPrompt> characterPrompts,
       List<String> reference_image_multiple,
+      List<double> reference_information_extracted_multiple,
       List<double> reference_strength_multiple,
       String negative_prompt,
       bool deliberate_euler_ancestral_bug,
@@ -1211,6 +1245,7 @@ class __$ParametersCopyWithImpl<$Res> implements _$ParametersCopyWith<$Res> {
     Object? seed = null,
     Object? characterPrompts = null,
     Object? reference_image_multiple = null,
+    Object? reference_information_extracted_multiple = null,
     Object? reference_strength_multiple = null,
     Object? negative_prompt = null,
     Object? deliberate_euler_ancestral_bug = null,
@@ -1327,6 +1362,11 @@ class __$ParametersCopyWithImpl<$Res> implements _$ParametersCopyWith<$Res> {
           ? _self._reference_image_multiple
           : reference_image_multiple // ignore: cast_nullable_to_non_nullable
               as List<String>,
+      reference_information_extracted_multiple: null ==
+              reference_information_extracted_multiple
+          ? _self._reference_information_extracted_multiple
+          : reference_information_extracted_multiple // ignore: cast_nullable_to_non_nullable
+              as List<double>,
       reference_strength_multiple: null == reference_strength_multiple
           ? _self._reference_strength_multiple
           : reference_strength_multiple // ignore: cast_nullable_to_non_nullable

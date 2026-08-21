@@ -254,5 +254,115 @@
         ]
       }
     ]
+  },
+  "1.5.0": {
+    "version": "1.5.0",
+    "date": "2026-05-22",
+    "changes": [
+      {
+        "type": "feature",
+        "category": "디자인",
+        "description": "새로운 액체 굴절(Liquid Glass) 효과 모드를 추가했어요.",
+        "details": [
+          "패널 배경에 사실적인 유리 굴절 효과를 적용할 수 있어요.",
+          "이 효과는 앱 설정 메뉴에서 언제든지 ON/OFF 할 수 있어요."
+        ]
+      },
+      {
+        "type": "enhancement",
+        "category": "UI/UX",
+        "description": "프롬프트 패널과 제어 UI 공간을 효율적으로 개선했어요.",
+        "details": [
+          "Seed 관련 옵션과 자동생성 버튼을 고급 설정 내부로 통합했어요.",
+          "고급 설정 패널을 접고 펼칠 수 있는 구조로 변경하여 메인 화면 공간을 넓혔어요.",
+          "패널 내부의 위젯 간 여백과 패딩을 최소화하여 더 컴팩트한 화면을 제공해요."
+        ]
+      },
+      {
+        "type": "enhancement",
+        "category": "디자인",
+        "description": "화면 전반의 투명도와 테두리 렌더링을 깔끔하게 통일했어요.",
+        "details": [
+          "캐릭터 프롬프트 탭의 배경을 전역 프롬프트와 동일하게 반투명한 질감으로 변경했어요.",
+          "패널 하단의 각진 모서리와 테두리가 겹치던 렌더링 오류를 수정하여 자연스럽게 연결되도록 개선했어요."
+        ]
+      }
+    ]
+  },
+  "1.5.1": {
+    "version": "1.5.1",
+    "date": "2026-07-15",
+    "changes": [
+      {
+        "type": "enhancement",
+        "category": "로그인/인증",
+        "description": "기존 로그인 방식에 reCAPTCHA가 추가되어 더 이상 사용할 수 없어요.",
+        "details": [
+          "이제 NovelAI 웹에서 직접 발급한 Persistent API Token으로만 로그인할 수 있어요.",
+          "이는 NovelAI의 사용자 대상 서드파티 앱 권고사항을 따른 변경입니다."
+        ]
+      }
+    ]
+  },
+  "1.5.2": {
+    "version": "1.5.2",
+    "date": "2026-07-16",
+    "changes": [
+      {
+        "type": "hotfix",
+        "category": "로그인/인증",
+        "description": "NovelAI API 주소 변경으로 토큰 로그인이 실패하던 문제를 수정했어요.",
+        "details": [
+          "ANLAS 잔여량 확인 요청을 NovelAI의 새 이미지 API 주소로 변경했습니다.",
+          "Persistent API Token 로그인 시 발생하던 'Please refresh NovelAI.net' 오류를 해결했습니다."
+        ]
+      }
+    ]
+  },
+  "1.5.3": {
+    "version": "1.5.3",
+    "date": "2026-07-16",
+    "changes": [
+      {
+        "type": "hotfix",
+        "category": "로그인/인증",
+        "description": "Persistent Token 로그인 오류를 수정하고 모델 선택 화면을 개선했어요.",
+        "details": [
+          "NovelAI API 주소 변경으로 발생하던 Persistent Token 확인 오류를 수정했습니다.",
+          "모델 선택 버튼의 아이콘을 제거하고, 긴 모델명은 두 줄로 표시되도록 개선했습니다."
+        ]
+      }
+    ]
+  },
+  "1.5.4": {
+    "version": "1.5.4",
+    "date": "2026-07-21",
+    "changes": [
+      {
+        "type": "hotfix",
+        "category": "안정성",
+        "description": "Vibe Transfer 안정화",
+        "details": [
+          "V3와 V4 계열 모델의 Vibe 처리 방식을 각각 맞게 분리했습니다.",
+          "모델 전환 시 호환되지 않는 Vibe 데이터가 생성 요청에 포함되지 않도록 개선했습니다."
+        ]
+      }
+    ]
+  },
+  "1.5.5": {
+    "version": "1.5.5",
+    "date": "2026-08-11",
+    "changes": [
+      {
+        "type": "feature",
+        "category": "모델 지원",
+        "description": "V5를 기다리는 분들이 많은 만큼, 정식 출시 전에 V5 Full과 V5 Curated 지원을 미리 준비했어요.",
+        "details": [
+          "V5를 기다리는 분들이 많은 만큼 정식 출시 전에 바로 사용할 수 있도록 호환 준비를 마쳤어요.",
+          "V5도 V4.5와 같은 방식으로 Vibe Transfer와 Character Reference를 처리해요.",
+          "NovelAI의 V5 정식 출시 전에는 모델 선택 시 생성 요청이 실패할 수 있어요."
+        ]
+      }
+    ]
   }
 }

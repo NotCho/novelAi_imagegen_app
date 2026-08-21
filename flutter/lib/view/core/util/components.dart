@@ -389,7 +389,7 @@ class DropDownBuild extends StatelessWidget {
         labelStyle:
             const TextStyle(color: SkeletonColorScheme.textSecondaryColor),
         filled: true,
-        fillColor: SkeletonColorScheme.cardColor,
+        fillColor: SkeletonColorScheme.cardColor.withValues(alpha: 0.6),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(SkeletonSpacing.borderRadius / 2),
           borderSide: const BorderSide(color: SkeletonColorScheme.surfaceColor),

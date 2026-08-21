@@ -1,11 +1,14 @@
 import 'dart:convert';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:image/image.dart' as img;
 import 'package:naiapp/application/core/global_controller.dart';
 import 'package:naiapp/application/core/skeleton_controller.dart';
 import '../../domain/gen/diffusion_model.dart' as df;
 import 'package:naiapp/view/core/util/app_snackbar.dart';
-import 'package:naiapp/application/home/prompt_controller.dart' as import_prompt;
+import 'package:naiapp/application/home/prompt_controller.dart'
+    as import_prompt;
 import 'image_cache_manager.dart';
 
 import 'package:get/get.dart';
@@ -14,6 +17,7 @@ import 'dart:typed_data';
 class HomeImageController extends SkeletonController {
   Rx<Uint8List> currentImageBytes = Uint8List(0).obs;
   Rx<Uint8List> generatedImageBytes = Uint8List(0).obs;
+  Rx<Uint8List> streamingPreviewBytes = Uint8List(0).obs;
   RxList<VibeImage> vibeParseImageBytes = <VibeImage>[].obs;
   final generatedImagePath = ''.obs;
 
@@ -38,7 +42,8 @@ class HomeImageController extends SkeletonController {
     generatedImagePath.value = item.imagePath;
 
     // 전역 캐시 매니저를 통해 안전하고 빠른 룩업/디코딩 수행
-    generatedImageBytes.value = ImageCacheManager.instance.getImageBytes(item.imagePath);
+    generatedImageBytes.value =
+        ImageCacheManager.instance.getImageBytes(item.imagePath);
 
     try {
       final promptController = Get.find<import_prompt.PromptController>();
@@ -56,8 +61,8 @@ class HomeImageController extends SkeletonController {
       if (currentImageBytes.value.isEmpty) {
         int reversedIndex =
             generationHistory.length - imageViewPageController.page!.toInt();
-        currentImageBytes.value =
-            ImageCacheManager.instance.getImageBytes(generationHistory[reversedIndex].imagePath);
+        currentImageBytes.value = ImageCacheManager.instance
+            .getImageBytes(generationHistory[reversedIndex].imagePath);
       }
     } catch (e) {
       currentImageBytes.value = generatedImageBytes.value;
@@ -93,8 +98,8 @@ class HomeImageController extends SkeletonController {
   void onPageChanged(int index) {
     currentImageViewIndex.value = index;
     int reversedIndex = generationHistory.length - index - 1; // 역순으로 인덱스 계산
-    currentImageBytes.value =
-        ImageCacheManager.instance.getImageBytes(generationHistory[reversedIndex].imagePath);
+    currentImageBytes.value = ImageCacheManager.instance
+        .getImageBytes(generationHistory[reversedIndex].imagePath);
   }
 
   df.DiffusionModel diffusionModelFromExifMap({
@@ -272,7 +277,44 @@ class HomeImageController extends SkeletonController {
   }
 
   void addVibeImage(Uint8List bytes) {
-    vibeParseImageBytes.add(VibeImage(bytes: bytes, weight: 0.6.obs, extractionStrength: 1.0.obs));
+    // `image` holds the source image. V4+ replaces it with an encoded Vibe
+    // before generation, while V3 normalizes the source image in the payload.
+    vibeParseImageBytes.add(
+      VibeImage(
+        image: bytes,
+        weight: 0.6.obs,
+        extractionStrength: 1.0.obs,
+      ),
+    );
+  }
+
+  /// Normalizes a V3 Vibe source exactly as the web client does before it is
+  /// included in `reference_image_multiple`: fit inside a 448px black square.
+  static Uint8List prepareV3VibeImage(Uint8List source) {
+    final decoded = img.decodeImage(source);
+    if (decoded == null) {
+      throw ArgumentError('Vibe 이미지를 읽을 수 없습니다.');
+    }
+
+    const targetSize = 448;
+    final scale = math.min(
+      targetSize / decoded.width,
+      targetSize / decoded.height,
+    );
+    final resized = img.copyResize(
+      decoded,
+      width: (decoded.width * scale).round(),
+      height: (decoded.height * scale).round(),
+    );
+    final canvas = img.Image(width: targetSize, height: targetSize);
+    img.fill(canvas, color: img.ColorRgb8(0, 0, 0));
+    img.compositeImage(
+      canvas,
+      resized,
+      dstX: (targetSize - resized.width) ~/ 2,
+      dstY: (targetSize - resized.height) ~/ 2,
+    );
+    return Uint8List.fromList(img.encodePng(canvas));
   }
 
   void vibeWeightSliderChanged(int index, double value) {
@@ -297,9 +339,16 @@ class HomeImageController extends SkeletonController {
   }
 
   void loadVibeFromExif(df.DiffusionModel textChunks) {
+    vibeParseImageBytes.clear();
+    // Only V4+ metadata contains reusable encode-vibe data. V3 stores a
+    // normalized source image, which must not be restored as encoded Vibe data.
+    if (!textChunks.model.startsWith('nai-diffusion-4') &&
+        !textChunks.model.startsWith('nai-diffusion-5')) {
+      return;
+    }
+
     // Exif에서 Vibe 이미지 정보 로드
     final vibeImages = textChunks.parameters.reference_image_multiple;
-    vibeParseImageBytes.clear();
     for (int i = 0; i < vibeImages.length; i++) {
       final vibeImage = vibeImages[i];
       final weight =
@@ -348,8 +397,8 @@ class HomeImageController extends SkeletonController {
     } else {
       // 마지막 이미지로 이동
       int lastIndex = generationHistory.length - 1;
-      currentImageBytes.value =
-          ImageCacheManager.instance.getImageBytes(generationHistory[lastIndex].imagePath);
+      currentImageBytes.value = ImageCacheManager.instance
+          .getImageBytes(generationHistory[lastIndex].imagePath);
       imageViewPageController.jumpToPage(lastIndex);
     }
   }
@@ -372,13 +421,13 @@ class VibeImage {
   Uint8List? bytes;
   RxDouble weight;
   RxDouble? extractionStrength;
-  RxDouble? prevExtractionStrength = 0.0.obs;
+  RxDouble prevExtractionStrength;
 
   VibeImage({
     this.image,
     this.bytes,
     required this.weight,
     this.extractionStrength,
-    this.prevExtractionStrength,
-  });
+    RxDouble? prevExtractionStrength,
+  }) : prevExtractionStrength = prevExtractionStrength ?? 0.0.obs;
 }

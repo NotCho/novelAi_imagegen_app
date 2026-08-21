@@ -64,7 +64,7 @@ class HomeMainPrompt extends StatelessWidget {
             vertical: SkeletonSpacing.smallSpacing,
             horizontal: SkeletonSpacing.smallSpacing),
         decoration: BoxDecoration(
-          color: SkeletonColorScheme.cardColor,
+          color: SkeletonColorScheme.cardColor.withValues(alpha: 0.45),
           borderRadius: BorderRadius.circular(16.0),
           border: Border.all(
             color: color.withValues(alpha: 0.25),
@@ -72,7 +72,7 @@ class HomeMainPrompt extends StatelessWidget {
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.25),
+              color: Colors.black.withValues(alpha: 0.2),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
@@ -89,10 +89,10 @@ class HomeMainPrompt extends StatelessWidget {
             // 타이틀 헤더 (투명 배경에 세련된 요소 배치)
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 border: Border(
                   bottom: BorderSide(
-                    color: SkeletonColorScheme.surfaceColor,
+                    color: Colors.white.withValues(alpha: 0.08),
                     width: 1.0,
                   ),
                 ),

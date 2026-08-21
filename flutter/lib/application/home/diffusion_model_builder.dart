@@ -11,19 +11,25 @@ import 'package:naiapp/application/home/model_config_controller.dart';
 import 'package:naiapp/domain/gen/diffusion_model.dart' as df;
 
 class DiffusionModelBuilder {
-  final HomeSettingController homeSettingController = Get.find<HomeSettingController>();
+  final HomeSettingController homeSettingController =
+      Get.find<HomeSettingController>();
   final PromptController promptController = Get.find<PromptController>();
   final WildcardController wildcardController = Get.find<WildcardController>();
-  final HomeImageController homeImageController = Get.find<HomeImageController>();
-  final DirectorToolController directorToolController = Get.find<DirectorToolController>();
-  final ModelConfigController modelConfigController = Get.find<ModelConfigController>();
+  final HomeImageController homeImageController =
+      Get.find<HomeImageController>();
+  final DirectorToolController directorToolController =
+      Get.find<DirectorToolController>();
+  final ModelConfigController modelConfigController =
+      Get.find<ModelConfigController>();
   final SharedPreferences prefs = Get.find<SharedPreferences>();
 
   // These should be passed or fetched. They were part of HomePageController.
   bool addQualityTags = false;
-  String positiveDef = ", best quality, amazing quality, very aesthetic, absurdres";
-  String negativeDef = "nsfw, lowres, {bad}, error, fewer, extra, worst quality, jpeg artifacts, bad quality, watermark, unfinished, displeasing, chromatic aberration, signature, extra digits, artistic error, username, scan, [abstract],";
-  
+  String positiveDef =
+      ", best quality, amazing quality, very aesthetic, absurdres";
+  String negativeDef =
+      "nsfw, lowres, {bad}, error, fewer, extra, worst quality, jpeg artifacts, bad quality, watermark, unfinished, displeasing, chromatic aberration, signature, extra digits, artistic error, username, scan, [abstract],";
+
   void updateQualityTags(String pos, String neg) {
     positiveDef = pos;
     negativeDef = neg;
@@ -61,10 +67,12 @@ class DiffusionModelBuilder {
 
     int step = homeSettingController.samplingSteps.value.toInt();
     double cfgReScale = homeSettingController.cfgReScale.value.toDouble();
-    double promptGuidance = homeSettingController.promptGuidance.value.toDouble();
+    double promptGuidance =
+        homeSettingController.promptGuidance.value.toDouble();
     String sampler = homeSettingController.selectedSamplerValue;
 
-    List<df.CharacterPrompt> charPromOriginal = promptController.characterPrompts.map((e) {
+    List<df.CharacterPrompt> charPromOriginal =
+        promptController.characterPrompts.map((e) {
       return df.CharacterPrompt(
         prompt: e['positive'].text,
         uc: e['negative'].text,
@@ -73,8 +81,9 @@ class DiffusionModelBuilder {
       );
     }).toList();
 
-    final enabledCharacterPrompts =
-        promptController.characterPrompts.where((e) => e['prompt'].enabled == true).toList();
+    final enabledCharacterPrompts = promptController.characterPrompts
+        .where((e) => e['prompt'].enabled == true)
+        .toList();
 
     List<df.CharacterPrompt> charProm = enabledCharacterPrompts.map((e) {
       return df.CharacterPrompt(
@@ -88,7 +97,7 @@ class DiffusionModelBuilder {
         enabled: e['prompt'].enabled,
       );
     }).toList();
-    
+
     List<df.CharCaption> charCapPos = enabledCharacterPrompts.map((e) {
       return df.CharCaption(
         char_caption: preserveWildcards
@@ -109,20 +118,37 @@ class DiffusionModelBuilder {
 
     List<String> vibeBytes;
     List<double> vibeStrengths;
+    List<double> vibeInformationExtracted;
     if (!modelConfigController.supportsVibeTransfer) {
       vibeBytes = [];
       vibeStrengths = [];
+      vibeInformationExtracted = [];
     } else {
       try {
-        vibeBytes = homeImageController.vibeParseImageBytes
-            .map((e) => base64Encode(e.bytes!))
-            .toList();
+        final requiresEncoding = modelConfigController.requiresVibeEncoding;
+        vibeBytes = homeImageController.vibeParseImageBytes.map((vibe) {
+          final bytes = requiresEncoding
+              ? vibe.bytes
+              : vibe.image == null
+                  ? null
+                  : HomeImageController.prepareV3VibeImage(vibe.image!);
+          if (bytes == null) {
+            throw StateError('Vibe 이미지 데이터가 없습니다.');
+          }
+          return base64Encode(bytes);
+        }).toList();
         vibeStrengths = homeImageController.vibeParseImageBytes
             .map((e) => e.weight.value)
             .toList();
+        vibeInformationExtracted = requiresEncoding
+            ? []
+            : homeImageController.vibeParseImageBytes
+                .map((e) => e.extractionStrength?.value ?? 1.0)
+                .toList();
       } catch (e) {
         vibeBytes = [];
         vibeStrengths = [];
+        vibeInformationExtracted = [];
       }
     }
 
@@ -168,13 +194,25 @@ class DiffusionModelBuilder {
         negative_prompt: originalNeg,
         reference_image_multiple: vibeBytes,
         reference_strength_multiple: vibeStrengths,
+        reference_information_extracted_multiple: vibeInformationExtracted,
       ),
       model: modelConfigController.usingModel.value,
       action: 'generate',
     );
 
     if (saveLastSettings) {
-      prefs.setString("lastSettings", jsonEncode(settingOriginal.toJson()));
+      // V3 has no reusable encoded Vibe data. Persisting its normalized source
+      // would make it indistinguishable from a V4+ encoded payload on reload.
+      final settingsToPersist = modelConfigController.requiresVibeEncoding
+          ? settingOriginal
+          : settingOriginal.copyWith(
+              parameters: settingOriginal.parameters.copyWith(
+                reference_image_multiple: [],
+                reference_information_extracted_multiple: [],
+                reference_strength_multiple: [],
+              ),
+            );
+      prefs.setString("lastSettings", jsonEncode(settingsToPersist.toJson()));
       prefs.setBool("addQualityTags", addQualityTags);
     }
 
@@ -193,7 +231,8 @@ class DiffusionModelBuilder {
     List<double> directorSecondaryStrengths = [];
     List<double> directorStrengths = [];
 
-    if (modelConfigController.supportsCharacterReference && directorToolController.isEnabled) {
+    if (modelConfigController.supportsCharacterReference &&
+        directorToolController.isEnabled) {
       directorDescriptions.add(
         df.DirectorReferenceDescription(
           caption: df.DirectorCaption(
@@ -212,7 +251,8 @@ class DiffusionModelBuilder {
     }
 
     final bool isDirectorEnabled =
-        modelConfigController.supportsCharacterReference && directorToolController.isEnabled;
+        modelConfigController.supportsCharacterReference &&
+            directorToolController.isEnabled;
     final bool hasCharCaptions = charCapPos.isNotEmpty;
 
     final int paramsVersion = isDirectorEnabled ? 3 : 1;
@@ -268,6 +308,7 @@ class DiffusionModelBuilder {
         negative_prompt: neg,
         reference_image_multiple: vibeBytes,
         reference_strength_multiple: vibeStrengths,
+        reference_information_extracted_multiple: vibeInformationExtracted,
         director_reference_descriptions: directorDescriptions,
         director_reference_images: directorImages,
         director_reference_information_extracted: directorInfoExtracted,

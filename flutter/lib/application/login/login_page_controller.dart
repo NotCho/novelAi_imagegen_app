@@ -15,11 +15,6 @@ class LoginPageController extends SkeletonController
   RxDouble alpha = 1.0.obs;
   RxBool readyToShowMap = false.obs;
 
-  /// 0: 이메일/비밀번호 로그인, 1: Persistent Token 입력 로그인
-  RxInt loginMode = 0.obs;
-
-  TextEditingController emailController = TextEditingController();
-  TextEditingController passwordController = TextEditingController();
   TextEditingController persistentTokenController = TextEditingController();
 
   final SharedPreferences prefs = Get.find<SharedPreferences>();
@@ -41,43 +36,7 @@ class LoginPageController extends SkeletonController
 
   Future<void> onLogin() async {
     if (inProgress.value) return;
-    if (loginMode.value == 1) {
-      await onLoginWithPersistentToken();
-      return;
-    }
-    await onLoginWithEmail();
-  }
-
-  Future<void> onLoginWithEmail() async {
-    if (emailController.text.isEmpty) {
-      AppSnackBar.show("오류", "이메일을 입력해주세요.",
-          backgroundColor: CupertinoColors.systemRed,
-          textColor: CupertinoColors.white,
-          duration: const Duration(seconds: 2));
-      return;
-    }
-    if (passwordController.text.isEmpty) {
-      AppSnackBar.show("오류", "비밀번호를 입력해주세요.",
-          backgroundColor: CupertinoColors.systemRed,
-          textColor: CupertinoColors.white,
-          duration: const Duration(seconds: 2));
-      return;
-    }
-
-    inProgress.value = true;
-    INovelAIRepository userRepository = Get.find<INovelAIRepository>();
-    final result = await userRepository.fetchAccessKey(
-        emailController.text, passwordController.text);
-
-    result.fold((l) {
-      AppSnackBar.show("오류", l,
-          backgroundColor: CupertinoColors.systemRed,
-          textColor: CupertinoColors.white,
-          duration: const Duration(seconds: 2));
-    }, (r) {
-      getToken();
-    });
-    inProgress.value = false;
+    await onLoginWithPersistentToken();
   }
 
   Future<void> onLoginWithPersistentToken() async {
@@ -121,24 +80,8 @@ class LoginPageController extends SkeletonController
     inProgress.value = false;
   }
 
-  Future<void> getToken() async {
-    INovelAIRepository userRepository = Get.find<INovelAIRepository>();
-    final result = await userRepository.createPersistentToken();
-
-    result.fold((l) {
-      AppSnackBar.show("오류", l,
-          backgroundColor: CupertinoColors.systemRed,
-          textColor: CupertinoColors.white,
-          duration: const Duration(seconds: 2));
-    }, (r) {
-      Get.offAllNamed("/home");
-    });
-  }
-
   @override
   void onClose() {
-    emailController.dispose();
-    passwordController.dispose();
     persistentTokenController.dispose();
     animationController?.dispose();
     super.onClose();
@@ -146,7 +89,6 @@ class LoginPageController extends SkeletonController
 
   void showTokenDialog() {
     Get.dialog(AlertDialog(
-
       backgroundColor: SkeletonColorScheme.backgroundColor,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
@@ -158,14 +100,23 @@ class LoginPageController extends SkeletonController
             .copyWith(color: SkeletonColorScheme.primaryColor),
       ),
       content: SingleChildScrollView(
-        child: Wrap(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            Text(
+              "NAI APP은 NovelAI 계정 비밀번호를 받지 않습니다. "
+              "NovelAI 웹에서 직접 발급한 Persistent API Token으로만 로그인할 수 있어요.",
+              style: SkeletonTextTheme.timestamp
+                  .copyWith(color: SkeletonColorScheme.textSecondaryColor),
+            ),
+            SkeletonSpacing.vSmall,
             guideTile("assets/images/guide_image.png",
-                "1. 메인 페이지 좌측 상단의 톱니바퀴를 누른 후 \n Account - Get President API Token 을 탭 합니다"),
+                "1. NovelAI 웹에 로그인한 뒤, 메인 화면 좌측 상단의 톱니바퀴를 누르세요.\n Account에서 Persistent API Token 발급 메뉴를 선택합니다."),
             guideTile("assets/images/guide_image2.png",
-                "2. Overwrite 를 탭 합니다. \n(기존에 해당 토큰을 사용하던(NAIA등) \n 토큰이 초기화됩니다)"),
+                "2. Overwrite를 누르면 새 토큰이 발급됩니다.\n 기존 토큰은 바로 무효화되므로, 다른 앱에서 사용 중이었다면 새 토큰으로 다시 등록해야 해요."),
             guideTile("assets/images/guide_image3.png",
-                "3. 복사 아이콘을 눌러 토큰을 복사하고, 앱에 입력합니다"),
+                "3. 복사 아이콘으로 토큰을 복사한 뒤 이 화면에 붙여넣고 로그인하세요.\n 토큰은 계정 비밀번호처럼 안전하게 보관해 주세요."),
           ],
         ),
       ),

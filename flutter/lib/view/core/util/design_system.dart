@@ -355,3 +355,35 @@ class SkeletonSpacing {
   /// 64
   static SizedBox get vXLarge => const SizedBox(height: 64);
 }
+
+class GradientBorderPainter extends CustomPainter {
+  final Gradient gradient;
+  final double strokeWidth;
+  final BorderRadius borderRadius;
+
+  GradientBorderPainter({
+    required this.gradient,
+    required this.strokeWidth,
+    required this.borderRadius,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final rect = Offset.zero & size;
+    // Stroke should be inset by half of strokeWidth to avoid clipping at the boundaries
+    final paint = Paint()
+      ..strokeWidth = strokeWidth
+      ..style = PaintingStyle.stroke
+      ..shader = gradient.createShader(rect);
+
+    final rrect = borderRadius.toRRect(rect);
+    canvas.drawRRect(rrect, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant GradientBorderPainter oldDelegate) {
+    return oldDelegate.gradient != gradient ||
+        oldDelegate.strokeWidth != strokeWidth ||
+        oldDelegate.borderRadius != borderRadius;
+  }
+}

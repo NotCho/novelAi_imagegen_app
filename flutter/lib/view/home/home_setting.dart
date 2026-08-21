@@ -63,7 +63,7 @@ class HomeSetting extends GetView<HomePageController> {
                     vertical: 10,
                   ),
                   decoration: BoxDecoration(
-                    color: SkeletonColorScheme.cardColor,
+                    color: SkeletonColorScheme.cardColor.withValues(alpha: 0.6),
                     borderRadius: BorderRadius.circular(
                       SkeletonSpacing.borderRadius / 2,
                     ),
@@ -584,7 +584,7 @@ class HomeSetting extends GetView<HomePageController> {
                             color: SkeletonColorScheme.textSecondaryColor,
                             fontSize: 12),
                         filled: true,
-                        fillColor: SkeletonColorScheme.cardColor,
+                        fillColor: SkeletonColorScheme.cardColor.withValues(alpha: 0.6),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(
                               SkeletonSpacing.borderRadius / 2),
@@ -637,7 +637,7 @@ class HomeSetting extends GetView<HomePageController> {
                     height: 44,
                     padding: const EdgeInsets.symmetric(horizontal: 10),
                     decoration: BoxDecoration(
-                      color: SkeletonColorScheme.cardColor,
+                      color: SkeletonColorScheme.cardColor.withValues(alpha: 0.6),
                       borderRadius: BorderRadius.circular(
                           SkeletonSpacing.borderRadius / 2),
                       border: Border.all(
@@ -734,7 +734,7 @@ class HomeSetting extends GetView<HomePageController> {
             fontSize: 12,
           ),
           filled: true,
-          fillColor: SkeletonColorScheme.cardColor,
+          fillColor: SkeletonColorScheme.cardColor.withValues(alpha: 0.6),
           border: OutlineInputBorder(
             borderRadius:
                 BorderRadius.circular(SkeletonSpacing.borderRadius / 2),
@@ -1064,7 +1064,7 @@ class HomeSetting extends GetView<HomePageController> {
                         color: SkeletonColorScheme.textSecondaryColor,
                         fontSize: 12),
                     filled: true,
-                    fillColor: SkeletonColorScheme.cardColor,
+                    fillColor: SkeletonColorScheme.cardColor.withValues(alpha: 0.6),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(
                           SkeletonSpacing.borderRadius / 2),
@@ -1090,7 +1090,7 @@ class HomeSetting extends GetView<HomePageController> {
                         color: SkeletonColorScheme.textSecondaryColor,
                         fontSize: 12),
                     filled: true,
-                    fillColor: SkeletonColorScheme.cardColor,
+                    fillColor: SkeletonColorScheme.cardColor.withValues(alpha: 0.6),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(
                           SkeletonSpacing.borderRadius / 2),
