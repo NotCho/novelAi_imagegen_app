@@ -11,7 +11,6 @@ void main() {
 
     expect(usage.remainingPercent, 98.5);
     expect(usage.refillPercentPerHour, 0.5);
-    expect(usage.refillGenerationsPerMinute, closeTo(1 / 120, 0.000001));
     expect(usage.minutesUntilFull, 180);
     expect(usage.timeUntilFull, const Duration(hours: 3));
   });
@@ -33,7 +32,7 @@ void main() {
       'isNegative': false,
     });
 
-    expect(usage.refillGenerationsPerMinute, 1);
+    expect(usage.refillPercentPerHour, 60);
     expect(usage.minutesUntilFull, 0);
   });
 }
