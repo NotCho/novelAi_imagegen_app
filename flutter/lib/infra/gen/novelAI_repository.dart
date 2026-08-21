@@ -9,25 +9,20 @@ import 'package:archive/archive.dart';
 import 'package:dartz/dartz.dart';
 import '../../domain/gen/diffusion_model.dart';
 import '../../domain/gen/i_novelAI_repository.dart';
+import '../../domain/gen/v5_usage.dart';
 
-/// NovelAIRepository: 이메일+비밀번호로 one-time key를 받아 로그인하고,
-/// 이미지 생성 및 변형 기능을 제공합니다.
+/// NovelAI Persistent Token을 사용해 이미지 생성 및 변형 기능을 제공합니다.
 class NovelAIRepository implements INovelAIRepository {
-  // Cloud Function endpoint returning { accessKey }
-  static const String _keyEndpoint =
-      'https://us-central1-nai-login.cloudfunctions.net/get_novelai_key';
-
   // NovelAI REST endpoints
-  static const String _loginUrl = 'https://api.novelai.net/user/login';
-  static const String _createTokenUrl =
-      'https://api.novelai.net/user/create-persistent-token';
   static const String _imageUrl = 'https://image.novelai.net/ai/generate-image';
+  static const String _streamingImageUrl =
+      'https://image.novelai.net/ai/generate-image-stream';
   static const String _variationUrl =
       'https://image.novelai.net/ai/generate-image-variation';
   static const String _suggestionUrl =
       'https://image.novelai.net/ai/generate-image/suggest-tags';
   static const String _anlasRemainingUrl =
-      "https://api.novelai.net/user/subscription";
+      "https://image.novelai.net/user/subscription";
 
   static const String _vibeParseUrl =
       "https://image.novelai.net/ai/encode-vibe";
@@ -41,74 +36,31 @@ class NovelAIRepository implements INovelAIRepository {
             (throw Exception(
                 'SharedPreferences not provided to NovelAIRepository'));
 
-  @override
-  String? getApiKey() => _prefs.getString('NOVEL_AI_ACCESS_KEY');
-
-  String tempAccessKey = "";
-
-  @override
-  Future<void> setApiKey(String apiKey) async {
-    await _prefs.setString('NOVEL_AI_ACCESS_KEY', apiKey);
-  }
-
-  @override
-  Future<Either<String, String>> createPersistentToken() async {
-    if (tempAccessKey.isEmpty) {
-      final oneTimeKey = getApiKey();
-      if (oneTimeKey == null) {
-        return const Left('AccessKey가 설정되지 않았습니다. fetchAccessKey를 먼저 호출하세요.');
-      } else {
-        tempAccessKey = oneTimeKey;
-      }
-    }
-    try {
-      final loginResp = await _httpClient.post(
-        Uri.parse(_loginUrl),
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
-        body: jsonEncode({'key': tempAccessKey}),
-      );
-      if (loginResp.statusCode != 200 && loginResp.statusCode != 201) {
-        return Left('로그인 실패: ${loginResp.body}');
-      }
-      final loginData = jsonDecode(loginResp.body) as Map<String, dynamic>;
-      final jwt = loginData['accessToken'] as String?;
-      if (jwt == null || jwt.isEmpty) {
-        return const Left('Invalid response: accessToken이 없습니다.');
-      }
-      final pstResp = await _httpClient.post(
-        Uri.parse(_createTokenUrl),
-        headers: {
-          'Authorization': 'Bearer $jwt',
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        body: jsonEncode({'overwrite': true}),
-      );
-      if (pstResp.statusCode != 201) {
-        return Left('Persistent token 생성 실패: ${pstResp.body}');
-      }
-      final pstData = jsonDecode(pstResp.body) as Map<String, dynamic>;
-      final pst = pstData['token'] as String?;
-      if (pst == null || pst.isEmpty) {
-        return const Left('Invalid response: persistent token이 없습니다.');
-      }
-      await _prefs.setString('NOVEL_AI_PERSISTENT_TOKEN', pst);
-      await _prefs.setString('NOVEL_AI_ACCESS_KEY', tempAccessKey);
-      return Right(pst);
-    } catch (e) {
-      return Left('Network error during token creation: $e');
-    }
-  }
-
   String? _getPersistentToken() =>
       _prefs.getString('NOVEL_AI_PERSISTENT_TOKEN');
+
+  static String _newCorrelationId() {
+    final timestamp = DateTime.now().microsecondsSinceEpoch.toRadixString(36);
+    return timestamp.substring(timestamp.length - 6);
+  }
+
+  static String _errorMessage(String responseBody) {
+    try {
+      final decoded = jsonDecode(responseBody);
+      if (decoded is Map<String, dynamic>) {
+        final message = decoded['message'] ?? decoded['error'];
+        if (message is String && message.isNotEmpty) return message;
+      }
+    } catch (_) {
+      // A proxy or server can return a non-JSON error body.
+    }
+    return responseBody;
+  }
 
   @override
   Future<Either<String, String>> generateImage({
     required DiffusionModel setting,
+    void Function(String base64Image)? onIntermediateImage,
   }) async {
     final token = _getPersistentToken();
     if (token == null) return const Left('Persistent token이 설정되지 않았습니다.');
@@ -126,12 +78,21 @@ class NovelAIRepository implements INovelAIRepository {
     payload['parameters'] = parameters;
 
     final model = setting.model;
-    final supportsVibeTransfer = model.startsWith('nai-diffusion-4');
-    final supportsCharacterReference = model.startsWith('nai-diffusion-4-5');
+    final supportsVibeTransfer = model.startsWith('nai-diffusion-3') ||
+        model.startsWith('nai-diffusion-4') ||
+        model.startsWith('nai-diffusion-5');
+    final usesEncodedVibes = model.startsWith('nai-diffusion-4') ||
+        model.startsWith('nai-diffusion-5');
+    final supportsCharacterReference = model.startsWith('nai-diffusion-4-5') ||
+        model.startsWith('nai-diffusion-5');
 
     if (!supportsVibeTransfer) {
       parameters.remove('reference_image_multiple');
+      parameters.remove('reference_information_extracted_multiple');
       parameters.remove('reference_strength_multiple');
+    }
+    if (usesEncodedVibes) {
+      parameters.remove('reference_information_extracted_multiple');
     }
 
     if (!supportsCharacterReference) {
@@ -157,13 +118,22 @@ class NovelAIRepository implements INovelAIRepository {
     }
     // print('Payload: ${jsonEncode(payload)}');
 
+    if (_prefs.getBool(imageGenerationStreamingModePreferenceKey) ?? false) {
+      parameters['stream'] = 'sse';
+      return _generateImageStreaming(
+        headers: headers,
+        payload: payload,
+        onIntermediateImage: onIntermediateImage,
+      );
+    }
+
     try {
       final resp = await _httpClient.post(
         Uri.parse(_imageUrl),
         headers: headers,
         body: jsonEncode(payload),
       );
-      if (resp.statusCode == 200) {
+      if (resp.statusCode == 200 || resp.statusCode == 201) {
         final zipBytes = resp.bodyBytes;
         final archive = ZipDecoder().decodeBytes(zipBytes);
         if (archive.isEmpty) return const Left('No images in ZIP');
@@ -176,6 +146,93 @@ class NovelAIRepository implements INovelAIRepository {
       }
     } catch (e) {
       return Left('Error: $e');
+    }
+  }
+
+  Future<Either<String, String>> _generateImageStreaming({
+    required Map<String, String> headers,
+    required Map<String, dynamic> payload,
+    void Function(String base64Image)? onIntermediateImage,
+  }) async {
+    final correlationId = _newCorrelationId();
+    final request = http.Request('POST', Uri.parse(_streamingImageUrl))
+      ..headers.addAll({
+        ...headers,
+        'accept': 'text/event-stream',
+        'x-correlation-id': correlationId,
+      })
+      ..body = jsonEncode(payload);
+
+    try {
+      final response = await _httpClient.send(request);
+      if (response.statusCode != 200 && response.statusCode != 201) {
+        final responseBody = await response.stream.bytesToString();
+        return Left(
+          'Image streaming failed: ${response.statusCode} '
+          '${_errorMessage(responseBody)} '
+          '(Correlation ID: $correlationId)',
+        );
+      }
+
+      String? finalImage;
+      String? streamError;
+      final eventData = StringBuffer();
+
+      void processEvent() {
+        if (eventData.isEmpty) return;
+        final rawData = eventData.toString();
+        eventData.clear();
+        if (rawData == '[DONE]') return;
+
+        try {
+          final decoded = jsonDecode(rawData);
+          if (decoded is! Map<String, dynamic>) return;
+
+          final eventType = decoded['event_type']?.toString();
+          final image = decoded['image'];
+          if (eventType == 'intermediate' && image is String) {
+            try {
+              onIntermediateImage?.call(image);
+            } catch (_) {
+              // A preview rendering failure must not cancel the generation.
+            }
+          } else if (eventType == 'final' && image is String) {
+            finalImage = image;
+          } else if (eventType == 'error') {
+            streamError =
+                (decoded['message'] ?? decoded['error'])?.toString() ??
+                    '스트리밍 생성 중 알 수 없는 오류가 발생했습니다.';
+          }
+        } on FormatException {
+          streamError = '스트리밍 응답 형식이 올바르지 않습니다.';
+        }
+      }
+
+      final lines = response.stream
+          .transform(utf8.decoder)
+          .transform(const LineSplitter());
+      await for (final line in lines) {
+        if (line.isEmpty) {
+          processEvent();
+          continue;
+        }
+        if (!line.startsWith('data:')) continue;
+        if (eventData.isNotEmpty) eventData.writeln();
+        eventData.write(line.substring(5).trimLeft());
+      }
+      processEvent();
+
+      if (finalImage != null && finalImage!.isNotEmpty) {
+        return Right(finalImage!);
+      }
+      return Left(
+        '${streamError ?? '스트림에 최종 이미지가 없습니다.'} '
+        '(Correlation ID: $correlationId)',
+      );
+    } catch (error) {
+      return Left(
+        'Image streaming error: $error (Correlation ID: $correlationId)',
+      );
     }
   }
 
@@ -211,30 +268,6 @@ class NovelAIRepository implements INovelAIRepository {
   Future<void> saveImage(String imageBase64, String path) async {
     final bytes = base64Decode(imageBase64);
     await File(path).writeAsBytes(bytes);
-  }
-
-  @override
-  Future<Either<String, String>> fetchAccessKey(
-      String email, String password) async {
-    try {
-      final resp = await _httpClient.post(
-        Uri.parse(_keyEndpoint),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'email': email, 'password': password}),
-      );
-      if (resp.statusCode != 200) {
-        return Left('Key fetch failed: ${resp.body}');
-      }
-      final data = jsonDecode(resp.body) as Map<String, dynamic>;
-      final key = data['accessKey'] as String?;
-      if (key == null || key.isEmpty) {
-        return const Left('Invalid response: accessKey is missing');
-      }
-      tempAccessKey = key;
-      return Right(key);
-    } catch (e) {
-      return Left('Network error: $e');
-    }
   }
 
   @override
@@ -296,49 +329,90 @@ class NovelAIRepository implements INovelAIRepository {
   }
 
   @override
+  Future<Either<String, V5Usage?>> getV5Usage() async {
+    final token = _getPersistentToken();
+    if (token == null || token.isEmpty) {
+      return const Left('Persistent token이 설정되지 않았습니다.');
+    }
+
+    try {
+      final response = await _httpClient.get(
+        Uri.parse(_anlasRemainingUrl),
+        headers: {
+          'Accept': 'application/json',
+          'authorization': 'Bearer $token',
+        },
+      );
+
+      if (response.statusCode != 200) {
+        return Left(
+          'V5 사용량 조회 실패: ${response.statusCode} ${_errorMessage(response.body)}',
+        );
+      }
+
+      final data = jsonDecode(response.body) as Map<String, dynamic>;
+      final usage = data['usage'];
+      if (usage is! Map<String, dynamic>) return const Right(null);
+
+      return Right(V5Usage.fromJson(usage));
+    } on FormatException catch (error) {
+      return Left('V5 사용량 응답 형식이 올바르지 않습니다: $error');
+    } catch (error) {
+      return Left('V5 사용량 조회 중 네트워크 오류가 발생했습니다: $error');
+    }
+  }
+
+  @override
   Future<Either<String, List<VibeImage>>> vibeParse(
       List<VibeImage> base64imageData, String model) async {
     final token = _getPersistentToken();
     if (token == null) return const Left('Persistent token이 설정되지 않았습니다.');
 
     final headers = {
-      'accept': 'application/json',
+      'accept': 'application/octet-stream',
       'authorization': 'Bearer $token',
+      'content-type': 'application/json',
     };
 
     try {
       for (int i = 0; i < base64imageData.length; i++) {
-        double? extractionStrength =
+        final double? extractionStrength =
             base64imageData[i].extractionStrength?.value;
 
-        double? prevExtractionStrength =
-            base64imageData[i].prevExtractionStrength?.value;
-        if (extractionStrength == null && prevExtractionStrength == null) {
-          continue;
-        }
+        final double prevExtractionStrength =
+            base64imageData[i].prevExtractionStrength.value;
+        if (extractionStrength == null) continue;
 
         if (base64imageData[i].image == null) continue;
         if (extractionStrength == prevExtractionStrength) continue;
 
         String base64image = base64Encode(base64imageData[i].image!);
-        final body = jsonEncode({'image': base64image, 'model': model});
+        final body = jsonEncode({
+          'image': base64image,
+          'model': model,
+          'information_extracted': extractionStrength,
+        });
+        final correlationId = _newCorrelationId();
 
         final resp = await _httpClient.post(
           Uri.parse(_vibeParseUrl),
-          headers: headers,
+          headers: {...headers, 'x-correlation-id': correlationId},
           body: body,
         );
-        if (resp.statusCode == 200) {
+        if (resp.statusCode == 200 || resp.statusCode == 201) {
           Uint8List data = resp.bodyBytes;
           base64imageData[i].bytes = data;
-          base64imageData[i].prevExtractionStrength!.value =
-              base64imageData[i].extractionStrength!.value;
+          base64imageData[i].prevExtractionStrength.value = extractionStrength;
         } else {
-          if (jsonDecode(resp.body)['message'] ==
+          final message = _errorMessage(resp.body);
+          if (message ==
               "This model does not support vibe transfer through this endpoint") {
             return const Left('이 모델은 Vibe 파싱을 지원하지 않습니다.');
           }
-          return Left('Vibe parse failed: ${resp.statusCode} ${resp.body}');
+          return Left(
+            'Vibe parse failed: ${resp.statusCode} $message '
+            '(Correlation ID: $correlationId)',
+          );
         }
       }
       return Right(base64imageData);

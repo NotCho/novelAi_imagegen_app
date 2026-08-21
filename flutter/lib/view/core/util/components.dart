@@ -298,41 +298,47 @@ class SettingsCard extends StatelessWidget {
     required Widget child,
   }) {
     return Card(
-      color: SkeletonColorScheme.surfaceColor.withValues(alpha: 0.7),
-      elevation: 2,
-      margin: const EdgeInsets.only(bottom: 16),
+      color: SkeletonColorScheme.surfaceColor.withValues(alpha: 0.5),
+      elevation: 0,
+      margin: const EdgeInsets.only(bottom: 12),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(SkeletonSpacing.borderRadius),
+        side: BorderSide(
+          color: SkeletonColorScheme.textColor.withValues(alpha: 0.08),
+          width: 0.8,
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // 카드 헤더
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
-              color: SkeletonColorScheme.primaryColor.withValues(alpha: 0.1),
+              color: SkeletonColorScheme.primaryColor.withValues(alpha: 0.06),
               borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(SkeletonSpacing.borderRadius),
-                topRight: Radius.circular(SkeletonSpacing.borderRadius),
+                topLeft: Radius.circular(SkeletonSpacing.borderRadius - 0.8),
+                topRight: Radius.circular(SkeletonSpacing.borderRadius - 0.8),
               ),
               border: Border(
                 bottom: BorderSide(
                   color:
-                      SkeletonColorScheme.primaryColor.withValues(alpha: 0.2),
-                  width: 1,
+                      SkeletonColorScheme.textColor.withValues(alpha: 0.08),
+                  width: 0.8,
                 ),
               ),
             ),
             child: Row(
               children: [
-                Icon(icon, color: SkeletonColorScheme.primaryColor, size: 18),
-                const SizedBox(width: 8),
+                Icon(icon, color: SkeletonColorScheme.primaryColor, size: 16),
+                const SizedBox(width: 6),
                 Text(
                   title,
                   style: const TextStyle(
                     color: SkeletonColorScheme.textColor,
-                    fontWeight: FontWeight.bold,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: -0.3,
                   ),
                 ),
               ],
@@ -341,7 +347,7 @@ class SettingsCard extends StatelessWidget {
 
           // 카드 내용
           Padding(
-            padding: const EdgeInsets.all(16.0),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
             child: child,
           ),
         ],
@@ -383,7 +389,7 @@ class DropDownBuild extends StatelessWidget {
         labelStyle:
             const TextStyle(color: SkeletonColorScheme.textSecondaryColor),
         filled: true,
-        fillColor: SkeletonColorScheme.cardColor,
+        fillColor: SkeletonColorScheme.cardColor.withValues(alpha: 0.6),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(SkeletonSpacing.borderRadius / 2),
           borderSide: const BorderSide(color: SkeletonColorScheme.surfaceColor),
@@ -443,24 +449,35 @@ class OptimizedSlider extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                config.label,
-                style: const TextStyle(
-                  color: SkeletonColorScheme.textColor,
-                  fontWeight: FontWeight.w500,
+              Expanded(
+                child: Text(
+                  config.label,
+                  style: const TextStyle(
+                    color: SkeletonColorScheme.textColor,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 13,
+                    letterSpacing: -0.3,
+                  ),
                 ),
               ),
+              const SizedBox(width: 8),
+              // 수치 값 뱃지
               Container(
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
                   color: isWarningState
-                      ? Colors.red.withValues(alpha: 0.2)
-                      : SkeletonColorScheme.primaryColor.withValues(alpha: 0.2),
+                      ? Colors.red.withValues(alpha: 0.08)
+                      : SkeletonColorScheme.primaryColor.withValues(alpha: 0.06),
                   borderRadius:
                       BorderRadius.circular(SkeletonSpacing.borderRadius / 2),
+                  border: Border.all(
+                    color: isWarningState
+                        ? Colors.red.withValues(alpha: 0.2)
+                        : SkeletonColorScheme.primaryColor.withValues(alpha: 0.15),
+                    width: 0.8,
+                  ),
                 ),
                 child: Text(
                   config.formatter(currentValue),
@@ -468,14 +485,17 @@ class OptimizedSlider extends StatelessWidget {
                     color: isWarningState
                         ? Colors.red
                         : SkeletonColorScheme.primaryColor,
+                    fontSize: 11,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
               ),
+              const SizedBox(width: 8),
+              // 조작 버튼 (-, +)
               _buildControlButtons(),
             ],
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 4),
           SliderTheme(
             data: SliderThemeData(
               activeTrackColor: isWarningState
@@ -488,12 +508,15 @@ class OptimizedSlider extends StatelessWidget {
               overlayColor: (isWarningState
                       ? Colors.red
                       : SkeletonColorScheme.primaryColor)
-                  .withValues(alpha: 0.2),
+                  .withValues(alpha: 0.15),
               valueIndicatorColor: isWarningState
                   ? Colors.red
                   : SkeletonColorScheme.primaryColor,
               valueIndicatorTextStyle:
                   const TextStyle(color: SkeletonColorScheme.textColor),
+              trackHeight: 3,
+              thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
+              overlayShape: const RoundSliderOverlayShape(overlayRadius: 14),
             ),
             child: Slider(
               value: currentValue,
@@ -513,30 +536,59 @@ class OptimizedSlider extends StatelessWidget {
 
   Widget _buildControlButtons() {
     return Container(
-      height: 30,
+      height: 26,
       decoration: BoxDecoration(
-        color: SkeletonColorScheme.primaryColor.withValues(alpha: 0.2),
+        color: SkeletonColorScheme.surfaceColor,
         borderRadius: BorderRadius.circular(SkeletonSpacing.borderRadius / 2),
+        border: Border.all(
+          color: SkeletonColorScheme.textColor.withValues(alpha: 0.08),
+          width: 0.8,
+        ),
       ),
       child: Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          IconButton(
-            onPressed: () {
+          // 마이너스 버튼
+          GestureDetector(
+            onTap: () {
               final newValue = (config.value.value.toDouble() - config.step)
                   .clamp(config.min, config.max);
               config.value.value = newValue;
             },
-            icon: const Icon(Icons.remove,
-                color: SkeletonColorScheme.textSecondaryColor, size: 12),
+            behavior: HitTestBehavior.opaque,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10),
+              alignment: Alignment.center,
+              child: const Icon(
+                Icons.remove,
+                color: SkeletonColorScheme.textSecondaryColor,
+                size: 13,
+              ),
+            ),
           ),
-          IconButton(
-            onPressed: () {
+          // 중앙 버티컬 구분선
+          Container(
+            width: 0.8,
+            height: 14,
+            color: SkeletonColorScheme.textColor.withValues(alpha: 0.08),
+          ),
+          // 플러스 버튼
+          GestureDetector(
+            onTap: () {
               final newValue = (config.value.value.toDouble() + config.step)
                   .clamp(config.min, config.max);
               config.value.value = newValue;
             },
-            icon: const Icon(Icons.add,
-                color: SkeletonColorScheme.textSecondaryColor, size: 12),
+            behavior: HitTestBehavior.opaque,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10),
+              alignment: Alignment.center,
+              child: const Icon(
+                Icons.add,
+                color: SkeletonColorScheme.textSecondaryColor,
+                size: 13,
+              ),
+            ),
           ),
         ],
       ),

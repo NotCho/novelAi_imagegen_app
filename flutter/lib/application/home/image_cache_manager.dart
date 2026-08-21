@@ -9,8 +9,8 @@ class ImageCacheManager extends GetxService {
   // 이미지 캐시맵 - base64 string을 키로 사용
   final Map<String, Uint8List> _imageCache = {};
 
-  // 캐시 크기 제한 (메모리 관리용)
-  static const int maxCacheSize = 1000;
+  // 캐시 크기 제한 (메모리 관리용 - OOM 방지를 위해 150으로 제한)
+  static const int maxCacheSize = 150;
 
   // 이미지 가져오기 (캐시 우선, 없으면 디코딩)
   Uint8List getImageBytes(String base64Data) {
@@ -32,6 +32,11 @@ class ImageCacheManager extends GetxService {
     } catch (e) {
       rethrow;
     }
+  }
+
+  // 캐시에 직접 디코딩된 바이트 데이터 추가
+  void cacheImage(String base64Data, Uint8List bytes) {
+    _imageCache[base64Data] = bytes;
   }
 
   // 여러 이미지 미리 캐싱

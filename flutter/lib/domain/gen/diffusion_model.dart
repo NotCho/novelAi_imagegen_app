@@ -49,6 +49,7 @@ abstract class Parameters with _$Parameters {
     required int seed,
     required List<CharacterPrompt> characterPrompts,
     @Default([]) List<String> reference_image_multiple,
+    @Default([]) List<double> reference_information_extracted_multiple,
     @Default([]) List<double> reference_strength_multiple,
     required String negative_prompt,
     required bool deliberate_euler_ancestral_bug,

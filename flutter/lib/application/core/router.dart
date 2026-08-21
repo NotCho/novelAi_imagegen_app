@@ -20,7 +20,7 @@ abstract class ISkeletonRouter {
 class SkeletonRouter implements ISkeletonRouter {
   @override
   void toSplashOffAll() {
-    Get.offAllNamed('/');
+    Get.offAllNamed('/splash');
   }
 
   @override
@@ -30,7 +30,7 @@ class SkeletonRouter implements ISkeletonRouter {
 
   @override
   void toHome() {
-    Get.offAllNamed('/home', );
+    Get.offAllNamed('/');
   }
 
   @override

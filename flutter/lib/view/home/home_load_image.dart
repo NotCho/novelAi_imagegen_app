@@ -35,13 +35,13 @@ class HomeLoadImage extends StatelessWidget {
         child: Column(
           children: [
             Obx(() {
-              if (!homePageController.supportsVibeTransfer) {
+              if (!homePageController.modelConfigController.supportsVibeTransfer) {
                 return const Row(
                   children: [
                     Icon(Icons.block, size: 40, color: Colors.grey),
                     SizedBox(width: SkeletonSpacing.smallSpacing),
                     Text(
-                      "Vibe Transfer는 V4 이상 모델에서 사용할 수 있습니다.",
+                      "Vibe Transfer는 V3 이상 모델에서 사용할 수 있습니다.",
                       style: TextStyle(fontSize: 12, color: Colors.grey),
                     ),
                   ],
@@ -66,7 +66,7 @@ class HomeLoadImage extends StatelessWidget {
                   children: List.generate(
                       homeImageController.vibeParseImageBytes.length, (index) {
                 double? prevExtractionStrength = homeImageController
-                    .vibeParseImageBytes[index].prevExtractionStrength?.value;
+                    .vibeParseImageBytes[index].prevExtractionStrength.value;
                 double? extractionStrength = homeImageController
                     .vibeParseImageBytes[index].extractionStrength?.value;
                 return Container(
@@ -77,8 +77,7 @@ class HomeLoadImage extends StatelessWidget {
                       Row(
                         children: [
                           const SizedBox(width: SkeletonSpacing.smallSpacing),
-                          (prevExtractionStrength == null ||
-                                  extractionStrength == null)
+                          extractionStrength == null
                               ? Container(
                                   padding: const EdgeInsets.all(
                                       SkeletonSpacing.smallSpacing),
@@ -212,25 +211,124 @@ class VibeSliders extends StatelessWidget {
     ValueChanged<double> onChanged,
   ) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+      padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 6.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.max,
         children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8.0),
-            child: Text("$label: $value",
-                style: const TextStyle(fontSize: 16, color: Colors.grey)),
+          Wrap(
+            spacing: 8,
+            runSpacing: 4,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              Text(
+                label,
+                softWrap: false,
+                style: const TextStyle(
+                  color: SkeletonColorScheme.textColor,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 13,
+                  letterSpacing: -0.3,
+                ),
+              ),
+              // 수치 값 뱃지
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: SkeletonColorScheme.primaryColor.withValues(alpha: 0.06),
+                  borderRadius: BorderRadius.circular(SkeletonSpacing.borderRadius / 2),
+                  border: Border.all(
+                    color: SkeletonColorScheme.primaryColor.withValues(alpha: 0.15),
+                    width: 0.8,
+                  ),
+                ),
+                child: Text(
+                  value.toStringAsFixed(2),
+                  style: const TextStyle(
+                    color: SkeletonColorScheme.primaryColor,
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              // 조작 버튼 (-, +)
+              Container(
+                height: 26,
+                decoration: BoxDecoration(
+                  color: SkeletonColorScheme.surfaceColor,
+                  borderRadius: BorderRadius.circular(SkeletonSpacing.borderRadius / 2),
+                  border: Border.all(
+                    color: SkeletonColorScheme.textColor.withValues(alpha: 0.08),
+                    width: 0.8,
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // 마이너스 버튼
+                    GestureDetector(
+                      onTap: () {
+                        final newValue = (value - 0.05).clamp(0.0, 1.0);
+                        onChanged(num.parse(newValue.toStringAsFixed(2)).toDouble());
+                      },
+                      behavior: HitTestBehavior.opaque,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10),
+                        alignment: Alignment.center,
+                        child: const Icon(
+                          Icons.remove,
+                          color: SkeletonColorScheme.textSecondaryColor,
+                          size: 13,
+                        ),
+                      ),
+                    ),
+                    // 중앙 버티컬 구분선
+                    Container(
+                      width: 0.8,
+                      height: 14,
+                      color: SkeletonColorScheme.textColor.withValues(alpha: 0.08),
+                    ),
+                    // 플러스 버튼
+                    GestureDetector(
+                      onTap: () {
+                        final newValue = (value + 0.05).clamp(0.0, 1.0);
+                        onChanged(num.parse(newValue.toStringAsFixed(2)).toDouble());
+                      },
+                      behavior: HitTestBehavior.opaque,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10),
+                        alignment: Alignment.center,
+                        child: const Icon(
+                          Icons.add,
+                          color: SkeletonColorScheme.textSecondaryColor,
+                          size: 13,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
-          Slider(
-            padding: const EdgeInsets.symmetric(
-              horizontal: SkeletonSpacing.smallSpacing,
+          const SizedBox(height: 4),
+          SliderTheme(
+            data: SliderThemeData(
+              activeTrackColor: SkeletonColorScheme.primaryColor,
+              inactiveTrackColor: SkeletonColorScheme.surfaceColor,
+              thumbColor: SkeletonColorScheme.primaryColor,
+              overlayColor: SkeletonColorScheme.primaryColor.withValues(alpha: 0.15),
+              valueIndicatorColor: SkeletonColorScheme.primaryColor,
+              valueIndicatorTextStyle: const TextStyle(color: SkeletonColorScheme.textColor),
+              trackHeight: 3,
+              thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
+              overlayShape: const RoundSliderOverlayShape(overlayRadius: 14),
             ),
-            min: 0,
-            max: 1,
-            divisions: 100,
-            value: value,
-            onChanged: onChanged,
+            child: Slider(
+              value: value,
+              min: 0,
+              max: 1,
+              divisions: 100,
+              onChanged: onChanged,
+            ),
           ),
         ],
       ),

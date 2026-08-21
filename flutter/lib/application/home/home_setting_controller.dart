@@ -489,4 +489,14 @@ class HomeSettingController extends SkeletonController {
   Future<bool> initLoading() async {
     return true;
   }
+
+  @override
+  void onClose() {
+    seedController.dispose();
+    xSizeController.dispose();
+    ySizeController.dispose();
+    autoSizeXController.dispose();
+    autoSizeYController.dispose();
+    super.onClose();
+  }
 }

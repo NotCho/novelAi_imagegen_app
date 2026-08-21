@@ -39,6 +39,7 @@ class AppWidget extends GetView<GlobalController> {
             ),
           ),
           debugShowCheckedModeBanner: EnvironmentConfig.isDev,
+          initialRoute: '/splash',
           getPages: allPages,
           localizationsDelegates: const [
             GlobalMaterialLocalizations.delegate,

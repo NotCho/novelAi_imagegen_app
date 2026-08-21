@@ -12,8 +12,15 @@ class HomeAppBar extends GetView<HomePageController> {
   // 모델 선택 드롭다운 위젯
   @override
   Widget build(BuildContext context) {
-    return Obx(
-      () => Row(
+    return Obx(() {
+      final selectedModel = controller.modelConfigController.usingModel.value;
+      final usage = controller.imageGenerationController.v5Usage.value;
+      final showsV5Quota =
+          selectedModel.startsWith('nai-diffusion-5') && usage != null;
+      final quotaRemaining =
+          ((usage?.remainingPercent ?? 0) / 100).clamp(0.0, 1.0).toDouble();
+
+      return Row(
         children: [
           IconButton(
             onPressed: controller.router.toSetting,
@@ -22,6 +29,7 @@ class HomeAppBar extends GetView<HomePageController> {
           ),
           Expanded(
             child: Container(
+              clipBehavior: Clip.antiAlias,
               decoration: BoxDecoration(
                 color: SkeletonColorScheme.surfaceColor.withValues(alpha: 0.7),
                 borderRadius:
@@ -34,47 +42,94 @@ class HomeAppBar extends GetView<HomePageController> {
                   ),
                 ],
               ),
-              child: DropdownButtonFormField<String>(
-                decoration: InputDecoration(
-                  labelText: '모델',
-                  labelStyle: const TextStyle(
-                    color: SkeletonColorScheme.textSecondaryColor,
-                    fontWeight: FontWeight.w500,
+              child: Stack(
+                children: [
+                  DropdownButtonFormField<String>(
+                    key: ValueKey(
+                      '$selectedModel:${usage?.remainingPercent}:${usage?.isNegative}',
+                    ),
+                    isExpanded: true,
+                    decoration: InputDecoration(
+                      labelText: '모델',
+                      labelStyle: const TextStyle(
+                        color: SkeletonColorScheme.textSecondaryColor,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius:
+                            BorderRadius.circular(SkeletonSpacing.borderRadius),
+                        borderSide: BorderSide.none,
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 8),
+                      floatingLabelBehavior: FloatingLabelBehavior.never,
+                    ),
+                    dropdownColor: SkeletonColorScheme.surfaceColor,
+                    style:
+                        const TextStyle(color: SkeletonColorScheme.textColor),
+                    icon: const Icon(Icons.arrow_drop_down,
+                        color: SkeletonColorScheme.primaryColor),
+                    initialValue: selectedModel,
+                    selectedItemBuilder: (context) => controller
+                        .modelConfigController.modelNames.keys
+                        .map(_selectedModelItem)
+                        .toList(),
+                    items: controller.modelConfigController.modelNames.keys
+                        .toList()
+                        .map((String value) {
+                      return DropdownMenuItem<String>(
+                        value: value,
+                        child: SizedBox(
+                          child: AutoSizeText(
+                            controller
+                                    .modelConfigController.modelNames[value] ??
+                                value,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                                color: SkeletonColorScheme.textColor,
+                                fontSize: 12),
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                    onChanged: (value) {
+                      if (value != null) {
+                        controller.modelConfigController.setModel(value);
+                      }
+                    },
                   ),
-                  border: OutlineInputBorder(
-                    borderRadius:
-                        BorderRadius.circular(SkeletonSpacing.borderRadius),
-                    borderSide: BorderSide.none,
-                  ),
-                  contentPadding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  floatingLabelBehavior: FloatingLabelBehavior.never,
-                  prefixIcon: const Icon(Icons.auto_awesome,
-                      color: SkeletonColorScheme.primaryColor, size: 18),
-                ),
-                dropdownColor: SkeletonColorScheme.surfaceColor,
-                style: const TextStyle(color: SkeletonColorScheme.textColor),
-                icon: const Icon(Icons.arrow_drop_down,
-                    color: SkeletonColorScheme.primaryColor),
-                initialValue: controller.usingModel.value,
-                items: controller.modelNames.keys.toList().map((String value) {
-                  return DropdownMenuItem<String>(
-                    value: value,
-                    child: SizedBox(
-                      child: AutoSizeText(
-                        controller.modelNames[value] ?? value,
-                        maxLines: 1,
-                        style: const TextStyle(
-                            color: SkeletonColorScheme.textColor, fontSize: 12),
+                  if (showsV5Quota)
+                    Positioned(
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      height: 3,
+                      child: IgnorePointer(
+                        child: Stack(
+                          children: [
+                            Positioned.fill(
+                              child: ColoredBox(
+                                color: SkeletonColorScheme.textColor
+                                    .withValues(alpha: 0.08),
+                              ),
+                            ),
+                            FractionallySizedBox(
+                              alignment: Alignment.centerLeft,
+                              widthFactor: quotaRemaining,
+                              heightFactor: 1,
+                              child: ColoredBox(
+                                color: _quotaGaugeColor(
+                                  usage.remainingPercent,
+                                  usage.isNegative,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
-                  );
-                }).toList(),
-                onChanged: (value) {
-                  if (value != null) {
-                    controller.setModel(value);
-                  }
-                },
+                ],
               ),
             ),
           ),
@@ -94,7 +149,7 @@ class HomeAppBar extends GetView<HomePageController> {
             icon: const Icon(Icons.photo_library),
             color: (controller.expandHistory.value)
                 ? SkeletonColorScheme.primaryColor
-                : (controller.autoSave.value)
+                : (controller.imageGenerationController.autoSave.value)
                     ? Colors.greenAccent
                     : SkeletonColorScheme.textSecondaryColor,
           ),
@@ -119,268 +174,508 @@ class HomeAppBar extends GetView<HomePageController> {
             ),
           ),
         ],
+      );
+    });
+  }
+
+  Widget _selectedModelItem(String model) {
+    final name = controller.modelConfigController.modelNames[model] ?? model;
+    final usage = controller.imageGenerationController.v5Usage.value;
+
+    if (!model.startsWith('nai-diffusion-5') || usage == null) {
+      return Align(
+        alignment: Alignment.centerLeft,
+        child: AutoSizeText(
+          name,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: const TextStyle(
+            color: SkeletonColorScheme.textColor,
+            fontSize: 12,
+          ),
+        ),
+      );
+    }
+
+    final label = '$name (${usage.remainingPercent.toStringAsFixed(1)}%)';
+
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: AutoSizeText(
+        label,
+        maxLines: 1,
+        minFontSize: 9,
+        overflow: TextOverflow.ellipsis,
+        style: const TextStyle(
+          color: SkeletonColorScheme.textColor,
+          fontSize: 12,
+          fontWeight: FontWeight.w700,
+        ),
       ),
     );
+  }
+
+  Color _quotaGaugeColor(double remainingPercent, bool isNegative) {
+    if (isNegative || remainingPercent < 30) {
+      return Colors.redAccent;
+    }
+    if (remainingPercent < 60) {
+      return Colors.amberAccent;
+    }
+    return Colors.greenAccent;
   }
 
   Widget loadImageDialog() {
     return AlertDialog(
-      backgroundColor: SkeletonColorScheme.cardColor,
+      backgroundColor: SkeletonColorScheme.surfaceColor.withValues(alpha: 0.95),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(SkeletonSpacing.borderRadius),
+        side: BorderSide(
+          color: SkeletonColorScheme.textColor.withValues(alpha: 0.08),
+          width: 0.8,
+        ),
       ),
-      // 다이얼로그 크기 제한 추가! ㅋㅋㅋ
-      contentPadding: const EdgeInsets.all(16),
-      insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
-      // 화면 여백
-
-      title: SizedBox(
-        width: 320, // 고정 너비 설정
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            const Text(
-              '이미지 불러오기',
-              style: TextStyle(
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+      title: Builder(builder: (context) {
+        final double screenWidth = MediaQuery.of(context).size.width;
+        final double dialogWidth = screenWidth > 360 ? 320 : screenWidth * 0.85;
+        return SizedBox(
+          width: dialogWidth,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                '이미지 불러오기',
+                style: TextStyle(
                   color: SkeletonColorScheme.textColor,
-                  fontWeight: FontWeight.normal,
-                  fontSize: 18),
-            ),
-            SizedBox(
-              width: 35,
-              height: 35,
-              child: IconButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: SkeletonColorScheme.negativeColor,
-                    shape: RoundedRectangleBorder(
-                      borderRadius:
-                          BorderRadius.circular(SkeletonSpacing.borderRadius),
+                  fontWeight: FontWeight.w700,
+                  fontSize: 16,
+                  letterSpacing: -0.5,
+                ),
+              ),
+              GestureDetector(
+                onTap: () async {
+                  controller.imageLoadController.cancelImageLoad();
+                },
+                child: Container(
+                  width: 28,
+                  height: 28,
+                  decoration: BoxDecoration(
+                    color:
+                        SkeletonColorScheme.textColor.withValues(alpha: 0.06),
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color:
+                          SkeletonColorScheme.textColor.withValues(alpha: 0.08),
+                      width: 0.8,
                     ),
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
                   ),
-                  onPressed: () async {
-                    controller.imageLoadController.cancelImageLoad();
-                  },
-                  icon: const Icon(
+                  child: const Icon(
                     Icons.close,
-                    color: SkeletonColorScheme.textColor,
-                    size: 25,
-                  )),
-            ),
-          ],
-        ),
-      ),
+                    color: SkeletonColorScheme.textSecondaryColor,
+                    size: 15,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      }),
+      content: Builder(builder: (context) {
+        final double screenWidth = MediaQuery.of(context).size.width;
+        // Z폴드 커버 화면 등 초소형 가로폭 디바이스 대응
+        final bool isNarrow = screenWidth < 340;
+        final double dialogWidth = screenWidth > 360 ? 320 : screenWidth * 0.85;
 
-      content: Container(
-        width: 320, // 고정 너비 설정
-        constraints: const BoxConstraints(
-          maxWidth: 320, // 최대 너비 제한
-          maxHeight: 400, // 최대 높이도 제한 (선택사항)
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Row(
+        return Container(
+          width: dialogWidth,
+          constraints: BoxConstraints(
+            maxWidth: 320,
+            maxHeight: isNarrow ? 500 : 420,
+          ),
+          child: SingleChildScrollView(
+            physics: const ClampingScrollPhysics(),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                SizedBox(
-                  height: 150,
-                  width: 150,
-                  child: Obx(
-                    () => Center(
-                      child: (controller.imageLoadController.loadedImageBytes
-                              .value.isNotEmpty)
-                          ? Container(
-                              height: 150,
-                              width: 150,
-                              decoration: BoxDecoration(
-                                border: Border.all(
-                                  color: SkeletonColorScheme.primaryColor,
-                                  width: 2,
-                                ),
-                                color:
-                                    SkeletonColorScheme.surfaceColor.withValues(
-                                  alpha: 0.3,
-                                ),
-                                borderRadius: BorderRadius.circular(
-                                    SkeletonSpacing.borderRadius),
-                              ),
-                              child: Image.memory(
-                                  fit: BoxFit.contain,
-                                  controller.imageLoadController
-                                      .loadedImageBytes.value),
-                            )
-                          : GestureDetector(
-                              onTap: () {
-                                controller.imageLoadController
-                                    .getImageFromGallery();
-                              },
-                              child: Container(
-                                height: 150,
-                                width: 150,
-                                decoration: BoxDecoration(
-                                  border: Border.all(
-                                    color:
-                                        SkeletonColorScheme.textSecondaryColor,
-                                    width: 2,
-                                  ),
-                                  color: SkeletonColorScheme.surfaceColor
-                                      .withValues(
-                                    alpha: 0.3,
-                                  ),
-                                  borderRadius: BorderRadius.circular(
-                                      SkeletonSpacing.borderRadius),
-                                ),
-                                child: const Center(
-                                  child: Icon(Icons.upload,
-                                      size: 50,
-                                      color: SkeletonColorScheme
-                                          .textSecondaryColor),
-                                ),
+                isNarrow
+                    ? Column(
+                        children: [
+                          SizedBox(
+                            height: 130,
+                            width: 130,
+                            child: Obx(
+                              () => Center(
+                                child: (controller.imageLoadController
+                                        .loadedImageBytes.value.isNotEmpty)
+                                    ? Container(
+                                        height: 130,
+                                        width: 130,
+                                        decoration: BoxDecoration(
+                                          border: Border.all(
+                                            color: SkeletonColorScheme
+                                                .primaryColor
+                                                .withValues(alpha: 0.3),
+                                            width: 1.5,
+                                          ),
+                                          color: SkeletonColorScheme.cardColor,
+                                          borderRadius:
+                                              BorderRadius.circular(12),
+                                        ),
+                                        child: ClipRRect(
+                                          borderRadius:
+                                              BorderRadius.circular(10),
+                                          child: Image.memory(
+                                            fit: BoxFit.cover,
+                                            controller.imageLoadController
+                                                .loadedImageBytes.value,
+                                          ),
+                                        ),
+                                      )
+                                    : GestureDetector(
+                                        onTap: () {
+                                          controller.imageLoadController
+                                              .getImageFromGallery();
+                                        },
+                                        child: Container(
+                                          height: 130,
+                                          width: 130,
+                                          decoration: BoxDecoration(
+                                            border: Border.all(
+                                              color: SkeletonColorScheme
+                                                  .textColor
+                                                  .withValues(alpha: 0.12),
+                                              width: 1,
+                                            ),
+                                            color: SkeletonColorScheme.textColor
+                                                .withValues(alpha: 0.03),
+                                            borderRadius:
+                                                BorderRadius.circular(12),
+                                          ),
+                                          child: const Column(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            children: [
+                                              Icon(
+                                                Icons.cloud_upload_outlined,
+                                                size: 30,
+                                                color: SkeletonColorScheme
+                                                    .textSecondaryColor,
+                                              ),
+                                              SizedBox(height: 4),
+                                              Text(
+                                                '이미지 업로드',
+                                                style: TextStyle(
+                                                  color: SkeletonColorScheme
+                                                      .textSecondaryColor,
+                                                  fontSize: 10,
+                                                  fontWeight: FontWeight.w500,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
                               ),
                             ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: SkeletonSpacing.spacing),
-                Expanded(
-                  // 남은 공간 차지하도록
-                  child: _buildLoadOptions(),
-                ),
-              ],
-            ),
-            const SizedBox(height: SkeletonSpacing.spacing),
-
-            // 버튼들과 상태 텍스트 영역
-            Column(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: CrossAxisAlignment.stretch, // 전체 너비 사용
-              children: [
-                Row(
+                          ),
+                          const SizedBox(height: 12),
+                          _buildLoadOptions(),
+                        ],
+                      )
+                    : Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          SizedBox(
+                            height: 140,
+                            width: 140,
+                            child: Obx(
+                              () => Center(
+                                child: (controller.imageLoadController
+                                        .loadedImageBytes.value.isNotEmpty)
+                                    ? Container(
+                                        height: 140,
+                                        width: 140,
+                                        decoration: BoxDecoration(
+                                          border: Border.all(
+                                            color: SkeletonColorScheme
+                                                .primaryColor
+                                                .withValues(alpha: 0.3),
+                                            width: 1.5,
+                                          ),
+                                          color: SkeletonColorScheme.cardColor,
+                                          borderRadius:
+                                              BorderRadius.circular(12),
+                                        ),
+                                        child: ClipRRect(
+                                          borderRadius:
+                                              BorderRadius.circular(10),
+                                          child: Image.memory(
+                                            fit: BoxFit.cover,
+                                            controller.imageLoadController
+                                                .loadedImageBytes.value,
+                                          ),
+                                        ),
+                                      )
+                                    : GestureDetector(
+                                        onTap: () {
+                                          controller.imageLoadController
+                                              .getImageFromGallery();
+                                        },
+                                        child: Container(
+                                          height: 140,
+                                          width: 140,
+                                          decoration: BoxDecoration(
+                                            border: Border.all(
+                                              color: SkeletonColorScheme
+                                                  .textColor
+                                                  .withValues(alpha: 0.12),
+                                              width: 1,
+                                            ),
+                                            color: SkeletonColorScheme.textColor
+                                                .withValues(alpha: 0.03),
+                                            borderRadius:
+                                                BorderRadius.circular(12),
+                                          ),
+                                          child: const Column(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            children: [
+                                              Icon(
+                                                Icons.cloud_upload_outlined,
+                                                size: 32,
+                                                color: SkeletonColorScheme
+                                                    .textSecondaryColor,
+                                              ),
+                                              SizedBox(height: 6),
+                                              Text(
+                                                '이미지 업로드',
+                                                style: TextStyle(
+                                                  color: SkeletonColorScheme
+                                                      .textSecondaryColor,
+                                                  fontSize: 10,
+                                                  fontWeight: FontWeight.w500,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 14),
+                          Expanded(
+                            child: _buildLoadOptions(),
+                          ),
+                        ],
+                      ),
+                const SizedBox(height: 16),
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Expanded(
-                      child: buildDialogButton(
-                        '불러오기',
-                        color: SkeletonColorScheme.primaryColor,
-                        onPressed: () {
-                          controller.imageLoadController.loadFromImage();
-                        },
-                      ),
-                    ),
-                    const SizedBox(width: SkeletonSpacing.spacing),
-                    Expanded(
-                      child: Obx(
-                        () => buildDialogButton(
-                          'Vibe',
-                          color: SkeletonColorScheme.primaryColor,
-                          enabled: controller.supportsVibeTransfer,
-                          onPressed: () {
-                            controller.addVibeImage(
-                              controller
-                                  .imageLoadController.loadedImageBytes.value,
-                            );
-                          },
+                    Row(
+                      children: [
+                        Expanded(
+                          child: buildDialogButton(
+                            '불러오기',
+                            color: SkeletonColorScheme.primaryColor,
+                            isPrimary: true,
+                            onPressed: () {
+                              controller.imageLoadController.loadFromImage();
+                            },
+                          ),
                         ),
-                      ),
-                    ),
-                    const SizedBox(width: SkeletonSpacing.spacing),
-                    Expanded(
-                      child: Obx(
-                        () => buildDialogButton(
-                          '레퍼런스',
-                          color: SkeletonColorScheme.primaryColor,
-                          enabled: controller.supportsCharacterReference,
-                          onPressed: () {
-                            controller.addDirectorReferenceImage(
-                              controller
-                                  .imageLoadController.loadedImageBytes.value,
-                            );
-                          },
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: Obx(
+                            () => buildDialogButton(
+                              'Vibe',
+                              color: SkeletonColorScheme.primaryColor,
+                              enabled: controller.modelConfigController
+                                      .supportsVibeTransfer &&
+                                  !controller.directorToolController.isEnabled,
+                              onPressed: () {
+                                controller.homeImageController.addVibeImage(
+                                  controller.imageLoadController
+                                      .loadedImageBytes.value,
+                                );
+                              },
+                            ),
+                          ),
                         ),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: Obx(
+                            () => buildDialogButton(
+                              '레퍼런스',
+                              color: SkeletonColorScheme.primaryColor,
+                              enabled: controller.modelConfigController
+                                      .supportsCharacterReference &&
+                                  controller.homeImageController
+                                      .vibeParseImageBytes.isEmpty,
+                              onPressed: () {
+                                controller.directorToolController
+                                    .setReferenceImage(
+                                  controller.imageLoadController
+                                      .loadedImageBytes.value,
+                                );
+                              },
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    Container(
+                      width: double.infinity,
+                      constraints: const BoxConstraints(
+                        maxHeight: 50,
                       ),
+                      child: _loadImageStatusBuilder(),
                     ),
                   ],
                 ),
-
-                const SizedBox(height: 8),
-
-                // 상태 텍스트 영역 - 크기 제한!
-                Container(
-                  width: double.infinity, // 부모 너비에 맞춤
-                  constraints: const BoxConstraints(
-                    maxHeight: 60, // 최대 높이 제한
-                  ),
-                  child: _loadImageStatusBuilder(),
-                ),
               ],
             ),
-          ],
-        ),
-      ),
+          ),
+        );
+      }),
     );
   }
 
   Widget _loadImageStatusBuilder() {
-    Color statusColor = SkeletonColorScheme.textSecondaryColor;
-    if (controller.imageLoadController.loadImageStatus.value.contains("실패")) {
-      statusColor = SkeletonColorScheme.negativeColor;
-    }
-    return Obx(
-      () => Container(
-        width: double.infinity, // 부모 너비에 맞춤
-        padding: const EdgeInsets.all(8),
+    return Obx(() {
+      final statusText = controller.imageLoadController.loadImageStatus.value;
+      final isFailed = statusText.contains("실패");
+      final isEmpty = statusText.isEmpty || statusText == "null";
+
+      Color accentColor = isFailed
+          ? SkeletonColorScheme.negativeColor
+          : SkeletonColorScheme.primaryColor;
+      Color bgColor = isFailed
+          ? Colors.red.withValues(alpha: 0.05)
+          : SkeletonColorScheme.textColor.withValues(alpha: 0.03);
+      Color borderColor = isFailed
+          ? Colors.red.withValues(alpha: 0.15)
+          : SkeletonColorScheme.textColor.withValues(alpha: 0.08);
+
+      if (isEmpty) return const SizedBox.shrink();
+
+      return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
         decoration: BoxDecoration(
-          color: SkeletonColorScheme.surfaceColor.withValues(alpha: 0.3),
-          borderRadius: BorderRadius.circular(4),
+          color: bgColor,
+          borderRadius: BorderRadius.circular(8),
           border: Border.all(
-            color:
-                SkeletonColorScheme.textSecondaryColor.withValues(alpha: 0.2),
+            color: borderColor,
+            width: 0.8,
           ),
         ),
-        child: Text(
-          controller.imageLoadController.loadImageStatus.value,
-          overflow: TextOverflow.ellipsis,
-          maxLines: 3,
-          style: TextStyle(
-            color: statusColor,
-            fontSize: 10,
-            height: 1.2, // 줄 간격 조정
-          ),
-          textAlign: TextAlign.left,
+        child: Row(
+          children: [
+            Container(
+              width: 5,
+              height: 5,
+              decoration: BoxDecoration(
+                color: accentColor,
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: accentColor.withValues(alpha: 0.4),
+                    blurRadius: 3,
+                    spreadRadius: 1,
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                statusText,
+                overflow: TextOverflow.ellipsis,
+                maxLines: 2,
+                style: TextStyle(
+                  color: isFailed
+                      ? SkeletonColorScheme.negativeColor
+                      : SkeletonColorScheme.textColor.withValues(alpha: 0.7),
+                  fontSize: 10.5,
+                  fontWeight: FontWeight.w500,
+                  height: 1.2,
+                ),
+                textAlign: TextAlign.left,
+              ),
+            ),
+          ],
         ),
-      ),
-    );
+      );
+    });
   }
 
-// 버튼도 수정 (Expanded 대응)
-  Widget buildDialogButton(String title,
-      {required Color color,
-      required void Function() onPressed,
-      bool enabled = true,
-      EdgeInsets? padding}) {
+  Widget buildDialogButton(
+    String title, {
+    required Color color,
+    required void Function() onPressed,
+    bool enabled = true,
+    bool isPrimary = false,
+    EdgeInsets? padding,
+  }) {
+    Color btnBgColor = Colors.transparent;
+    Color txtColor = SkeletonColorScheme.textColor;
+
+    if (enabled) {
+      if (isPrimary) {
+        btnBgColor = SkeletonColorScheme.primaryColor;
+        txtColor = Colors.white;
+      } else {
+        btnBgColor = SkeletonColorScheme.primaryColor.withValues(alpha: 0.12);
+        txtColor = SkeletonColorScheme.primaryColor;
+      }
+    } else {
+      btnBgColor = SkeletonColorScheme.textColor.withValues(alpha: 0.04);
+      txtColor = SkeletonColorScheme.textSecondaryColor.withValues(alpha: 0.5);
+    }
+
     return Material(
       color: Colors.transparent,
-      child: Ink(
-        decoration: BoxDecoration(
-          color: enabled ? color : SkeletonColorScheme.surfaceColor,
-          borderRadius: BorderRadius.circular(SkeletonSpacing.borderRadius),
-        ),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(SkeletonSpacing.borderRadius),
-          onTap: enabled ? onPressed : null,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(20),
+        onTap: enabled ? onPressed : null,
+        child: Ink(
+          decoration: BoxDecoration(
+            color: btnBgColor,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: enabled && !isPrimary
+                  ? SkeletonColorScheme.primaryColor.withValues(alpha: 0.25)
+                  : Colors.transparent,
+              width: 0.8,
+            ),
+            boxShadow: isPrimary && enabled
+                ? [
+                    BoxShadow(
+                      color: SkeletonColorScheme.primaryColor
+                          .withValues(alpha: 0.25),
+                      blurRadius: 6,
+                      offset: const Offset(0, 2),
+                    ),
+                  ]
+                : null,
+          ),
           child: Padding(
             padding: padding ??
-                const EdgeInsets.symmetric(
-                    horizontal: SkeletonSpacing.spacing,
-                    vertical: SkeletonSpacing.smallSpacing),
+                const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
             child: Center(
-              // 중앙 정렬 추가
               child: Text(
                 title,
-                style: const TextStyle(
-                  color: SkeletonColorScheme.textColor,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
+                style: TextStyle(
+                  color: txtColor,
+                  fontSize: 11.5,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: -0.3,
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -407,36 +702,69 @@ class HomeAppBar extends GetView<HomePageController> {
   Widget _buildCheckBox(String title, bool value) {
     bool hasImage =
         controller.imageLoadController.loadedImageBytes.value.isEmpty;
-    return Row(
-      children: [
-        SizedBox(
-          width: 30,
-          height: 30,
-          child: Visibility(
-            visible: controller.imageLoadController.isExifChecked.value,
-            child: Checkbox(
-              activeColor: (hasImage)
-                  ? SkeletonColorScheme.textSecondaryColor
-                  : SkeletonColorScheme.primaryColor,
-              value: value,
-              onChanged: (bool? newValue) {
-                if (hasImage) return;
+    bool isExifChecked = controller.imageLoadController.isExifChecked.value;
 
-                controller.imageLoadController.loadImageOptions[title] =
-                    newValue!;
-                controller.update();
-              },
-            ),
+    // 사용 가능 여부
+    final bool isEnabled = !hasImage && isExifChecked;
+
+    return GestureDetector(
+      onTap: () {
+        if (!isEnabled) return;
+        controller.imageLoadController.loadImageOptions[title] = !value;
+        controller.update();
+      },
+      behavior: HitTestBehavior.opaque,
+      child: Opacity(
+        opacity: isEnabled ? 1.0 : 0.4, // 비활성화 상태면 은은한 투명도
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 4.5),
+          child: Row(
+            children: [
+              SizedBox(
+                width: 20,
+                height: 20,
+                child: Checkbox(
+                  activeColor: SkeletonColorScheme.primaryColor,
+                  checkColor: Colors.white,
+                  value: isExifChecked ? value : false,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  side: BorderSide(
+                    color: SkeletonColorScheme.textColor.withValues(
+                      alpha: value && isEnabled ? 0.8 : 0.25,
+                    ),
+                    width: 1,
+                  ),
+                  onChanged: isEnabled
+                      ? (bool? newValue) {
+                          controller.imageLoadController
+                              .loadImageOptions[title] = newValue!;
+                          controller.update();
+                        }
+                      : null,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  title,
+                  style: TextStyle(
+                    color: isExifChecked
+                        ? (value
+                            ? SkeletonColorScheme.textColor
+                            : SkeletonColorScheme.textSecondaryColor)
+                        : Colors.transparent,
+                    fontSize: 11.5,
+                    fontWeight: value ? FontWeight.w600 : FontWeight.w500,
+                    letterSpacing: -0.3,
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
-        Text(title,
-            style: TextStyle(
-              color: (controller.imageLoadController.isExifChecked.value)
-                  ? SkeletonColorScheme.textSecondaryColor
-                  : Colors.transparent,
-              fontSize: 10,
-            )),
-      ],
+      ),
     );
   }
 }

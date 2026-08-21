@@ -1,5 +1,5 @@
 import 'dart:convert';
-
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -7,6 +7,7 @@ import 'dart:math' as math;
 
 import '../../application/home/home_image_controller.dart';
 import '../../application/home/home_page_controller.dart';
+import '../../application/home/image_cache_manager.dart';
 import '../../infra/service/webp_image_parser.dart';
 import '../core/util/app_snackbar.dart';
 import '../core/util/design_system.dart';
@@ -17,12 +18,17 @@ class HomeImageView extends GetView<HomeImageController> {
   const HomeImageView({super.key}); // 최대 히스토리 개수
   @override
   Widget build(BuildContext context) {
-    final HomePageController homePageController = Get.find<HomePageController>();
+    final HomePageController homePageController =
+        Get.find<HomePageController>();
     return Container(
       width: double.infinity,
       height: double.infinity,
-      color: SkeletonColorScheme.cardColor,
+      color: Colors.transparent,
       child: Obx(() {
+        final streamingPreview = controller.streamingPreviewBytes.value;
+        if (streamingPreview.isNotEmpty) {
+          return _buildStreamingPreview(streamingPreview);
+        }
         if (controller.generatedImageBytes.value.isEmpty) {
           // 이미지가 없을 때 플레이스홀더 디자인 개선
           return _buildEmptyImagePlaceholder();
@@ -42,25 +48,34 @@ class HomeImageView extends GetView<HomeImageController> {
                     controller.generationHistory.length - index - 1;
                 // 마지막 페이지 = currentImageBytes
                 if (index == historyMax) {
-                  return Container(
-                    decoration: BoxDecoration(
-                      color: SkeletonColorScheme.primaryColor
-                          .withValues(alpha: 0.1),
-                      borderRadius:
-                          BorderRadius.circular(SkeletonSpacing.borderRadius),
-                      border: Border.all(
-                        color: SkeletonColorScheme.primaryColor
-                            .withValues(alpha: 0.3),
-                        width: 2,
-                      ),
-                    ),
-                    child: Obx(
-                      () => Image.memory(
-                        controller.currentImageBytes.value,
-                        fit: BoxFit.contain,
-                      ),
-                    ),
-                  );
+                  return Obx(() => Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          Image.memory(
+                            controller.currentImageBytes.value,
+                            fit: BoxFit.cover,
+                          ),
+                          BackdropFilter(
+                            filter: ImageFilter.blur(sigmaX: 40, sigmaY: 40),
+                            child: Container(
+                              color: Colors.black.withValues(alpha: 0.3),
+                            ),
+                          ),
+                          SafeArea(
+                            child: Padding(
+                              padding: const EdgeInsets.only(
+                                  top: 100, bottom: 130, left: 16, right: 16),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(16),
+                                child: Image.memory(
+                                  controller.currentImageBytes.value,
+                                  fit: BoxFit.contain,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ));
                 }
 
                 // 0~29번 페이지 = generationHistory[0]부터 순서대로
@@ -75,17 +90,39 @@ class HomeImageView extends GetView<HomeImageController> {
                           onLongPress: () {
                             Get.dialog(longTapDialog());
                           },
-                          child: Container(
-                            padding:
-                                const EdgeInsets.all(SkeletonSpacing.spacing),
-                            decoration: BoxDecoration(
-                              color: SkeletonColorScheme.surfaceColor
-                                  .withValues(alpha: 0.3),
-                            ),
-                            child: Image.memory(
-                              base64Decode(historyItem.imagePath),
-                              fit: BoxFit.contain,
-                            ),
+                          child: Stack(
+                            fit: StackFit.expand,
+                            children: [
+                              Image.memory(
+                                ImageCacheManager.instance
+                                    .getImageBytes(historyItem.imagePath),
+                                fit: BoxFit.cover,
+                              ),
+                              BackdropFilter(
+                                filter:
+                                    ImageFilter.blur(sigmaX: 40, sigmaY: 40),
+                                child: Container(
+                                  color: Colors.black.withValues(alpha: 0.3),
+                                ),
+                              ),
+                              SafeArea(
+                                child: Padding(
+                                  padding: const EdgeInsets.only(
+                                      top: 100,
+                                      bottom: 130,
+                                      left: 16,
+                                      right: 16),
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(16),
+                                    child: Image.memory(
+                                      ImageCacheManager.instance
+                                          .getImageBytes(historyItem.imagePath),
+                                      fit: BoxFit.contain,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                         Obx(() => homePageController.hideSeed.value
@@ -106,7 +143,8 @@ class HomeImageView extends GetView<HomeImageController> {
                                               .withValues(alpha: 0.9),
                                           textColor: Colors.white,
                                           margin: const EdgeInsets.all(16),
-                                          borderRadius: SkeletonSpacing.borderRadius,
+                                          borderRadius:
+                                              SkeletonSpacing.borderRadius,
                                           duration: const Duration(seconds: 2),
                                         );
                                         // 클립보드에 복사
@@ -117,18 +155,21 @@ class HomeImageView extends GetView<HomeImageController> {
                                         padding: const EdgeInsets.symmetric(
                                             horizontal: 12, vertical: 8),
                                         decoration: BoxDecoration(
-                                          color: Colors.black.withValues(alpha: 0.7),
+                                          color: Colors.black
+                                              .withValues(alpha: 0.7),
                                           borderRadius: BorderRadius.circular(
                                               SkeletonSpacing.borderRadius),
                                           border: Border.all(
-                                            color: SkeletonColorScheme.primaryColor
+                                            color: SkeletonColorScheme
+                                                .primaryColor
                                                 .withValues(alpha: 0.5),
                                             width: 1,
                                           ),
                                         ),
                                         child: Row(
                                           mainAxisSize: MainAxisSize.min,
-                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
                                           children: [
                                             const Icon(
                                               Icons.tag,
@@ -181,28 +222,61 @@ class HomeImageView extends GetView<HomeImageController> {
             ),
             Obx(
               () => Positioned(
-                  child: Row(
-                children: [
-                  IconButton(
-                      onPressed: () {
-                        controller.imageViewPageController.animateToPage(0,
-                            duration: SkeletonSpacing.animationDuration,
-                            curve: Curves.easeIn);
-                      },
-                      icon: Icon(
-                        Icons.keyboard_double_arrow_left,
-                        color: Colors.white.withValues(alpha: 0.8),
-                        size: 32,
-                      )),
-                  Text(
-                    '${(controller.currentImageViewIndex.value < historyMax) ? controller.currentImageViewIndex.value + 1 : "$historyMax+"} / ${(controller.generationHistory.length > historyMax) ? "$historyMax+" : controller.generationHistory.length}',
-                    style: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.8),
-                      fontSize: 16,
+                top: 126,
+                left: 16,
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.65),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.15),
+                      width: 1,
                     ),
-                  )
-                ],
-              )),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.25),
+                        blurRadius: 6,
+                        offset: const Offset(0, 3),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      GestureDetector(
+                        onTap: () {
+                          controller.imageViewPageController.animateToPage(0,
+                              duration: SkeletonSpacing.animationDuration,
+                              curve: Curves.easeIn);
+                        },
+                        child: Icon(
+                          Icons.keyboard_double_arrow_left_rounded,
+                          color: Colors.white.withValues(alpha: 0.9),
+                          size: 18,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Container(
+                        width: 1,
+                        height: 12,
+                        color: Colors.white.withValues(alpha: 0.25),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        '${(controller.currentImageViewIndex.value < historyMax) ? controller.currentImageViewIndex.value + 1 : "$historyMax+"} / ${(controller.generationHistory.length > historyMax) ? "$historyMax+" : controller.generationHistory.length}',
+                        style: TextStyle(
+                          color: Colors.white.withValues(alpha: 0.9),
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             ),
           ],
         );
@@ -210,52 +284,123 @@ class HomeImageView extends GetView<HomeImageController> {
     );
   }
 
-  // 빈 이미지 플레이스홀더 위젯
-  Widget _buildEmptyImagePlaceholder() {
-    return SingleChildScrollView(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const SizedBox(height: SkeletonSpacing.spacing * 5),
-          Container(
-            padding: const EdgeInsets.all(SkeletonSpacing.spacing),
-            decoration: BoxDecoration(
-              color: SkeletonColorScheme.surfaceColor.withValues(alpha: 0.3),
-              shape: BoxShape.circle,
+  Widget _buildStreamingPreview(Uint8List imageBytes) {
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        const ColoredBox(color: Colors.black),
+        SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.only(
+              top: 100,
+              bottom: 130,
+              left: 16,
+              right: 16,
             ),
-            child: Icon(
-              Icons.image_outlined,
-              color: SkeletonColorScheme.primaryColor.withValues(alpha: 0.6),
-              size: 64,
-            ),
-          ),
-          const SizedBox(height: SkeletonSpacing.spacing),
-          Container(
-            padding: const EdgeInsets.symmetric(
-                horizontal: SkeletonSpacing.spacing,
-                vertical: SkeletonSpacing.smallSpacing),
-            decoration: BoxDecoration(
-              color: SkeletonColorScheme.surfaceColor.withValues(alpha: 0.3),
-              borderRadius: BorderRadius.circular(SkeletonSpacing.borderRadius),
-            ),
-            child: const Text(
-              '이미지를 생성하세요',
-              style: TextStyle(
-                color: SkeletonColorScheme.textColor,
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(16),
+              child: Image.memory(
+                imageBytes,
+                fit: BoxFit.contain,
+                gaplessPlayback: true,
+                filterQuality: FilterQuality.low,
               ),
             ),
           ),
-          const SizedBox(height: SkeletonSpacing.spacing),
-          const Text(
-            '아래 패널에서 프롬프트를 입력하고 생성 버튼을 눌러보세요',
-            style: TextStyle(
-              color: SkeletonColorScheme.textSecondaryColor,
-              fontSize: 14,
+        ),
+        const Positioned(
+          top: 126,
+          left: 16,
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              color: Color(0xB3000000),
+              borderRadius: BorderRadius.all(Radius.circular(20)),
+            ),
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  SizedBox(
+                    width: 13,
+                    height: 13,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.white,
+                    ),
+                  ),
+                  SizedBox(width: 8),
+                  Text(
+                    '생성 중',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
-        ],
+        ),
+      ],
+    );
+  }
+
+  // 빈 이미지 플레이스홀더 위젯
+  Widget _buildEmptyImagePlaceholder() {
+    return Center(
+      child: SingleChildScrollView(
+        physics: const BouncingScrollPhysics(),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(SkeletonSpacing.spacing),
+              decoration: BoxDecoration(
+                color: SkeletonColorScheme.surfaceColor.withValues(alpha: 0.3),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.image_outlined,
+                color: SkeletonColorScheme.primaryColor.withValues(alpha: 0.6),
+                size: 64,
+              ),
+            ),
+            const SizedBox(height: SkeletonSpacing.spacing),
+            Container(
+              padding: const EdgeInsets.symmetric(
+                  horizontal: SkeletonSpacing.spacing,
+                  vertical: SkeletonSpacing.smallSpacing),
+              decoration: BoxDecoration(
+                color: SkeletonColorScheme.surfaceColor.withValues(alpha: 0.3),
+                borderRadius:
+                    BorderRadius.circular(SkeletonSpacing.borderRadius),
+              ),
+              child: const Text(
+                '이미지를 생성하세요',
+                style: TextStyle(
+                  color: SkeletonColorScheme.textColor,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+            const SizedBox(height: SkeletonSpacing.spacing),
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 24.0),
+              child: Text(
+                '아래 패널에서 프롬프트를 입력하고 생성 버튼을 눌러보세요',
+                style: TextStyle(
+                  color: SkeletonColorScheme.textSecondaryColor,
+                  fontSize: 14,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -286,7 +431,8 @@ class HomeImageView extends GetView<HomeImageController> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   decoration: BoxDecoration(
                       color: SkeletonColorScheme.surfaceColor,
                       borderRadius: BorderRadius.circular(

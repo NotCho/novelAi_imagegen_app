@@ -64,61 +64,98 @@ class HomeMainPrompt extends StatelessWidget {
             vertical: SkeletonSpacing.smallSpacing,
             horizontal: SkeletonSpacing.smallSpacing),
         decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(SkeletonSpacing.borderRadius),
-          border: Border.all(color: color.withValues(alpha: 0.3)),
+          color: SkeletonColorScheme.cardColor.withValues(alpha: 0.45),
+          borderRadius: BorderRadius.circular(16.0),
+          border: Border.all(
+            color: color.withValues(alpha: 0.25),
+            width: 1.2,
+          ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.1),
-              blurRadius: 4,
-              offset: const Offset(0, 2),
+              color: Colors.black.withValues(alpha: 0.2),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+            BoxShadow(
+              color: color.withValues(alpha: 0.06),
+              blurRadius: 8,
+              spreadRadius: 1,
             ),
           ],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 타이틀 헤더
+            // 타이틀 헤더 (투명 배경에 세련된 요소 배치)
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
               decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.2),
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(SkeletonSpacing.borderRadius - 1),
-                  topRight: Radius.circular(SkeletonSpacing.borderRadius - 1),
+                border: Border(
+                  bottom: BorderSide(
+                    color: Colors.white.withValues(alpha: 0.08),
+                    width: 1.0,
+                  ),
                 ),
               ),
               child: Row(
                 children: [
-                  Icon(icon, color: color, size: 16),
+                  // 미니멀한 네온 도트 인디케이터
+                  Container(
+                    width: 6,
+                    height: 6,
+                    decoration: BoxDecoration(
+                      color: color,
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: color.withValues(alpha: 0.6),
+                          blurRadius: 4,
+                          spreadRadius: 1,
+                        ),
+                      ],
+                    ),
+                  ),
                   const SizedBox(width: 8),
+                  Icon(icon, color: color.withValues(alpha: 0.85), size: 15),
+                  const SizedBox(width: 6),
                   Text(
                     title,
                     style: TextStyle(
-                      color: color,
-                      fontWeight: FontWeight.bold,
+                      color: SkeletonColorScheme.textColor,
+                      fontWeight: FontWeight.w700,
                       fontSize: 12,
+                      letterSpacing: 0.2,
                     ),
                   ),
                   const Spacer(),
-                  Icon(Icons.edit, color: color, size: 16),
+                  const Icon(
+                    Icons.edit,
+                    color: SkeletonColorScheme.textSecondaryColor,
+                    size: 14,
+                  ),
                 ],
               ),
             ),
 
             // 입력 필드
             Padding(
-              padding: const EdgeInsets.all(12.0),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
               child: WildcardTextField(
                 enabled: false,
                 controller: controller,
                 highlightColor: color,
-                style: const TextStyle(color: SkeletonColorScheme.textColor),
+                style: const TextStyle(
+                  color: SkeletonColorScheme.textColor,
+                  fontSize: 13,
+                  height: 1.4,
+                ),
                 maxLines: 3,
                 decoration: InputDecoration(
                   hintText: hintText,
                   hintStyle: const TextStyle(
-                      color: SkeletonColorScheme.textSecondaryColor),
+                    color: SkeletonColorScheme.textSecondaryColor,
+                    fontSize: 13,
+                  ),
                   border: InputBorder.none,
                   contentPadding: EdgeInsets.zero,
                 ),

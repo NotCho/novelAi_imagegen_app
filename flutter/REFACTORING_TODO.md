@@ -230,8 +230,8 @@
 
 - [x] Phase 1: 자동 생성 로직 분리 ✅ 완료
 - [x] Phase 2: 이미지 로드 및 메타데이터 로직 분리 ✅ 완료
-- [ ] Phase 3: 프롬프트 및 캐릭터 관리 분리
-- [ ] Phase 4: 프리셋 관리 분리
-- [ ] Phase 5: HomePageController 슬림화
-- [ ] Phase 6: UI 레이어 업데이트
+- [x] Phase 3: 프롬프트 및 캐릭터 관리 분리 ✅ 완료
+- [x] Phase 4: 프리셋 관리 분리 ✅ 완료
+- [x] Phase 5: HomePageController 슬림화 ✅ 완료
+- [x] Phase 6: UI 레이어 업데이트 ✅ 완료
 - [ ] Phase 7: 최종 검증 및 정리

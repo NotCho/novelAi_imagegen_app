@@ -233,6 +233,7 @@ class ImagePageController extends SkeletonController {
   void onClose() {
     selectModeNotifier.dispose();
     scrollController.dispose(); // 스크롤 컨트롤러 정리
+    searchController.dispose(); // 검색 컨트롤러 정리
     // ValueNotifier들 안전하게 정리
     for (var notifier in itemSelectionNotifiers) {
       notifier.dispose();

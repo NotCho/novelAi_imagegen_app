@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:naiapp/application/home/home_setting_controller.dart';
+import 'package:naiapp/application/home/preset_controller.dart';
 
 import '../../application/home/home_page_controller.dart';
 import '../core/util/components.dart';
@@ -35,6 +36,7 @@ class HomeSetting extends GetView<HomePageController> {
 
   final HomeSettingController homeSettingController =
       Get.find<HomeSettingController>();
+  final PresetController presetController = Get.find<PresetController>();
 
   @override
   Widget build(BuildContext context) {
@@ -61,7 +63,7 @@ class HomeSetting extends GetView<HomePageController> {
                     vertical: 10,
                   ),
                   decoration: BoxDecoration(
-                    color: SkeletonColorScheme.cardColor,
+                    color: SkeletonColorScheme.cardColor.withValues(alpha: 0.6),
                     borderRadius: BorderRadius.circular(
                       SkeletonSpacing.borderRadius / 2,
                     ),
@@ -308,7 +310,7 @@ class HomeSetting extends GetView<HomePageController> {
             onPressed: () {
               final name = nameController.text.trim();
               if (name.isNotEmpty) {
-                controller.savePreset(name);
+                presetController.savePreset(name);
               }
             },
             child: const Text('저장'),
@@ -334,7 +336,7 @@ class HomeSetting extends GetView<HomePageController> {
         actions: [
           TextButton(onPressed: () => Get.back(), child: const Text('취소')),
           TextButton(
-            onPressed: () => controller.loadPreset(presetName),
+            onPressed: () => presetController.loadPreset(presetName),
             child: const Text('불러오기'),
           ),
         ],
@@ -360,7 +362,7 @@ class HomeSetting extends GetView<HomePageController> {
           TextButton(
             onPressed: () {
               Get.back();
-              controller.overwritePreset(presetName);
+              presetController.overwritePreset(presetName);
             },
             child: const Text('덮어쓰기'),
           ),
@@ -579,24 +581,49 @@ class HomeSetting extends GetView<HomePageController> {
                       decoration: InputDecoration(
                         labelText: '시드 값',
                         labelStyle: const TextStyle(
-                            color: SkeletonColorScheme.textSecondaryColor),
+                            color: SkeletonColorScheme.textSecondaryColor,
+                            fontSize: 12),
                         filled: true,
-                        fillColor: SkeletonColorScheme.cardColor,
+                        fillColor: SkeletonColorScheme.cardColor.withValues(alpha: 0.6),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(
                               SkeletonSpacing.borderRadius / 2),
                           borderSide: const BorderSide(
                               color: SkeletonColorScheme.surfaceColor),
                         ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(
+                              SkeletonSpacing.borderRadius / 2),
+                          borderSide: BorderSide(
+                            color: SkeletonColorScheme.surfaceColor
+                                .withValues(alpha: 0.5),
+                          ),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(
+                              SkeletonSpacing.borderRadius / 2),
+                          borderSide: const BorderSide(
+                            color: SkeletonColorScheme.primaryColor,
+                            width: 1.5,
+                          ),
+                        ),
                         contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 8),
-                        suffixIcon: IconButton(
-                          onPressed: () {
+                            horizontal: 12, vertical: 8),
+                        suffixIcon: GestureDetector(
+                          onTap: () {
                             controller
                                 .homeSettingController.seedController.text = "";
                           },
-                          icon: const Icon(Icons.refresh,
-                              color: SkeletonColorScheme.primaryColor),
+                          behavior: HitTestBehavior.opaque,
+                          child: const Icon(
+                            Icons.refresh,
+                            color: SkeletonColorScheme.primaryColor,
+                            size: 16,
+                          ),
+                        ),
+                        suffixIconConstraints: const BoxConstraints(
+                          minWidth: 36,
+                          minHeight: 36,
                         ),
                       ),
                       controller:
@@ -607,37 +634,43 @@ class HomeSetting extends GetView<HomePageController> {
                 const SizedBox(width: 16),
                 Obx(
                   () => Container(
-                    padding: const EdgeInsets.all(8),
+                    height: 44,
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
                     decoration: BoxDecoration(
-                      color: SkeletonColorScheme.primaryColor
-                          .withValues(alpha: 0.2),
+                      color: SkeletonColorScheme.cardColor.withValues(alpha: 0.6),
                       borderRadius: BorderRadius.circular(
                           SkeletonSpacing.borderRadius / 2),
+                      border: Border.all(
+                        color: SkeletonColorScheme.surfaceColor,
+                      ),
                     ),
-                    child: Column(
+                    child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         const Text(
                           '랜덤',
                           style: TextStyle(
-                            color: SkeletonColorScheme.textColor,
+                            color: SkeletonColorScheme.textSecondaryColor,
                             fontWeight: FontWeight.w500,
                             fontSize: 12,
                           ),
                         ),
-                        const SizedBox(height: 4),
-                        Switch(
-                          value:
-                              controller.homeSettingController.randomSeed.value,
-                          onChanged: (value) {
-                            controller.homeSettingController.randomSeed.value =
-                                value;
-                            controller
-                                .homeSettingController.seedController.text = '';
-                          },
-                          activeThumbColor: SkeletonColorScheme.primaryColor,
-                          activeTrackColor: SkeletonColorScheme.primaryColor
-                              .withValues(alpha: 0.3),
+                        const SizedBox(width: 4),
+                        Transform.scale(
+                          scale: 0.75,
+                          child: Switch(
+                            value:
+                                controller.homeSettingController.randomSeed.value,
+                            onChanged: (value) {
+                              controller.homeSettingController.randomSeed.value =
+                                  value;
+                              controller
+                                  .homeSettingController.seedController.text = '';
+                            },
+                            activeThumbColor: SkeletonColorScheme.primaryColor,
+                            activeTrackColor: SkeletonColorScheme.primaryColor
+                                .withValues(alpha: 0.3),
+                          ),
                         ),
                       ],
                     ),
@@ -650,12 +683,12 @@ class HomeSetting extends GetView<HomePageController> {
               title: "노이즈 스케줄러",
               icon: Icons.blur_circular,
               child: DropDownBuild(
-                value: controller.selectedNoiseSchedule.value,
+                value: controller.modelConfigController.selectedNoiseSchedule.value,
                 labelText: '노이즈 스케줄러',
-                items: controller.noiseScheduleOptions.toList(),
+                items: controller.modelConfigController.noiseScheduleOptions.toList(),
                 onChanged: (value) {
                   if (value != null) {
-                    controller.selectedNoiseSchedule.value = value;
+                    controller.modelConfigController.selectedNoiseSchedule.value = value;
                   }
                 },
               ))
@@ -701,7 +734,7 @@ class HomeSetting extends GetView<HomePageController> {
             fontSize: 12,
           ),
           filled: true,
-          fillColor: SkeletonColorScheme.cardColor,
+          fillColor: SkeletonColorScheme.cardColor.withValues(alpha: 0.6),
           border: OutlineInputBorder(
             borderRadius:
                 BorderRadius.circular(SkeletonSpacing.borderRadius / 2),
@@ -740,6 +773,14 @@ class HomeSetting extends GetView<HomePageController> {
     return PopupMenuButton(
         borderRadius: BorderRadius.circular(SkeletonSpacing.borderRadius / 2),
         color: SkeletonColorScheme.cardColor,
+        onOpened: () {
+          // 드롭다운이 열리는 즉시 기존 포커스를 풀어 키보드를 내립니다.
+          FocusScope.of(Get.context!).unfocus();
+        },
+        onCanceled: () {
+          // 그냥 취소하고 닫힐 때도 포커스가 텍스트필드로 회귀하는 것을 방지합니다.
+          FocusScope.of(Get.context!).unfocus();
+        },
         itemBuilder: (context) {
           return controller.homeSettingController.sizeOptions.entries
               .map((entry) => PopupMenuItem<String>(
@@ -753,6 +794,8 @@ class HomeSetting extends GetView<HomePageController> {
               .toList();
         },
         onSelected: (value) {
+          // 해상도를 선택한 순간에도 키보드가 절대 올라오지 않도록 차단합니다.
+          FocusScope.of(Get.context!).unfocus();
           if (controller.homeSettingController.sizeOptions.containsKey(value)) {
             final size = controller.homeSettingController.sizeOptions[value]!;
             controller.homeSettingController.xSizeController.text =
@@ -762,26 +805,32 @@ class HomeSetting extends GetView<HomePageController> {
           }
         },
         child: Container(
-          height: 50,
+          height: 44,
           decoration: BoxDecoration(
             color: SkeletonColorScheme.cardColor,
             borderRadius:
                 BorderRadius.circular(SkeletonSpacing.borderRadius / 2),
+            border: Border.all(
+              color: SkeletonColorScheme.surfaceColor,
+            ),
           ),
           child: const Row(
             mainAxisSize: MainAxisSize.max,
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Padding(
-                padding: EdgeInsets.all(12.0),
+                padding: EdgeInsets.symmetric(horizontal: 12),
                 child: Text(
                   '기본 해상도',
                   style: TextStyle(
-                      color: SkeletonColorScheme.textColor, fontSize: 14),
+                      color: SkeletonColorScheme.textSecondaryColor, fontSize: 12),
                 ),
               ),
-              Icon(Icons.arrow_drop_down,
-                  color: SkeletonColorScheme.textSecondaryColor),
+              Padding(
+                padding: EdgeInsets.only(right: 8),
+                child: Icon(Icons.arrow_drop_down,
+                    color: SkeletonColorScheme.textSecondaryColor),
+              ),
             ],
           ),
         ));
@@ -1015,7 +1064,7 @@ class HomeSetting extends GetView<HomePageController> {
                         color: SkeletonColorScheme.textSecondaryColor,
                         fontSize: 12),
                     filled: true,
-                    fillColor: SkeletonColorScheme.cardColor,
+                    fillColor: SkeletonColorScheme.cardColor.withValues(alpha: 0.6),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(
                           SkeletonSpacing.borderRadius / 2),
@@ -1041,7 +1090,7 @@ class HomeSetting extends GetView<HomePageController> {
                         color: SkeletonColorScheme.textSecondaryColor,
                         fontSize: 12),
                     filled: true,
-                    fillColor: SkeletonColorScheme.cardColor,
+                    fillColor: SkeletonColorScheme.cardColor.withValues(alpha: 0.6),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(
                           SkeletonSpacing.borderRadius / 2),

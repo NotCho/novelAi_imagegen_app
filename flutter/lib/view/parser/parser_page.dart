@@ -51,112 +51,107 @@ class ParserPage extends GetView<ParserPageController> {
   Widget _buildHeaderCard() {
     return Column(
       children: [
+        // 슬림한 계측기 느낌의 그라데이션 스케일 바
         Container(
-            padding: const EdgeInsets.all(SkeletonSpacing.smallSpacing),
-            decoration: BoxDecoration(
-              color: SkeletonColorScheme.surfaceColor.withValues(alpha: 0.3),
-              borderRadius: BorderRadius.circular(SkeletonSpacing.borderRadius),
-              border: Border.all(
-                color: SkeletonColorScheme.surfaceColor.withValues(alpha: 0.5),
-                width: 1,
-              ),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          decoration: BoxDecoration(
+            color: SkeletonColorScheme.cardColor,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: SkeletonColorScheme.surfaceColor,
+              width: 1.2,
             ),
-            // 그라데이션 컬러
-            child: Column(
-              children: [
-                const Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text("-10.0 (부정)",
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: SkeletonColorScheme.textSecondaryColor,
-                        )),
-                    Text("1.0 (기본)",
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: SkeletonColorScheme.textSecondaryColor,
-                        )),
-                    Text("10.0 (긍정)",
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: SkeletonColorScheme.textSecondaryColor,
-                        )),
-                  ],
-                ),
-                const SizedBox(height: SkeletonSpacing.smallSpacing),
-                Container(
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.15),
+                blurRadius: 8,
+                offset: const Offset(0, 3),
+              ),
+            ],
+          ),
+          child: Column(
+            children: [
+              const Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text("-10.0 (부정)",
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w600,
+                        color: SkeletonColorScheme.negativeColor,
+                      )),
+                  Text("1.0 (기본)",
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w600,
+                        color: SkeletonColorScheme.textSecondaryColor,
+                      )),
+                  Text("10.0 (긍정)",
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.blueAccent,
+                      )),
+                ],
+              ),
+              const SizedBox(height: 8),
+              // 아주 슬림한 그라데이션 라인
+              ClipRRect(
+                borderRadius: BorderRadius.circular(4),
+                child: Container(
+                  height: 6,
+                  width: double.infinity,
+                  decoration: const BoxDecoration(
+                    gradient: LinearGradient(
                       colors: [
                         SkeletonColorScheme.negativeColor,
                         SkeletonColorScheme.textSecondaryColor,
-                        Colors.blueAccent
+                        Colors.blueAccent,
                       ],
                       begin: Alignment.centerLeft,
                       end: Alignment.centerRight,
                     ),
-                    borderRadius:
-                        BorderRadius.circular(SkeletonSpacing.borderRadius),
-                  ),
-                  child: const Row(
-                    mainAxisSize: MainAxisSize.max,
-                    children: [Text(" ")],
                   ),
                 ),
-              ],
-            )
-            // child: Row(
-            //   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            //   children: [
-            //     _buildLegendItem(
-            //       SkeletonColorScheme.negativeColor,
-            //       "낮은 가중치",
-            //       "0.1~1.0",
-            //     ),
-            //     _buildLegendItem(
-            //       SkeletonColorScheme.textSecondaryColor,
-            //       "기본",
-            //       "1.0",
-            //     ),
-            //     _buildLegendItem(
-            //       Colors.blueAccent,
-            //       "높은 가중치",
-            //       "1.0~2.0",
-            //     ),
-            //   ],
-            // ),
-            ),
+              ),
+            ],
+          ),
+        ),
+        
+        // 프롬프트 변환 안내 카드
         Container(
-          margin: const EdgeInsets.symmetric(vertical: SkeletonSpacing.spacing),
-          padding: const EdgeInsets.all(SkeletonSpacing.spacing),
+          margin: const EdgeInsets.symmetric(vertical: 14),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           decoration: BoxDecoration(
             color: SkeletonColorScheme.cardColor,
-            borderRadius: BorderRadius.circular(SkeletonSpacing.borderRadius),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: SkeletonColorScheme.surfaceColor,
+              width: 1.2,
+            ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.1),
-                blurRadius: 4,
-                offset: const Offset(0, 2),
+                color: Colors.black.withValues(alpha: 0.2),
+                blurRadius: 8,
+                offset: const Offset(0, 4),
               ),
             ],
           ),
           child: Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(SkeletonSpacing.smallSpacing),
+                padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color:
-                      SkeletonColorScheme.primaryColor.withValues(alpha: 0.2),
+                  color: SkeletonColorScheme.primaryColor.withValues(alpha: 0.12),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(
-                  Icons.psychology,
+                  Icons.psychology_outlined,
                   color: SkeletonColorScheme.primaryColor,
                   size: 20,
                 ),
               ),
-              const SizedBox(width: SkeletonSpacing.spacing),
+              const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -164,17 +159,18 @@ class ParserPage extends GetView<ParserPageController> {
                     const Text(
                       "프롬프트 변환",
                       style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w800,
                         color: SkeletonColorScheme.textColor,
                       ),
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 2),
                     Text(
                       "${controller.parsedData.length}개의 태그가 감지되었습니다",
                       style: const TextStyle(
-                        fontSize: 12,
+                        fontSize: 11,
                         color: SkeletonColorScheme.textSecondaryColor,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                   ],
@@ -565,9 +561,11 @@ class ParserPage extends GetView<ParserPageController> {
   Widget _buildTagChip(dynamic tagData) {
     return Obx(() {
       final isHighlighted = controller.isTagHighlighted(tagData);
+      final weightColor = controller.getWeightColor(tagData.weight);
+      final isNeutral = tagData.weight == 1.0;
 
       return AnimatedContainer(
-        duration: const Duration(milliseconds: 300),
+        duration: const Duration(milliseconds: 250),
         child: GestureDetector(
           onTap: () {
             controller.currentTagController.text = tagData.text;
@@ -575,59 +573,67 @@ class ParserPage extends GetView<ParserPageController> {
           },
           child: Container(
             padding: const EdgeInsets.symmetric(
-              horizontal: SkeletonSpacing.smallSpacing,
+              horizontal: 10,
               vertical: 6,
             ),
             decoration: BoxDecoration(
-              color: controller.getWeightColor(tagData.weight),
-              borderRadius: BorderRadius.circular(10),
-              border: isHighlighted
-                  ? Border.all(
-                      color: Colors.yellowAccent,
-                      width: 1,
-                    )
-                  : Border.all(
-                      color: Colors.black45,
-                      width: 1,
-                    ),
+              color: SkeletonColorScheme.cardColor,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: isHighlighted
+                    ? Colors.yellowAccent.withValues(alpha: 0.9)
+                    : weightColor.withValues(alpha: 0.45),
+                width: isHighlighted ? 1.5 : 1.0,
+              ),
               boxShadow: [
                 BoxShadow(
                   color: isHighlighted
-                      ? Colors.yellowAccent.withValues(alpha: 0.5)
-                      : Colors.yellowAccent.withValues(alpha: 0),
-                  blurRadius: isHighlighted ? 10 : 6,
-                  offset: const Offset(0, 3),
+                      ? Colors.yellowAccent.withValues(alpha: 0.35)
+                      : (!isNeutral
+                          ? weightColor.withValues(alpha: 0.15)
+                          : Colors.black.withValues(alpha: 0.1)),
+                  blurRadius: isHighlighted ? 8 : 4,
+                  spreadRadius: isHighlighted ? 1 : 0,
+                  offset: const Offset(0, 2),
                 ),
               ],
             ),
-            child: Column(
+            child: Row(
               mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Text(
                   tagData.text,
                   style: TextStyle(
-                    fontSize: 10,
-                    fontWeight:
-                        isHighlighted ? FontWeight.w600 : FontWeight.w600,
-                    color: Colors.white,
+                    fontSize: 11,
+                    fontWeight: isHighlighted ? FontWeight.w700 : FontWeight.w600,
+                    color: SkeletonColorScheme.textColor,
                   ),
                   textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 2),
+                const SizedBox(width: 6),
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
                   decoration: BoxDecoration(
-                    color: Colors.white
-                        .withValues(alpha: isHighlighted ? 0.4 : 0.25),
+                    color: isNeutral
+                        ? SkeletonColorScheme.surfaceColor
+                        : weightColor.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: isNeutral
+                          ? SkeletonColorScheme.surfaceColor
+                          : weightColor.withValues(alpha: 0.25),
+                      width: 0.8,
+                    ),
                   ),
                   child: Text(
-                    "×${tagData.weight.toStringAsFixed(2)}",
-                    style: const TextStyle(
-                      fontSize: 8,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.white,
+                    "×${tagData.weight.toStringAsFixed(1)}",
+                    style: TextStyle(
+                      fontSize: 8.5,
+                      fontWeight: FontWeight.w700,
+                      color: isNeutral
+                          ? SkeletonColorScheme.textSecondaryColor
+                          : weightColor.withValues(alpha: 0.9),
                     ),
                   ),
                 ),
@@ -641,95 +647,91 @@ class ParserPage extends GetView<ParserPageController> {
 
   Widget _buildBottomSection() {
     return Container(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 20),
       decoration: BoxDecoration(
         color: SkeletonColorScheme.backgroundColor,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
-            blurRadius: 4,
-            offset: const Offset(0, -2),
+        border: const Border(
+          top: BorderSide(
+            color: SkeletonColorScheme.surfaceColor,
+            width: 1.0,
           ),
-        ],
+        ),
       ),
-      child: Column(
+      child: Row(
         children: [
-          // 범례 섹션
-          Container(
-            padding: const EdgeInsets.all(SkeletonSpacing.spacing),
-            child: ElevatedButton(
-              onPressed: () {
-                Get.dialog(_buildAddTagDialog());
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: SkeletonColorScheme.primaryColor,
-                foregroundColor: SkeletonColorScheme.textColor,
-                elevation: 2,
-                shape: RoundedRectangleBorder(
-                  borderRadius:
-                      BorderRadius.circular(SkeletonSpacing.borderRadius),
-                ),
-                shadowColor:
-                    SkeletonColorScheme.primaryColor.withValues(alpha: 0.3),
-              ),
-              child: const Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.add_circle_outline,
-                    size: 18,
-                    color: SkeletonColorScheme.textColor,
+          // 새 태그 추가 버튼
+          Expanded(
+            child: SizedBox(
+              height: 48,
+              child: ElevatedButton(
+                onPressed: () {
+                  Get.dialog(_buildAddTagDialog());
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: SkeletonColorScheme.surfaceColor,
+                  foregroundColor: SkeletonColorScheme.textColor,
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(24),
                   ),
-                  SizedBox(width: SkeletonSpacing.smallSpacing),
-                  Text(
-                    "새 태그 추가",
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
+                ),
+                child: const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.add_rounded,
+                      size: 18,
                       color: SkeletonColorScheme.textColor,
                     ),
-                  ),
-                ],
+                    SizedBox(width: 6),
+                    Text(
+                      "태그 추가",
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
-
+          const SizedBox(width: 12),
           // 파싱 완료 버튼
-          SizedBox(
-            width: double.infinity,
-            height: 48,
-            child: ElevatedButton(
-              onPressed: () {
-                controller.finishParsing();
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: SkeletonColorScheme.primaryColor,
-                foregroundColor: SkeletonColorScheme.textColor,
-                elevation: 2,
-                shape: RoundedRectangleBorder(
-                  borderRadius:
-                      BorderRadius.circular(SkeletonSpacing.borderRadius),
+          Expanded(
+            child: SizedBox(
+              height: 48,
+              child: ElevatedButton(
+                onPressed: () {
+                  controller.finishParsing();
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: SkeletonColorScheme.primaryColor,
+                  foregroundColor: Colors.white,
+                  elevation: 4,
+                  shadowColor: SkeletonColorScheme.primaryColor.withValues(alpha: 0.4),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(24),
+                  ),
                 ),
-                shadowColor:
-                    SkeletonColorScheme.primaryColor.withValues(alpha: 0.3),
-              ),
-              child: const Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.check_circle_outline,
-                    size: 18,
-                    color: SkeletonColorScheme.textColor,
-                  ),
-                  SizedBox(width: SkeletonSpacing.smallSpacing),
-                  Text(
-                    "파싱 완료",
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
-                      color: SkeletonColorScheme.textColor,
+                child: const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.done_all_rounded,
+                      size: 18,
+                      color: Colors.white,
                     ),
-                  ),
-                ],
+                    SizedBox(width: 6),
+                    Text(
+                      "파싱 완료",
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),

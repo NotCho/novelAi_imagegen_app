@@ -9,6 +9,8 @@ import 'package:image_picker/image_picker.dart';
 import 'package:naiapp/application/home/home_image_controller.dart';
 import 'package:naiapp/application/home/home_page_controller.dart';
 import 'package:naiapp/application/home/home_setting_controller.dart';
+import 'package:naiapp/application/home/model_config_controller.dart';
+import 'package:naiapp/application/home/prompt_controller.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:naiapp/view/core/util/app_snackbar.dart';
 
@@ -156,9 +158,9 @@ class ImageLoadController extends GetxController {
           }
 
           try {
-            final homePageController = Get.find<HomePageController>();
+            final modelConfigController = Get.find<ModelConfigController>();
             loadedImageModel = homeImageController.diffusionModelFromExifMap(
-                defaultModel: homePageController.usingModel.value,
+                defaultModel: modelConfigController.usingModel.value,
                 textChunks: textChunks);
           } catch (e) {
             loadImageStatus.value = "실패, 메타데이터 파싱불가: $e\n메타데이터: $metadata";
@@ -197,42 +199,43 @@ class ImageLoadController extends GetxController {
       return;
     }
 
-    final homePageController = Get.find<HomePageController>();
+    final modelConfigController = Get.find<ModelConfigController>();
+    final promptController = Get.find<PromptController>();
 
     // 선택된 내용만 적용하기
     if (loadImageOptions['긍정 프롬프트']!) {
-      homePageController.positivePromptController.text =
+      promptController.positivePromptController.text =
           loadedImageModel!.input;
     }
 
     if (loadImageOptions['부정 프롬프트']!) {
-      homePageController.negativePromptController.text =
+      promptController.negativePromptController.text =
           loadedImageModel!.parameters.v4_negative_prompt.caption.base_caption;
     }
 
     if (loadImageOptions['세팅']!) {
       // 세팅 관련 값 적용
-      homePageController.setModel(loadedImageModel!.model);
+      modelConfigController.setModel(loadedImageModel!.model);
       homeSettingController.samplingSteps.value =
           loadedImageModel!.parameters.steps;
 
       homeSettingController.setSettings(loadedImageModel!);
 
       // 노이즈 스케줄 설정
-      homePageController.selectedNoiseSchedule.value = homePageController
+      modelConfigController.selectedNoiseSchedule.value = modelConfigController
               .noiseScheduleOptions
               .contains(loadedImageModel!.parameters.noise_schedule)
           ? loadedImageModel!.parameters.noise_schedule
-          : homePageController.noiseScheduleOptions.first;
+          : modelConfigController.noiseScheduleOptions.first;
     }
 
     if (loadImageOptions['캐릭터']!) {
       // 캐릭터 프롬프트 적용
-      homePageController.characterPrompts.clear();
+      promptController.characterPrompts.clear();
       for (var i = 0;
           i < loadedImageModel!.parameters.characterPrompts.length;
           i++) {
-        homePageController.characterPrompts.add({
+        promptController.characterPrompts.add({
           'prompt': loadedImageModel!.parameters.characterPrompts[i],
           'positive': TextEditingController(
               text: loadedImageModel!.parameters.characterPrompts[i].prompt),
@@ -243,7 +246,8 @@ class ImageLoadController extends GetxController {
     }
 
     if (loadImageOptions['Vibe']! &&
-        homePageController.modelSupportsVibeTransfer(loadedImageModel!.model)) {
+        modelConfigController
+            .modelRequiresVibeEncoding(loadedImageModel!.model)) {
       homeImageController.loadVibeFromExif(loadedImageModel!);
     }
 
