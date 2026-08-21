@@ -7,6 +7,7 @@ import 'package:naiapp/domain/gen/tag_suggestion_model.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:archive/archive.dart';
 import 'package:dartz/dartz.dart';
+import 'package:msgpack_dart/msgpack_dart.dart' as msgpack;
 import '../../domain/gen/diffusion_model.dart';
 import '../../domain/gen/i_novelAI_repository.dart';
 import '../../domain/gen/v5_usage.dart';
@@ -60,7 +61,7 @@ class NovelAIRepository implements INovelAIRepository {
   @override
   Future<Either<String, String>> generateImage({
     required DiffusionModel setting,
-    void Function(String base64Image)? onIntermediateImage,
+    void Function(Uint8List imageBytes)? onIntermediateImage,
   }) async {
     final token = _getPersistentToken();
     if (token == null) return const Left('Persistent token이 설정되지 않았습니다.');
@@ -119,8 +120,8 @@ class NovelAIRepository implements INovelAIRepository {
     // print('Payload: ${jsonEncode(payload)}');
 
     if (_prefs.getBool(imageGenerationStreamingModePreferenceKey) ?? false) {
-      parameters['stream'] = 'sse';
-      return _generateImageStreaming(
+      parameters['stream'] = 'msgpack';
+      return _generateImageMessagePack(
         headers: headers,
         payload: payload,
         onIntermediateImage: onIntermediateImage,
@@ -149,17 +150,18 @@ class NovelAIRepository implements INovelAIRepository {
     }
   }
 
-  Future<Either<String, String>> _generateImageStreaming({
+  Future<Either<String, String>> _generateImageMessagePack({
     required Map<String, String> headers,
     required Map<String, dynamic> payload,
-    void Function(String base64Image)? onIntermediateImage,
+    void Function(Uint8List imageBytes)? onIntermediateImage,
   }) async {
     final correlationId = _newCorrelationId();
     final request = http.Request('POST', Uri.parse(_streamingImageUrl))
       ..headers.addAll({
         ...headers,
-        'accept': 'text/event-stream',
+        'accept': 'application/msgpack',
         'x-correlation-id': correlationId,
+        'x-initiated-at': DateTime.now().toUtc().toIso8601String(),
       })
       ..body = jsonEncode(payload);
 
@@ -174,59 +176,96 @@ class NovelAIRepository implements INovelAIRepository {
         );
       }
 
-      String? finalImage;
+      Uint8List? finalImage;
       String? streamError;
-      final eventData = StringBuffer();
 
-      void processEvent() {
-        if (eventData.isEmpty) return;
-        final rawData = eventData.toString();
-        eventData.clear();
-        if (rawData == '[DONE]') return;
-
+      void processFrame(Uint8List frame) {
         try {
-          final decoded = jsonDecode(rawData);
-          if (decoded is! Map<String, dynamic>) return;
+          final decoded = msgpack.deserialize(frame, copyBinaryData: true);
+          if (decoded is! Map) return;
 
           final eventType = decoded['event_type']?.toString();
-          final image = decoded['image'];
-          if (eventType == 'intermediate' && image is String) {
+          final image = _messagePackImageBytes(decoded['image']);
+          if (eventType == 'intermediate' && image != null) {
             try {
               onIntermediateImage?.call(image);
             } catch (_) {
               // A preview rendering failure must not cancel the generation.
             }
-          } else if (eventType == 'final' && image is String) {
+          } else if (eventType == 'final' && image != null) {
             finalImage = image;
           } else if (eventType == 'error') {
             streamError =
                 (decoded['message'] ?? decoded['error'])?.toString() ??
                     '스트리밍 생성 중 알 수 없는 오류가 발생했습니다.';
           }
-        } on FormatException {
-          streamError = '스트리밍 응답 형식이 올바르지 않습니다.';
+        } catch (error) {
+          streamError = '메시지팩 응답을 해석할 수 없습니다: $error';
         }
       }
 
-      final lines = response.stream
-          .transform(utf8.decoder)
-          .transform(const LineSplitter());
-      await for (final line in lines) {
-        if (line.isEmpty) {
-          processEvent();
-          continue;
+      final frameHeader = Uint8List(4);
+      var frameHeaderBytes = 0;
+      int? expectedFrameLength;
+      var framePayload = BytesBuilder(copy: false);
+
+      await for (final chunk in response.stream) {
+        final chunkBytes =
+            chunk is Uint8List ? chunk : Uint8List.fromList(chunk);
+        var offset = 0;
+        while (offset < chunkBytes.length) {
+          if (expectedFrameLength == null) {
+            final headerBytesToRead =
+                (4 - frameHeaderBytes).clamp(0, chunkBytes.length - offset);
+            frameHeader.setRange(
+              frameHeaderBytes,
+              frameHeaderBytes + headerBytesToRead,
+              chunkBytes,
+              offset,
+            );
+            frameHeaderBytes += headerBytesToRead;
+            offset += headerBytesToRead;
+            if (frameHeaderBytes < 4) continue;
+
+            final frameLength =
+                ByteData.sublistView(frameHeader).getUint32(0, Endian.big);
+            frameHeaderBytes = 0;
+            if (frameLength <= 0 || frameLength > 64 * 1024 * 1024) {
+              return Left(
+                '잘못된 메시지팩 프레임 크기입니다: $frameLength '
+                '(Correlation ID: $correlationId)',
+              );
+            }
+            expectedFrameLength = frameLength;
+          }
+
+          final payloadBytesToRead = (expectedFrameLength - framePayload.length)
+              .clamp(0, chunkBytes.length - offset);
+          framePayload.add(
+            Uint8List.sublistView(
+              chunkBytes,
+              offset,
+              offset + payloadBytesToRead,
+            ),
+          );
+          offset += payloadBytesToRead;
+
+          if (framePayload.length == expectedFrameLength) {
+            processFrame(framePayload.takeBytes());
+            framePayload = BytesBuilder(copy: false);
+            expectedFrameLength = null;
+          }
         }
-        if (!line.startsWith('data:')) continue;
-        if (eventData.isNotEmpty) eventData.writeln();
-        eventData.write(line.substring(5).trimLeft());
       }
-      processEvent();
 
       if (finalImage != null && finalImage!.isNotEmpty) {
-        return Right(finalImage!);
+        return Right(base64Encode(finalImage!));
       }
+      final hasIncompleteFrame = frameHeaderBytes > 0 ||
+          expectedFrameLength != null ||
+          framePayload.length > 0;
       return Left(
-        '${streamError ?? '스트림에 최종 이미지가 없습니다.'} '
+        '${streamError ?? (hasIncompleteFrame ? '완전하지 않은 메시지팩 프레임을 수신했습니다.' : '스트림에 최종 이미지가 없습니다.')} '
         '(Correlation ID: $correlationId)',
       );
     } catch (error) {
@@ -234,6 +273,12 @@ class NovelAIRepository implements INovelAIRepository {
         'Image streaming error: $error (Correlation ID: $correlationId)',
       );
     }
+  }
+
+  static Uint8List? _messagePackImageBytes(dynamic image) {
+    if (image is Uint8List) return image;
+    if (image is List<int>) return Uint8List.fromList(image);
+    return null;
   }
 
   @override

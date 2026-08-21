@@ -7,6 +7,7 @@ import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:image/image.dart' as img;
 import 'package:naiapp/application/home/home_image_controller.dart';
+import 'package:naiapp/application/home/image_generation_controller.dart';
 import 'package:naiapp/application/home/model_config_controller.dart';
 import 'package:naiapp/infra/gen/novelAI_repository.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -75,6 +76,7 @@ void main() {
       'nai-diffusion-5-curated',
     ]) {
       expect(ModelConfigController.supportedModelNames[model], isNotNull);
+      expect(ModelConfigController.isV5Model(model), isTrue);
       expect(
         ModelConfigController.supportsVibeTransferForModel(model),
         isTrue,
@@ -88,5 +90,31 @@ void main() {
         isTrue,
       );
     }
+
+    expect(ModelConfigController.isV5Model('nai-diffusion-4-5-full'), isFalse);
+  });
+
+  test('warns only when V5 generation includes Vibe images', () {
+    expect(
+      ImageGenerationController.shouldWarnV5VibeTransfer(
+        model: 'nai-diffusion-5-full',
+        hasVibeImages: true,
+      ),
+      isTrue,
+    );
+    expect(
+      ImageGenerationController.shouldWarnV5VibeTransfer(
+        model: 'nai-diffusion-5-curated',
+        hasVibeImages: false,
+      ),
+      isFalse,
+    );
+    expect(
+      ImageGenerationController.shouldWarnV5VibeTransfer(
+        model: 'nai-diffusion-4-5-full',
+        hasVibeImages: true,
+      ),
+      isFalse,
+    );
   });
 }

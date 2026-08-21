@@ -31,12 +31,6 @@ class V5Usage {
     return 3600 / timeUntilNextPercent;
   }
 
-  /// A standard V5 generation consumes one percentage point of the allowance.
-  double get refillGenerationsPerMinute {
-    if (timeUntilNextPercent <= 0) return 0;
-    return 60 / timeUntilNextPercent;
-  }
-
   Duration get timeUntilFull {
     if (timeUntilNextPercent <= 0) return Duration.zero;
 

@@ -9,6 +9,7 @@ import 'package:naiapp/domain/gen/diffusion_model.dart' as df;
 import 'package:naiapp/domain/gen/i_novelAI_repository.dart';
 import 'package:naiapp/domain/gen/v5_usage.dart';
 import 'package:naiapp/view/core/util/app_snackbar.dart';
+import 'package:naiapp/view/core/util/design_system.dart';
 import 'package:naiapp/application/home/home_image_controller.dart';
 import 'package:naiapp/application/home/home_setting_controller.dart';
 import 'package:naiapp/application/home/auto_generation_controller.dart';
@@ -35,6 +36,7 @@ class ImageGenerationController extends SkeletonController {
   final RxBool autoSave = false.obs;
   final RxInt anlasLeft = (-1).obs;
   final Rxn<V5Usage> v5Usage = Rxn<V5Usage>();
+  String? _acknowledgedV5VibeSignature;
 
   @override
   Future<bool> initLoading() async {
@@ -107,12 +109,94 @@ class ImageGenerationController extends SkeletonController {
     );
   }
 
+  static bool shouldWarnV5VibeTransfer({
+    required String model,
+    required bool hasVibeImages,
+  }) {
+    return ModelConfigController.isV5Model(model) && hasVibeImages;
+  }
+
+  Future<bool> _confirmV5VibeTransfer() async {
+    final model = modelConfigController.usingModel.value;
+    final vibes = homeImageController.vibeParseImageBytes;
+    if (!shouldWarnV5VibeTransfer(
+      model: model,
+      hasVibeImages: vibes.isNotEmpty,
+    )) {
+      _acknowledgedV5VibeSignature = null;
+      return true;
+    }
+
+    final signature = '$model:${vibes.map(identityHashCode).join(',')}';
+    if (_acknowledgedV5VibeSignature == signature) return true;
+
+    final shouldContinue = await Get.dialog<bool>(
+      AlertDialog(
+        backgroundColor: SkeletonColorScheme.cardColor,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(SkeletonSpacing.borderRadius),
+        ),
+        title: const Row(
+          children: [
+            Icon(Icons.warning_amber_rounded, color: Colors.orange, size: 24),
+            SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                'V5 Vibe Transfer 경고',
+                style: TextStyle(
+                  color: SkeletonColorScheme.textColor,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
+        ),
+        content: const Text(
+          'V5에서 Vibe Transfer를 사용하면 NovelAI 서버에서 생성 요청이 실패할 수 있습니다.\n\nVibe Transfer를 유지한 채 생성하시겠습니까?',
+          style: TextStyle(
+            color: SkeletonColorScheme.textColor,
+            fontSize: 13,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(result: false),
+            child: const Text(
+              '취소',
+              style: TextStyle(
+                color: SkeletonColorScheme.textSecondaryColor,
+              ),
+            ),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.orange,
+              foregroundColor: Colors.white,
+            ),
+            onPressed: () => Get.back(result: true),
+            child: const Text('그래도 생성'),
+          ),
+        ],
+      ),
+      barrierDismissible: false,
+    );
+
+    if (shouldContinue == true) {
+      _acknowledgedV5VibeSignature = signature;
+      return true;
+    }
+    return false;
+  }
+
   void generateImage() async {
     String positiveDef = posMap[modelConfigController.usingModel.value] ?? '';
     diffusionModelBuilder.updateQualityTags(
         positiveDef, diffusionModelBuilder.negativeDef);
 
     if (isGenerating.value) return;
+
+    if (!await _confirmV5VibeTransfer()) return;
 
     homeSettingController.validateResolutionBeforeGenerate();
 
@@ -137,19 +221,14 @@ class ImageGenerationController extends SkeletonController {
     DateTime lastPreviewUpdate = DateTime.fromMillisecondsSinceEpoch(0);
     final result = await _novelAIRepository.generateImage(
       setting: setting,
-      onIntermediateImage: (base64Image) {
+      onIntermediateImage: (imageBytes) {
         final now = DateTime.now();
         if (now.difference(lastPreviewUpdate) <
             const Duration(milliseconds: 250)) {
           return;
         }
-        try {
-          homeImageController.streamingPreviewBytes.value =
-              base64Decode(base64Image);
-          lastPreviewUpdate = now;
-        } on FormatException {
-          // Ignore a malformed intermediate frame; the final event can succeed.
-        }
+        homeImageController.streamingPreviewBytes.value = imageBytes;
+        lastPreviewUpdate = now;
       },
     );
     result.fold(

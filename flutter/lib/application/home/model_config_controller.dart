@@ -46,6 +46,10 @@ class ModelConfigController extends SkeletonController {
         model.startsWith('nai-diffusion-5');
   }
 
+  static bool isV5Model(String model) {
+    return model.startsWith('nai-diffusion-5');
+  }
+
   /// V3 Vibe Transfer accepts a normalized source image in the generation
   /// payload. V4 and newer models require an encode-vibe request first.
   bool modelRequiresVibeEncoding(String model) {
@@ -67,6 +71,8 @@ class ModelConfigController extends SkeletonController {
   }
 
   bool get supportsVibeTransfer => modelSupportsVibeTransfer(usingModel.value);
+
+  bool get isV5 => isV5Model(usingModel.value);
 
   bool get requiresVibeEncoding => modelRequiresVibeEncoding(usingModel.value);
 

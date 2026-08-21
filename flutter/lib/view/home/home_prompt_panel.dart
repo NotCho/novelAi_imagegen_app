@@ -234,7 +234,7 @@ class HomePromptPanel extends StatelessWidget {
             final imageGenerationController =
                 controller.imageGenerationController;
             final usage = imageGenerationController.v5Usage.value;
-            final refillRate = usage?.refillGenerationsPerMinute ?? 0;
+            final refillPercentPerHour = usage?.refillPercentPerHour ?? 0;
 
             return Column(
               mainAxisSize: MainAxisSize.min,
@@ -251,9 +251,9 @@ class HomePromptPanel extends StatelessWidget {
                     letterSpacing: 0.2,
                   ),
                 ),
-                if (usage != null && refillRate > 0)
+                if (usage != null && refillPercentPerHour > 0)
                   Text(
-                    '${_formatRefillRate(refillRate)}장/분 '
+                    '시간당 ${_formatRefillRate(refillPercentPerHour)}% 충전 '
                     '(${usage.minutesUntilFull}분 후 100%)',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
