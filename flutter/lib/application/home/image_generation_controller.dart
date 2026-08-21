@@ -137,19 +137,14 @@ class ImageGenerationController extends SkeletonController {
     DateTime lastPreviewUpdate = DateTime.fromMillisecondsSinceEpoch(0);
     final result = await _novelAIRepository.generateImage(
       setting: setting,
-      onIntermediateImage: (base64Image) {
+      onIntermediateImage: (imageBytes) {
         final now = DateTime.now();
         if (now.difference(lastPreviewUpdate) <
             const Duration(milliseconds: 250)) {
           return;
         }
-        try {
-          homeImageController.streamingPreviewBytes.value =
-              base64Decode(base64Image);
-          lastPreviewUpdate = now;
-        } on FormatException {
-          // Ignore a malformed intermediate frame; the final event can succeed.
-        }
+        homeImageController.streamingPreviewBytes.value = imageBytes;
+        lastPreviewUpdate = now;
       },
     );
     result.fold(

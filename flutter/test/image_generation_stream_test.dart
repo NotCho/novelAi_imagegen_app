@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
@@ -6,65 +7,78 @@ import 'package:http/testing.dart';
 import 'package:naiapp/domain/gen/diffusion_model.dart';
 import 'package:naiapp/domain/gen/i_novelAI_repository.dart';
 import 'package:naiapp/infra/gen/novelAI_repository.dart';
+import 'package:msgpack_dart/msgpack_dart.dart' as msgpack;
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  test('streams intermediate images and returns only the final image',
+  test('decodes chunked MessagePack previews and returns only the final image',
       () async {
     SharedPreferences.setMockInitialValues({
       'NOVEL_AI_PERSISTENT_TOKEN': 'pst-test-token',
       imageGenerationStreamingModePreferenceKey: true,
     });
     final prefs = await SharedPreferences.getInstance();
-    final intermediateImage = base64Encode([1, 2, 3]);
-    final finalImage = base64Encode([4, 5, 6]);
+    final intermediateImage = Uint8List.fromList([1, 2, 3]);
+    final finalImage = Uint8List.fromList([4, 5, 6]);
+    final streamBytes = BytesBuilder(copy: false)
+      ..add(_messagePackFrame({
+        'event_type': 'intermediate',
+        'samp_ix': 0,
+        'step_ix': 4,
+        'gen_id': 1,
+        'sigma': 1.0,
+        'image': intermediateImage,
+      }))
+      ..add(_messagePackFrame({
+        'event_type': 'final',
+        'samp_ix': 0,
+        'step_ix': 28,
+        'gen_id': 1,
+        'sigma': 0.0,
+        'image': finalImage,
+      }));
+    final responseBytes = streamBytes.takeBytes();
 
-    final client = MockClient((request) async {
+    final client = MockClient.streaming((request, bodyStream) async {
       expect(request.method, 'POST');
       expect(request.url.path, '/ai/generate-image-stream');
       expect(request.headers['authorization'], 'Bearer pst-test-token');
-      expect(request.headers['accept'], 'text/event-stream');
+      expect(request.headers['accept'], 'application/msgpack');
       expect(request.headers['x-correlation-id'], matches(r'^[a-z0-9]{6}$'));
+      expect(DateTime.tryParse(request.headers['x-initiated-at']!), isNotNull);
 
-      final body = jsonDecode(request.body) as Map<String, dynamic>;
+      final requestBytes = await bodyStream.toBytes();
+      final body =
+          jsonDecode(utf8.decode(requestBytes)) as Map<String, dynamic>;
       final parameters = body['parameters'] as Map<String, dynamic>;
-      expect(parameters['stream'], 'sse');
+      expect(parameters['stream'], 'msgpack');
 
-      return http.Response(
-        'data: ${jsonEncode({
-              'event_type': 'intermediate',
-              'samp_ix': 0,
-              'step_ix': 4,
-              'gen_id': 1,
-              'sigma': 1.0,
-              'image': intermediateImage,
-            })}\n\n'
-        'data: ${jsonEncode({
-              'event_type': 'final',
-              'samp_ix': 0,
-              'step_ix': 28,
-              'gen_id': 1,
-              'sigma': 0.0,
-              'image': finalImage,
-            })}\n\n',
+      return http.StreamedResponse(
+        Stream<List<int>>.fromIterable([
+          responseBytes.sublist(0, 2),
+          responseBytes.sublist(2, 11),
+          responseBytes.sublist(11, responseBytes.length - 3),
+          responseBytes.sublist(responseBytes.length - 3),
+        ]),
         200,
-        headers: {'content-type': 'text/event-stream'},
+        headers: {'content-type': 'application/msgpack'},
       );
     });
     final repository = NovelAIRepository(httpClient: client, prefs: prefs);
-    final previews = <String>[];
+    final previews = <Uint8List>[];
 
     final result = await repository.generateImage(
       setting: _testSetting(),
       onIntermediateImage: previews.add,
     );
 
-    expect(previews, [intermediateImage]);
+    expect(previews, hasLength(1));
+    expect(previews.single, orderedEquals(intermediateImage));
     result.fold(
       (error) => fail(error),
-      (image) => expect(image, finalImage),
+      (image) => expect(image, base64Encode(finalImage)),
     );
   });
 
@@ -91,6 +105,14 @@ void main() {
       (_) => fail('The rejected regular request must not succeed.'),
     );
   });
+}
+
+Uint8List _messagePackFrame(Map<String, dynamic> event) {
+  final payload = msgpack.serialize(event);
+  final frame = Uint8List(4 + payload.length);
+  ByteData.sublistView(frame).setUint32(0, payload.length, Endian.big);
+  frame.setRange(4, frame.length, payload);
+  return frame;
 }
 
 DiffusionModel _testSetting() {

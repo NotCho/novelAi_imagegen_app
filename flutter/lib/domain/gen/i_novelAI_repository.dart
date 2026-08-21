@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:naiapp/application/home/home_image_controller.dart';
 import 'package:naiapp/domain/gen/diffusion_model.dart';
 import 'package:dartz/dartz.dart';
@@ -11,7 +13,7 @@ const String imageGenerationStreamingModePreferenceKey =
 abstract class INovelAIRepository {
   Future<Either<String, String>> generateImage({
     required DiffusionModel setting,
-    void Function(String base64Image)? onIntermediateImage,
+    void Function(Uint8List imageBytes)? onIntermediateImage,
   });
 
   Future<Either<String, List<String>>> generateImageVariations(String imageId);
